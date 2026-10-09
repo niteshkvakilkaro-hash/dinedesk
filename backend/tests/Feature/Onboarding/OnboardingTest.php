@@ -33,7 +33,7 @@ class OnboardingTest extends TestCase
             ->assertJsonPath('data.tenant.plan.code', 'growth')
             ->assertJsonPath('data.tenant.subscription.status', 'trialing')
             ->assertJsonPath('data.role', 'owner')
-            ->assertJsonPath('data.next', 'dashboard');
+            ->assertJsonPath('data.next', 'onboarding');
 
         $tenant = Tenant::where('slug', 'the-hungry-haveli')->firstOrFail();
         $this->assertSame('08ABCDE1234F1Z5', $tenant->gstin);

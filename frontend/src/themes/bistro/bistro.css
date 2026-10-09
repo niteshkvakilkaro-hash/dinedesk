@@ -1,0 +1,17 @@
+.theme-bistro h1,
+.theme-bistro h2,
+.theme-bistro h3.serif {
+  font-family: var(--t-font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.theme-bistro .mono {
+  font-family: var(--t-font-mono);
+  letter-spacing: 0.02em;
+}
+.theme-bistro :focus-visible {
+  outline-color: var(--t-primary);
+}
+.theme-bistro .rule {
+  border-color: var(--t-line);
+}

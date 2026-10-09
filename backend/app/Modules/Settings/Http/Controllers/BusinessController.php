@@ -40,6 +40,9 @@ class BusinessController extends Controller
         if ($request->has('opening_hours')) {
             $rules += OpeningHours::rules();
         }
+        if ($request->has('holidays')) {
+            $rules += OpeningHours::holidayRules();
+        }
         $data = $request->validate($rules, ['gstin.regex' => 'Enter a valid 15-character GSTIN or leave it empty.']);
 
         $fields = array_intersect_key($data, array_flip(['name', 'city', 'gstin', 'timezone']));
@@ -52,6 +55,9 @@ class BusinessController extends Controller
 
         if (isset($data['opening_hours'])) {
             $this->settings->set('opening_hours', OpeningHours::normalize($data['opening_hours']));
+        }
+        if (isset($data['holidays'])) {
+            $this->settings->set('holidays', OpeningHours::normalizeHolidays($data['holidays']));
         }
 
         AuditLog::record('business.updated', $tenant, ['fields' => array_keys($data)]);
@@ -70,6 +76,7 @@ class BusinessController extends Controller
             'gstin' => $tenant->gstin,
             'timezone' => $tenant->timezone,
             'opening_hours' => $this->settings->get('opening_hours'),
+            'holidays' => $this->settings->get('holidays', []),
         ];
     }
 }

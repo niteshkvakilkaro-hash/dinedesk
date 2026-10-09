@@ -24,7 +24,8 @@
     "remove": "Remove",
     "add": "Add",
     "edit": "Edit",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "opensInNewTab": "opens in a new tab"
   },
   "roles": {
     "owner": "Owner",
@@ -182,7 +183,9 @@
     "nav": {
       "overview": "Overview",
       "team": "Team",
-      "business": "Business details"
+      "business": "Business details",
+      "website": "Website",
+      "gallery": "Gallery"
     },
     "welcome": "Namaste, {{name}}",
     "demoBanner": "This is a demo business. Its data is sample content.",
@@ -225,7 +228,10 @@
     "business": {
       "title": "Business details",
       "saved": "Business details saved."
-    }
+    },
+    "setupPending": "To do",
+    "siteLive": "Live",
+    "customiseSite": "Customise website"
   },
   "platform": {
     "title": "Super admin",
@@ -289,16 +295,264 @@
     }
   },
   "site": {
-    "comingSoonTitle": "Our new website is on its way",
-    "comingSoonText": "{{name}} is setting up online ordering and table bookings here. Please check back soon.",
+    "comingSoonTitle": "Coming soon",
+    "comingSoonText": "{{name}}'s new website is almost ready. Please check back soon.",
     "openNow": "Open now",
     "closedNow": "Closed",
     "until": "until {{time}}",
     "opensAt": "opens {{time}}",
     "hours": "Opening hours",
-    "demoNotice": "This is a demo business on DineDesk.",
+    "demoNotice": "Demo website — the menu, prices and text are sample content, not a real business.",
     "notFoundTitle": "No restaurant here yet",
     "notFoundText": "There is no business at this address.",
-    "poweredBy": "Powered by DineDesk"
+    "poweredBy": "Powered by DineDesk",
+    "nav": {
+      "home": "Home",
+      "menu": "Menu",
+      "about": "About",
+      "gallery": "Gallery",
+      "contact": "Contact"
+    },
+    "mainNav": "Main",
+    "footerNav": "Footer",
+    "menuOpen": "Menu",
+    "menuClose": "Close",
+    "skipToContent": "Skip to content",
+    "skipIntro": "Skip intro",
+    "reduceMotion": "Reduce motion",
+    "reduceMotionSystem": "Your device is already set to reduce motion.",
+    "closedToday": "Closed today",
+    "holiday": "Holiday",
+    "today": "today",
+    "holidaysTitle": "Upcoming closures",
+    "foodType": {
+      "veg": "Vegetarian",
+      "non_veg": "Non-vegetarian",
+      "egg": "Contains egg"
+    },
+    "spice_one": "Mildly spicy",
+    "spice_other": "Spice level {{count}} of 3",
+    "directions": "Get directions",
+    "call": "Call",
+    "email": "Email",
+    "whatsappHello": "Hello {{name}}!",
+    "previousPhoto": "Previous photo",
+    "nextPhoto": "Next photo",
+    "openPhoto": "Open photo: {{alt}}",
+    "viewMenu": "View menu",
+    "fullMenu": "See the full menu",
+    "ourStory": "Our story",
+    "readStory": "Read our story",
+    "fromKitchen": "From the kitchen",
+    "specialsTitle": "Chef's picks & bestsellers",
+    "menuPreviewTitle": "On the menu",
+    "galleryTitle": "A look inside",
+    "seeGallery": "See all photos",
+    "visitTitle": "Come and visit",
+    "findUs": "Find us",
+    "whenOpen": "When we're open",
+    "contactTitle": "Get in touch",
+    "vegOnly": "Veg only",
+    "bestseller": "Bestseller",
+    "chefsSpecial": "Chef's special",
+    "unavailable": "Not available today",
+    "sampleMenu": "Sample menu (Demo) — the owner hasn't added their own dishes yet.",
+    "noMenu": "The menu will appear here soon.",
+    "noVeg": "No vegetarian dishes in this menu yet.",
+    "noGallery": "No photos yet.",
+    "noStory": "{{name}} hasn't written their story yet.",
+    "noDescription": "No description yet.",
+    "milestonesTitle": "Milestones",
+    "categories": "Menu sections",
+    "allPhotos": "All",
+    "galleryCat": {
+      "food": "Food",
+      "interior": "Interior",
+      "events": "Events"
+    },
+    "filterPhotos": "Filter photos",
+    "coverAlt": "{{name}}",
+    "dishesCount": "Dishes",
+    "categoriesCount": "Sections",
+    "vegCount": "Veg dishes",
+    "hoverPreview": "Hover a dish to see it",
+    "tapToExpand": "Tap a dish for details"
+  },
+  "website": {
+    "title": "Website",
+    "subtitle": "Theme, colours, photos and the words on your site.",
+    "tabs": {
+      "design": "Design",
+      "images": "Logo & cover",
+      "content": "Content"
+    },
+    "chooseTheme": "Choose a theme",
+    "chooseThemeHint": "Each theme has its own look and its own way of moving.",
+    "themeHints": {
+      "haveli": "Royal Rajasthani: carved doors, gold and maroon.",
+      "bistro": "Modern café: magazine layout, calm and precise.",
+      "street": "Loud street food: stickers, bold colour, bounce."
+    },
+    "colorsTitle": "Your colours",
+    "colorsHint": "Optional. Leave empty to use the theme's colours.",
+    "primary_color": "Primary colour",
+    "accent_color": "Accent colour",
+    "hexCode": "{{field}} hex code",
+    "resetColor": "Use theme colour",
+    "colorHint": {
+      "primary_color": "Used for buttons with white text.",
+      "accent_color": "Used for highlights and decoration."
+    },
+    "contrastWarn": {
+      "primary_color": "Hard to read: white text on this colour is {{ratio}}:1 (needs {{required}}:1 for WCAG AA). Try a darker shade.",
+      "accent_color": "Hard to read: this accent gives {{ratio}}:1 contrast (needs {{required}}:1 for WCAG AA)."
+    },
+    "sectionsTitle": "Home page sections",
+    "sectionsHint": "Reorder or hide sections. Sections with nothing to show (no photos yet, for example) stay hidden automatically.",
+    "sections": {
+      "hero": "Welcome banner",
+      "specials": "Chef's picks & bestsellers",
+      "story": "Our story",
+      "menu_preview": "Menu preview",
+      "gallery": "Photo gallery",
+      "hours": "Opening hours",
+      "visit": "Find us"
+    },
+    "alwaysFirst": "Always first",
+    "hideSection": "Hide {{section}}",
+    "showSection": "Show {{section}}",
+    "moveUp": "Move {{section}} up",
+    "moveDown": "Move {{section}} down",
+    "livePreview": "Live preview",
+    "previewDevice": "Preview size",
+    "desktop": "Desktop",
+    "mobile": "Mobile",
+    "unsaved": "Unsaved changes",
+    "saved": "Website saved.",
+    "upload": {
+      "logo": "Logo",
+      "cover": "Cover photo",
+      "logoHint": "Square works best. JPG, PNG or WebP up to {{mb}} MB.",
+      "coverHint": "A wide photo of your food or place. JPG, PNG or WebP up to {{mb}} MB.",
+      "choose": "Upload",
+      "replace": "Replace",
+      "removed": "Image removed.",
+      "done": {
+        "logo": "Logo updated.",
+        "cover": "Cover photo updated."
+      },
+      "type": "Please choose a JPG, PNG or WebP image.",
+      "size": "Images must be smaller than {{mb}} MB.",
+      "realPhotos": "Use your own photos. Images are converted to fast-loading WebP automatically."
+    },
+    "content": {
+      "truthful": "Write only what is true about your business. Leave a field empty rather than guessing: empty fields simply don't appear on your site.",
+      "storyTitle": "Tagline & story",
+      "tagline": "Tagline",
+      "about": "About your business",
+      "milestones": "Milestones",
+      "milestonesHint": "Optional moments from your story, e.g. the year you opened.",
+      "milestoneN": "Milestone {{n}}",
+      "year": "Year",
+      "milestoneTitle": "What happened",
+      "milestoneText": "More detail",
+      "addMilestone": "Add milestone",
+      "removeMilestone": "Remove milestone {{n}}",
+      "contactTitle": "Contact details",
+      "phone": "Phone",
+      "email": "Email",
+      "whatsappConfirm": "I confirm customers can reach this number on WhatsApp (it is only shown once ticked).",
+      "whatsappInvalid": "Enter a 10-digit Indian mobile number.",
+      "mapUrl": "Google Maps link",
+      "mapHint": "In Google Maps: Share → Copy link.",
+      "address": "Address",
+      "socialTitle": "Social links",
+      "social": {
+        "instagram": "Instagram",
+        "facebook": "Facebook",
+        "youtube": "YouTube",
+        "google_maps": "Google Business profile"
+      },
+      "seoTitle": "Search engines",
+      "seoHint": "The short description Google may show under your name. Up to 160 characters.",
+      "seoDescription": "Description",
+      "httpsOnly": "Use a full link starting with https://",
+      "required": "Required."
+    }
+  },
+  "gallery": {
+    "title": "Gallery",
+    "subtitle": "{{count}} of {{max}} photos",
+    "add": "Add photo",
+    "addTitle": "Add a photo",
+    "editTitle": "Edit photo",
+    "alt": "Describe the photo",
+    "altHint": "Read aloud to visitors who can't see it, e.g. \"Paneer tikka on a brass plate\".",
+    "altRequired": "Describe the photo in a few words.",
+    "caption": "Caption",
+    "category": "Category",
+    "added": "Photo added.",
+    "updated": "Photo updated.",
+    "removed": "Photo removed.",
+    "realOnly": "Only upload photos of your own food and place.",
+    "empty": "No photos yet",
+    "emptyHint": "Your gallery page appears on the website once you add the first photo.",
+    "moveEarlier": "Move \"{{alt}}\" earlier",
+    "moveLater": "Move \"{{alt}}\" later",
+    "edit": "Edit \"{{alt}}\"",
+    "remove": "Remove \"{{alt}}\"",
+    "removeConfirm": "Remove this photo from your website?"
+  },
+  "holidays": {
+    "title": "Holiday closures",
+    "hint": "Days you're closed all day. Your website shows \"Closed today\" on these dates.",
+    "date": "Date",
+    "label": "Reason",
+    "placeholder": "e.g. Diwali",
+    "remove": "Remove closure on {{date}}",
+    "past_one": "{{count}} past closure kept for your records.",
+    "past_other": "{{count}} past closures kept for your records."
+  },
+  "setup": {
+    "step4": {
+      "title": "Pick your website's theme",
+      "subtitle": "Try each one: the preview below is your real site."
+    },
+    "step5": {
+      "title": "Make it yours",
+      "subtitle": "Add your logo, adjust colours and a short tagline. All optional.",
+      "tagline": "Tagline (English)",
+      "taglineHi": "Tagline (हिन्दी)",
+      "taglineHint": "One line about you, e.g. \"Rajasthani thalis since 1998\"."
+    },
+    "step6": {
+      "title": "Your menu",
+      "subtitle": "You'll manage dishes, prices and photos in the menu manager.",
+      "sample": "Start with a sample menu",
+      "sampleHint": "A few example dishes, clearly labelled \"Demo\" on your site until you replace them.",
+      "skip": "Skip for now",
+      "skipHint": "Your menu page stays hidden until you add dishes.",
+      "later": "Full menu management (categories, photos, prices, availability) arrives in the next release."
+    },
+    "step7": {
+      "title": "Choose your address and go live",
+      "subtitle": "This is where customers will find you.",
+      "address": "Website address",
+      "hint": "Lowercase letters, numbers and hyphens.",
+      "checking": "Checking…",
+      "available": "{{host}} is available",
+      "useSuggestion": "Taken — use {{slug}} instead?",
+      "note": "You can connect your own domain later (Growth plan and above).",
+      "goLive": "Go live"
+    },
+    "live": {
+      "title": "You're live!",
+      "text": "{{name}}'s website is now public.",
+      "qrAlt": "QR code linking to {{url}}",
+      "qrHint": "Print this on table tents and bills.",
+      "open": "Open my website",
+      "downloadQr": "Download QR",
+      "dashboard": "Go to dashboard"
+    }
   }
 }

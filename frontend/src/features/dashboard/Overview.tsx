@@ -1,17 +1,21 @@
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'motion/react';
-import { Check, Clock, ExternalLink, Lock } from 'lucide-react';
-import { useSession } from '@/hooks/useSession';
+import { Link } from 'react-router';
+import { Check, Clock, ExternalLink, Lock, Palette } from 'lucide-react';
+import { useCan, useSession } from '@/hooks/useSession';
 import { daysUntil } from '@/lib/format';
 import { tenantSiteUrl } from '@/lib/host';
 import { Badge } from '@/components/ui';
 
 const SETUP = ['account', 'type', 'details', 'theme', 'branding', 'menu', 'live'] as const;
+// Where each finished step can be revisited.
+const EDIT: Partial<Record<(typeof SETUP)[number], string>> = { details: '/dashboard/business', theme: '/dashboard/website', branding: '/dashboard/website' };
 
 export default function Overview() {
   const { t } = useTranslation();
   const reduce = useReducedMotion();
   const { data: session } = useSession();
+  const canTheme = useCan('theme.manage');
   if (!session?.tenant) return null;
   const tenant = session.tenant;
   const trialDays = tenant.subscription?.status === 'trialing' ? daysUntil(tenant.subscription.trial_ends_at) : null;
@@ -44,14 +48,22 @@ export default function Overview() {
           </h2>
           <ol className="mt-4 space-y-2">
             {SETUP.map((key, i) => {
-              const done = i + 1 < tenant.onboarding_step;
+              const done = tenant.status !== 'onboarding' || i + 1 < tenant.onboarding_step;
+              const edit = EDIT[key];
               return (
                 <li key={key} className="flex items-center gap-3 rounded-xl px-1 py-1.5">
                   <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${done ? 'bg-success text-white' : 'bg-paper text-muted'}`}>
                     {done ? <Check className="h-4 w-4" aria-hidden="true" /> : i + 1}
                   </span>
                   <span className={`flex-1 ${done ? 'text-muted line-through decoration-muted/40' : 'font-semibold'}`}>{t(`onboarding.steps.${key}`)}</span>
-                  <span className="text-xs font-semibold text-muted">{done ? t('dashboard.setupDone') : t('dashboard.setupNext')}</span>
+                  {done && edit ? (
+                    <Link to={edit} className="text-xs font-semibold text-brand-strong underline underline-offset-2">
+                      {t('common.edit')}
+                      <span className="sr-only"> {t(`onboarding.steps.${key}`)}</span>
+                    </Link>
+                  ) : (
+                    <span className="text-xs font-semibold text-muted">{done ? t('dashboard.setupDone') : t('dashboard.setupPending')}</span>
+                  )}
                 </li>
               );
             })}
@@ -63,10 +75,24 @@ export default function Overview() {
             {t('dashboard.yourSite')}
           </h2>
           <p className="mt-2 break-all font-mono text-sm">{tenant.site_host}</p>
-          {tenant.status === 'onboarding' && <p className="mt-2 text-sm text-muted">{t('dashboard.siteStatusOnboarding')}</p>}
+          {tenant.status === 'onboarding' ? (
+            <p className="mt-2 text-sm text-muted">{t('dashboard.siteStatusOnboarding')}</p>
+          ) : (
+            tenant.status === 'live' && (
+              <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-success">
+                <span className="h-2 w-2 rounded-full bg-success" aria-hidden="true" />
+                {t('dashboard.siteLive')}
+              </p>
+            )
+          )}
           <a href={siteUrl} target="_blank" rel="noopener noreferrer" className="btn-outline mt-4 w-full">
             {t('dashboard.openSite')} <ExternalLink className="h-4 w-4" aria-hidden="true" />
           </a>
+          {canTheme && (
+            <Link to="/dashboard/website" className="btn-ghost mt-2 w-full">
+              <Palette className="h-4 w-4" aria-hidden="true" /> {t('dashboard.customiseSite')}
+            </Link>
+          )}
         </motion.section>
       </div>
 

@@ -33,6 +33,15 @@ return [
         'dev_echo' => (bool) env('OTP_DEV_ECHO', false),
     ],
 
+    // Uploads become WebP at these widths (never upscaled) plus a blur placeholder.
+    'images' => [
+        'widths' => [480, 960, 1600],
+        'quality' => 80,
+        'max_kb' => 8192,
+    ],
+
+    'gallery_max_images' => 60,
+
     'super_admin' => [
         'email' => env('SUPER_ADMIN_EMAIL', 'owner@example.com'),
         'password' => env('SUPER_ADMIN_PASSWORD'),

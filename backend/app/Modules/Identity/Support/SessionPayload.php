@@ -20,6 +20,8 @@ final class SessionPayload
         $next = match (true) {
             $user->is_platform_admin => 'platform',
             ! $tenant => 'onboarding',
+            // Steps 4–7 (theme, branding, menu, go live) are the owner's to finish.
+            $tenant->status === 'onboarding' && $user->tenantRole() === 'owner' => 'onboarding',
             default => 'dashboard',
         };
 

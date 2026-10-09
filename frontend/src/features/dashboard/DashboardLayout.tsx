@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, LayoutDashboard, LogOut, Users } from 'lucide-react';
+import { Building2, Globe, Images, LayoutDashboard, LogOut, Users } from 'lucide-react';
 import { useCan, useSession, useSignOut } from '@/hooks/useSession';
 import { Alert, DemoBadge } from '@/components/ui';
 import { LanguageToggle, Logo } from '@/components/Brand';
@@ -11,10 +11,13 @@ export default function DashboardLayout() {
   const signOut = useSignOut();
   const canStaff = useCan('staff.manage');
   const canBusiness = useCan('business.manage');
+  const canTheme = useCan('theme.manage');
   const tenant = session?.tenant;
 
   const nav = [
     { to: '/dashboard', label: t('dashboard.nav.overview'), icon: LayoutDashboard, end: true, show: true },
+    { to: '/dashboard/website', label: t('dashboard.nav.website'), icon: Globe, show: canTheme },
+    { to: '/dashboard/gallery', label: t('dashboard.nav.gallery'), icon: Images, show: canTheme },
     { to: '/dashboard/team', label: t('dashboard.nav.team'), icon: Users, show: canStaff },
     { to: '/dashboard/business', label: t('dashboard.nav.business'), icon: Building2, show: canBusiness },
   ].filter((n) => n.show);
@@ -73,10 +76,10 @@ export default function DashboardLayout() {
         <ul className="flex">
           {nav.map(({ to, label, icon: Icon, end }) => (
             <li key={to} className="flex-1">
-              <NavLink to={to} end={end} className={({ isActive }) => `flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold ${isActive ? 'text-ink' : 'text-muted'}`}>
+              <NavLink to={to} end={end} className={({ isActive }) => `flex h-16 flex-col items-center justify-center gap-1 truncate px-0.5 text-[11px] font-semibold ${isActive ? 'text-ink' : 'text-muted'}`}>
                 {({ isActive }) => (
                   <>
-                    <span className={`flex h-8 w-14 items-center justify-center rounded-full ${isActive ? 'bg-ink/10' : ''}`}>
+                    <span className={`flex h-8 w-12 items-center justify-center rounded-full ${isActive ? 'bg-ink/10' : ''}`}>
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </span>
                     {label}

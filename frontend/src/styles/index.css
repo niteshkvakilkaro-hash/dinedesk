@@ -49,6 +49,21 @@
   --radius-card: var(--dd-radius);
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
   --ease-dd: var(--dd-ease);
+
+  /* Website themes (values set per site from src/themes/<theme>/tokens.ts). */
+  --color-t-bg: var(--t-bg);
+  --color-t-surface: var(--t-surface);
+  --color-t-text: var(--t-text);
+  --color-t-muted: var(--t-muted);
+  --color-t-primary: var(--t-primary);
+  --color-t-on-primary: var(--t-on-primary);
+  --color-t-accent: var(--t-accent);
+  --color-t-on-accent: var(--t-on-accent);
+  --color-t-line: var(--t-line);
+  --font-display: var(--t-font-display);
+  --font-body: var(--t-font-body);
+  --font-tmono: var(--t-font-mono);
+  --radius-t: var(--t-radius);
 }
 
 @layer base {
@@ -126,4 +141,19 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+[data-reduce-motion] *,
+[data-reduce-motion] *::before,
+[data-reduce-motion] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Paused loops (off screen or background tab). */
+[data-paused='true'],
+[data-paused='true'] * {
+  animation-play-state: paused !important;
 }

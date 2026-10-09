@@ -7,6 +7,18 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>DineDesk</title>
     <meta name="description" content="DineDesk: websites, online ordering and restaurant management for Indian restaurants, cafes and hotels." />
+    <script>
+      // A business website starts fetching its data while the app downloads (saves a round trip).
+      (function () {
+        var d = '%VITE_PLATFORM_DOMAIN%', api = '%VITE_API_URL%', h = location.hostname;
+        if (d.charAt(0) === '%') d = 'localhost';
+        if (api.charAt(0) === '%') api = '';
+        if ([d, 'app.' + d, 'www.' + d, '127.0.0.1'].indexOf(h) !== -1) return;
+        window.__ddSite = fetch(api.replace(/\/$/, '') + '/api/v1/site', { headers: { Accept: 'application/json', 'X-Tenant-Host': location.host } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

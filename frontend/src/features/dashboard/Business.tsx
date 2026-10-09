@@ -5,6 +5,8 @@ import { api, ApiError } from '@/lib/api';
 import { GSTIN_REGEX } from '@/lib/format';
 import { Alert, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
 import { HoursEditor, validateHours } from '@/components/HoursEditor';
+import { HolidaysEditor } from '@/components/HolidaysEditor';
+import type { Holiday } from '@/lib/openStatus';
 import type { BusinessType, DayKey, OpeningHours } from '@/types';
 
 interface BusinessDetails {
@@ -14,6 +16,7 @@ interface BusinessDetails {
   gstin: string | null;
   timezone: string;
   opening_hours: OpeningHours;
+  holidays: Holiday[];
 }
 
 export default function Business() {
@@ -30,7 +33,7 @@ export default function Business() {
   }, [query.data]);
 
   const save = useMutation({
-    mutationFn: (body: BusinessDetails) => api.put<BusinessDetails>('/tenant/business', { name: body.name, city: body.city, gstin: body.gstin || null, opening_hours: body.opening_hours }),
+    mutationFn: (body: BusinessDetails) => api.put<BusinessDetails>('/tenant/business', { name: body.name, city: body.city, gstin: body.gstin || null, opening_hours: body.opening_hours, holidays: body.holidays }),
     onSuccess: (res) => {
       toast.success(t('dashboard.business.saved'));
       qc.setQueryData(['business'], res.data);
@@ -75,6 +78,9 @@ export default function Business() {
           </Field>
         </div>
         <HoursEditor value={form.opening_hours} onChange={(opening_hours) => setForm({ ...form, opening_hours })} errors={hourErrors} />
+      </div>
+      <div className="card p-5">
+        <HolidaysEditor value={form.holidays ?? []} onChange={(holidays) => setForm({ ...form, holidays })} />
       </div>
       <div className="flex justify-end">
         <button type="submit" className="btn-primary" disabled={save.isPending}>

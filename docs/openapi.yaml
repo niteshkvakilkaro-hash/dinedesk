@@ -1,14 +1,18 @@
 openapi: 3.1.0
 info:
   title: DineDesk API
-  version: 1.0.0-phase1
+  version: 1.0.0-phase2
   description: |
     Multi-tenant restaurant & hotel platform. All endpoints live under `/api/v1`.
 
     **Envelope.** Every response is `{ data, message, errors, meta }`. Errors carry a stable
     `meta.code` (e.g. `validation`, `unauthenticated`, `forbidden`, `tenant_not_found`,
     `tenant_mismatch`, `onboarding_required`, `plan_limit`, `feature_unavailable`,
-    `tenant_suspended`, `tenant_read_only`, `otp_invalid`, `otp_locked`, `otp_wait`, `throttled`).
+    `tenant_suspended`, `tenant_read_only`, `otp_invalid`, `otp_locked`, `otp_wait`, `throttled`,
+    `already_live`, `steps_incomplete`, `slug_unavailable`, `gallery_full`, `invalid_ids`).
+
+    **SEO files.** `GET /robots.txt` and `GET /sitemap.xml` (web routes, not under /api) are per business,
+    chosen by host. Unpublished, demo and suspended sites are `Disallow: /` and have no sitemap.
 
     **Tenancy.** Public website endpoints resolve the business from the host the visitor is on.
     Browsers send it in `X-Tenant-Host` (the SPA always does); otherwise the request `Host` is used.
@@ -23,6 +27,7 @@ tags:
   - name: Onboarding
   - name: Public site
   - name: Business (dashboard)
+  - name: Website (dashboard)
   - name: Plans
   - name: Platform (super admin)
 components:
@@ -91,6 +96,77 @@ components:
         features: { type: object, additionalProperties: { type: boolean } }
         limits: { type: object, additionalProperties: { type: [integer, 'null'] } }
         next: { type: string, enum: [onboarding, dashboard, platform] }
+    Image:
+      type: [object, 'null']
+      description: Uploaded image, converted to WebP (480/960/1600 px, never upscaled) with a blur placeholder.
+      properties:
+        src: { type: string }
+        srcset: { type: string, example: '/storage/tenants/01J…/gallery/01J…-480.webp 480w, …' }
+        width: { type: integer }
+        height: { type: integer }
+        placeholder: { type: [string, 'null'], description: tiny base64 WebP }
+    Holiday:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        label: { type: [string, 'null'], example: Diwali }
+    Sections:
+      type: array
+      description: Home page sections in display order (the hero is always first and not listed).
+      items:
+        type: object
+        properties:
+          key: { type: string, enum: [specials, story, menu_preview, gallery, hours, visit] }
+          visible: { type: boolean }
+    ThemeSettings:
+      type: object
+      properties:
+        key: { type: string, enum: [haveli, bistro, street] }
+        primary_color: { type: [string, 'null'], example: '#641E16', description: null = theme default }
+        accent_color: { type: [string, 'null'] }
+        logo: { $ref: '#/components/schemas/Image' }
+        cover: { $ref: '#/components/schemas/Image' }
+        sections: { $ref: '#/components/schemas/Sections' }
+    SiteContent:
+      type: object
+      description: Owner-written text. Empty fields are null and simply not shown; nothing is ever generated.
+      properties:
+        tagline: { type: [string, 'null'] }
+        tagline_hi: { type: [string, 'null'] }
+        about: { type: [string, 'null'] }
+        about_hi: { type: [string, 'null'] }
+        milestones:
+          type: array
+          items: { type: object, properties: { year: { type: string }, title: { type: string }, title_hi: { type: [string, 'null'] }, text: { type: [string, 'null'] }, text_hi: { type: [string, 'null'] } } }
+        contact:
+          type: object
+          properties:
+            phone: { type: [string, 'null'] }
+            whatsapp: { type: [string, 'null'], description: 'Public endpoints return it only once the owner has confirmed it (whatsapp_verified)' }
+            whatsapp_verified: { type: boolean, description: dashboard only }
+            email: { type: [string, 'null'] }
+            address: { type: [string, 'null'] }
+            map_url: { type: [string, 'null'], description: https only }
+        socials: { type: object, properties: { instagram: { type: [string, 'null'] }, facebook: { type: [string, 'null'] }, youtube: { type: [string, 'null'] }, google_maps: { type: [string, 'null'] } } }
+        seo: { type: object, properties: { description: { type: [string, 'null'], maxLength: 160 }, description_hi: { type: [string, 'null'] } } }
+    ContrastWarning:
+      type: object
+      description: Returned in meta.warnings; colours are still saved (the owner decides).
+      properties:
+        field: { type: string, enum: [primary_color, accent_color] }
+        ratio: { type: number, example: 1.2 }
+        required: { type: number, example: 4.5 }
+        message: { type: string }
+    GalleryItem:
+      type: object
+      properties:
+        id: { type: integer }
+        image: { $ref: '#/components/schemas/Image' }
+        alt_text: { type: string }
+        caption: { type: [string, 'null'] }
+        category: { type: string, enum: [food, interior, events] }
+        sort_order: { type: integer }
+        is_demo: { type: boolean }
     AuthResult:
       type: object
       properties:
@@ -218,10 +294,63 @@ paths:
         '201': { description: 'Created; returns the new session', content: { application/json: { schema: { $ref: '#/components/schemas/Session' } } } }
         '409': { description: Already has a business (`already_onboarded`) }
         '422': { description: Validation error }
+  /onboarding/theme:
+    put:
+      tags: [Onboarding]
+      security: [{ bearer: [] }]
+      summary: Step 4 — choose the theme (owner)
+      requestBody: { content: { application/json: { schema: { type: object, required: [theme], properties: { theme: { type: string, enum: [haveli, bistro, street] } } } } } }
+      responses:
+        '200': { description: 'Session (onboarding_step ≥ 5). Steps only move forward; earlier steps can be revisited.' }
+  /onboarding/branding:
+    put:
+      tags: [Onboarding]
+      security: [{ bearer: [] }]
+      summary: Step 5 — colours and tagline (logo via /tenant/website/images/logo)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                primary_color: { type: [string, 'null'], pattern: '^#[0-9A-Fa-f]{6}$' }
+                accent_color: { type: [string, 'null'], pattern: '^#[0-9A-Fa-f]{6}$' }
+                tagline: { type: [string, 'null'], maxLength: 140 }
+                tagline_hi: { type: [string, 'null'], maxLength: 140 }
+      responses:
+        '200': { description: 'Session (step ≥ 6); meta.warnings = ContrastWarning[]' }
+  /onboarding/menu:
+    post:
+      tags: [Onboarding]
+      security: [{ bearer: [] }]
+      summary: Step 6 — start with a sample menu (flagged is_demo, shown as "Demo") or skip
+      requestBody: { content: { application/json: { schema: { type: object, required: [mode], properties: { mode: { type: string, enum: [sample, skip] } } } } } }
+      responses:
+        '200': { description: Session (step ≥ 7). Idempotent; a sample is never added on top of an existing menu. }
+  /onboarding/subdomain:
+    get:
+      tags: [Onboarding]
+      security: [{ bearer: [] }]
+      summary: Step 7 — check a subdomain
+      parameters: [{ name: slug, in: query, required: true, schema: { type: string } }]
+      responses:
+        '200':
+          description: 'Rules: 3–40 chars, a–z 0–9 and single hyphens, not at the ends, not reserved, not taken (your own current slug is fine).'
+          content: { application/json: { schema: { type: object, properties: { slug: { type: string }, host: { type: string }, available: { type: boolean }, message: { type: [string, 'null'] }, suggestion: { type: [string, 'null'] } } } } }
+  /onboarding/go-live:
+    post:
+      tags: [Onboarding]
+      security: [{ bearer: [] }]
+      summary: Step 7 — set the subdomain and publish
+      requestBody: { content: { application/json: { schema: { type: object, required: [slug], properties: { slug: { type: string } } } } } }
+      responses:
+        '200': { description: 'Session with status live, onboarding_step 8, next = dashboard. Audited (tenant.went_live, tenant.slug_changed).' }
+        '409': { description: '`already_live` or `steps_incomplete`' }
+        '422': { description: '`slug_unavailable` (errors.slug)' }
   /site:
     get:
       tags: [Public site]
-      summary: Public info for the business at this host
+      summary: Everything the public website needs for the business at this host
       parameters: [{ $ref: '#/components/parameters/TenantHost' }]
       responses:
         '200':
@@ -233,20 +362,52 @@ paths:
                 properties:
                   name: { type: string }
                   business_type: { type: string }
-                  city: { type: string }
+                  city: { type: [string, 'null'] }
                   status: { type: string }
-                  is_live: { type: boolean }
+                  is_live: { type: boolean, description: Unpublished sites are shown to visitors as "coming soon" }
                   is_demo: { type: boolean }
                   timezone: { type: string }
+                  theme: { $ref: '#/components/schemas/ThemeSettings' }
+                  content: { $ref: '#/components/schemas/SiteContent' }
                   opening_hours: { $ref: '#/components/schemas/OpeningHours' }
+                  holidays: { type: array, items: { $ref: '#/components/schemas/Holiday' }, description: upcoming closures (max 10) }
                   open_status:
-                    type: object
+                    type: [object, 'null']
                     properties:
                       is_open: { type: boolean }
                       closes_at: { type: [string, 'null'] }
                       opens_at: { type: [string, 'null'] }
                       today: { type: string }
+                      timezone: { type: string }
+                      holiday: { oneOf: [{ $ref: '#/components/schemas/Holiday' }, { type: 'null' }] }
+                  has_menu: { type: boolean }
+                  has_gallery: { type: boolean }
+                  features: { type: object, properties: { online_ordering: { type: boolean }, reservations: { type: boolean } } }
+                  seo:
+                    type: object
+                    properties:
+                      title: { type: string }
+                      description: { type: string, description: 'Owner SEO text, else tagline, else built from name/type/city' }
+                      description_hi: { type: [string, 'null'] }
+                      canonical: { type: string }
+                      image: { type: [string, 'null'] }
+                      indexable: { type: boolean, description: live and not demo }
         '404': { description: '`tenant_not_found` or `tenant_unavailable` (suspended)' }
+  /site/menu:
+    get:
+      tags: [Public site]
+      summary: Active categories with their dishes (empty categories omitted)
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }]
+      responses:
+        '200':
+          description: 'Array of { id, name, name_hi, slug, is_demo, items[] }; item = { id, name, name_hi, description, description_hi, price ("280.00"), food_type (veg|non_veg|egg), spice_level 0–3, allergens[], is_available, is_bestseller, is_chefs_special, image (Image), is_demo }'
+  /site/gallery:
+    get:
+      tags: [Public site]
+      summary: Gallery photos in the owner's order
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GalleryItem' } } } } }
   /tenant/staff:
     get:
       tags: [Business (dashboard)]
@@ -319,9 +480,121 @@ paths:
                 gstin: { type: [string, 'null'] }
                 timezone: { type: string }
                 opening_hours: { $ref: '#/components/schemas/OpeningHours' }
+                holidays: { type: array, maxItems: 60, items: { $ref: '#/components/schemas/Holiday' }, description: 'Whole-day closures; the site shows "Closed today"' }
       responses:
         '200': { description: Saved }
         '403': { description: '`tenant_read_only` while billing is unresolved' }
+  /tenant/website:
+    get:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Theme settings + content (permission `theme.manage`, feature `website`)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  theme: { $ref: '#/components/schemas/ThemeSettings' }
+                  content: { $ref: '#/components/schemas/SiteContent' }
+                  warnings: { type: array, items: { $ref: '#/components/schemas/ContrastWarning' } }
+                  themes: { type: array, items: { type: object }, description: catalogue with default colours }
+                  site_url: { type: string }
+  /tenant/website/theme:
+    put:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Theme, colours and home section order/visibility
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                theme: { type: string, enum: [haveli, bistro, street] }
+                primary_color: { type: [string, 'null'] }
+                accent_color: { type: [string, 'null'] }
+                sections: { $ref: '#/components/schemas/Sections' }
+      responses:
+        '200': { description: 'Saved; meta.warnings = ContrastWarning[] (below WCAG AA, saved anyway)' }
+        '422': { description: Unknown theme / bad hex / unknown section }
+  /tenant/website/content:
+    put:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Tagline, story, milestones, contact, socials, SEO (markup is stripped)
+      requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/SiteContent' } } } }
+      responses:
+        '200': { description: Saved }
+        '422': { description: 'Validation (e.g. WhatsApp must be an Indian mobile, links must be https)' }
+  /tenant/website/images/{slot}:
+    parameters: [{ name: slot, in: path, required: true, schema: { type: string, enum: [logo, cover] } }]
+    post:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Upload logo or cover (JPG/PNG/WebP ≤ 8 MB, ≥ 200×200); replaces the old files
+      requestBody: { content: { multipart/form-data: { schema: { type: object, required: [image], properties: { image: { type: string, format: binary } } } } } }
+      responses:
+        '200': { description: Saved }
+        '422': { description: 'Wrong type, too small or too large' }
+    delete:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Remove logo or cover (files deleted)
+      responses:
+        '200': { description: Removed }
+  /tenant/gallery:
+    get:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Gallery photos (meta.max = limit, default 60)
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GalleryItem' } } } } }
+    post:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Add a photo (alt text required)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, alt_text]
+              properties:
+                image: { type: string, format: binary }
+                alt_text: { type: string, minLength: 3, maxLength: 200 }
+                caption: { type: string }
+                category: { type: string, enum: [food, interior, events] }
+      responses:
+        '201': { description: Created }
+        '422': { description: 'Validation or `gallery_full`' }
+  /tenant/gallery/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    put:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Edit alt text, caption, category
+      responses:
+        '200': { description: Saved }
+        '404': { description: Not in your business }
+    delete:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Remove a photo (files deleted)
+      responses:
+        '200': { description: Removed }
+        '404': { description: Not in your business }
+  /tenant/gallery/order:
+    put:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Reorder photos
+      requestBody: { content: { application/json: { schema: { type: object, required: [ids], properties: { ids: { type: array, items: { type: integer } } } } } } }
+      responses:
+        '200': { description: Saved }
+        '422': { description: '`invalid_ids` (an id that is not yours)' }
   /plans:
     get:
       tags: [Plans]

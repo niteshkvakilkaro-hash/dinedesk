@@ -13,6 +13,7 @@ use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Models\TenantDomain;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Modules\Tenancy\Support\TenantResolver;
+use App\Modules\Website\Models\ThemeSetting;
 use App\Support\ApiException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -77,6 +78,7 @@ class CreateBusiness
                 $owner->assignRole(Roles::OWNER);
 
                 $this->settings->set('opening_hours', OpeningHours::normalize($data['opening_hours']));
+                ThemeSetting::current();
 
                 AuditLog::record('tenant.created', $tenant, ['business_type' => $tenant->business_type, 'trial_plan' => $plan->code]);
             });

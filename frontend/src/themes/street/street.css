@@ -1,0 +1,41 @@
+.theme-street h1,
+.theme-street h2,
+.theme-street h3.display {
+  font-family: var(--t-font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+}
+.theme-street :focus-visible {
+  outline: 3px solid var(--t-text);
+  outline-offset: 3px;
+}
+
+/* 2.5px ink borders + hard offset shadow, the Street signature. */
+.street-box {
+  border: 2.5px solid var(--t-line);
+  box-shadow: 5px 5px 0 #141414;
+  border-radius: var(--t-radius);
+}
+.street-box-sm {
+  border: 2.5px solid var(--t-line);
+  box-shadow: 3px 3px 0 #141414;
+  border-radius: 10px;
+}
+
+/* Angled marquee: CSS transform loop, paused off screen ([data-paused]) or with reduced motion. */
+.street-marquee-track {
+  animation: street-marquee var(--street-marquee-speed, 28s) linear infinite;
+}
+.street-marquee-track.reverse {
+  animation-direction: reverse;
+}
+@keyframes street-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.street-sticker-art {
+  filter: drop-shadow(0 0 0 #fff) drop-shadow(3px 3px 0 #141414);
+}
