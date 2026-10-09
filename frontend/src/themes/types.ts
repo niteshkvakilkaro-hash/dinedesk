@@ -53,6 +53,19 @@ export interface ThemeModule {
   loadHindiFonts?: () => Promise<unknown>;
   /** Font faces (CSS font shorthand) to have ready before the first paint. */
   fonts?: string[];
+  /** Class names that make the shared cart, checkout and tracking UI match the theme. */
+  skin: OrderSkin;
+}
+
+export interface OrderSkin {
+  heading: string; // page and dialog titles
+  primary: string; // main buttons (theme primary, white text)
+  secondary: string; // outline buttons
+  card: string; // panels
+  input: string; // text fields
+  chip: string; // small toggles (order type, options); add aria-pressed / checked styles via [aria-pressed=true]
+  /** Optional celebration when something is added (Street: chilli confetti + cart bounce). */
+  onAdd?: (origin: { x: number; y: number }) => void;
 }
 
 export interface ThemeDefinition {

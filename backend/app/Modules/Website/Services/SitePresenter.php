@@ -3,6 +3,9 @@
 namespace App\Modules\Website\Services;
 
 use App\Modules\Menu\Models\MenuCategory;
+use App\Modules\Menu\Services\MenuPresenter;
+use App\Modules\Ordering\Models\DeliveryZone;
+use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Settings\Support\OpeningHours;
@@ -32,6 +35,7 @@ class SitePresenter
         $holidays = (array) $this->settings->get('holidays', []);
         $content = $this->content->forPublic();
         $host = $this->primaryHost($tenant);
+        $hasMenu = MenuCategory::where('is_active', true)->whereHas('items')->exists();
 
         return [
             'name' => $tenant->name,
@@ -46,8 +50,9 @@ class SitePresenter
             'opening_hours' => $hours,
             'holidays' => OpeningHours::upcomingHolidays($holidays, $tenant->timezone),
             'open_status' => $hours ? OpeningHours::status($hours, $tenant->timezone, null, $holidays) : null,
-            'has_menu' => MenuCategory::where('is_active', true)->whereHas('items')->exists(),
+            'has_menu' => $hasMenu,
             'has_gallery' => GalleryImage::exists(),
+            'ordering' => $this->ordering($tenant, $hasMenu),
             'features' => [
                 'online_ordering' => $this->features->enabled($tenant, 'online_ordering'),
                 'reservations' => $this->features->enabled($tenant, 'reservations'),
@@ -76,41 +81,43 @@ class SitePresenter
         ];
     }
 
+    /** Active categories with their dishes; each dish carries its variants and add-on groups. */
     public function menu(): array
     {
-        return MenuCategory::where('is_active', true)
-            ->with(['items' => fn ($q) => $q->select([
-                'id', 'menu_category_id', 'name', 'name_hi', 'description', 'description_hi', 'price', 'food_type',
-                'spice_level', 'allergens', 'is_available', 'is_bestseller', 'is_chefs_special', 'image', 'is_demo',
-            ])])
-            ->orderBy('sort_order')->orderBy('id')
-            ->get()
-            ->filter(fn ($c) => $c->items->isNotEmpty())
-            ->map(fn (MenuCategory $c) => [
-                'id' => $c->id,
-                'name' => $c->name,
-                'name_hi' => $c->name_hi,
-                'slug' => $c->slug,
-                'is_demo' => $c->is_demo,
-                'items' => $c->items->map(fn ($i) => [
-                    'id' => $i->id,
-                    'name' => $i->name,
-                    'name_hi' => $i->name_hi,
-                    'description' => $i->description,
-                    'description_hi' => $i->description_hi,
-                    'price' => $i->price,
-                    'food_type' => $i->food_type,
-                    'spice_level' => $i->spice_level,
-                    'allergens' => $i->allergens ?? [],
-                    'is_available' => $i->is_available,
-                    'is_bestseller' => $i->is_bestseller,
-                    'is_chefs_special' => $i->is_chefs_special,
-                    'image' => $this->images->present($i->image),
-                    'is_demo' => $i->is_demo,
-                ])->values(),
-            ])
-            ->values()
-            ->all();
+        $menu = app(MenuPresenter::class)->public();
+        $groups = collect($menu['addon_groups'])->keyBy('id');
+
+        return array_map(function (array $c) use ($groups) {
+            $c['items'] = collect($c['items'])->map(function (array $i) use ($groups) {
+                $i['addon_groups'] = collect($i['addon_group_ids'])->map(fn ($id) => $groups->get($id))->filter()->values();
+                unset($i['addon_group_ids'], $i['category_id']);
+
+                return $i;
+            })->values();
+
+            return $c;
+        }, $menu['categories']);
+    }
+
+    /** How this business takes orders right now (what the cart and checkout may offer). */
+    public function ordering(Tenant $tenant, bool $hasMenu): array
+    {
+        $ordering = app(OrderingSettings::class);
+        $s = $ordering->get();
+        $types = array_keys(array_filter($s['types']));
+
+        return [
+            'enabled' => $hasMenu && $s['accepting_orders'] && $types && $this->features->enabled($tenant, 'online_ordering'),
+            'types' => $types,
+            'payment_methods' => collect($types)->mapWithKeys(fn ($t) => [$t => $ordering->methodsFor($t, $s)])->all(),
+            'scheduling' => $s['scheduling'],
+            'prep_minutes' => $s['prep_minutes'],
+            'delivery_minutes' => $s['delivery_minutes'],
+            'packaging_fee' => number_format((float) $s['packaging_fee'], 2, '.', ''),
+            'prices_include_tax' => $s['prices_include_tax'],
+            'default_tax_rate' => $s['default_tax_rate'],
+            'has_delivery_zones' => DeliveryZone::where('is_active', true)->exists(),
+        ];
     }
 
     public function gallery(): array

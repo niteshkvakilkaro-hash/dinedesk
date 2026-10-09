@@ -93,15 +93,35 @@ export function ContactList({ site, className = '', itemClassName = '', iconClas
   );
 }
 
-/** Veg-only filter + category list for menu pages. */
+/** Search + veg-only filter for menu pages (searches English and Hindi names and descriptions). */
 export function useMenuFilter(menu: MenuCategory[] | undefined) {
   const [vegOnly, setVegOnly] = useState(false);
-  const categories = useMemo(
-    () => (menu ?? []).map((c) => ({ ...c, items: vegOnly ? c.items.filter((i) => i.food_type === 'veg') : c.items })).filter((c) => c.items.length > 0),
-    [menu, vegOnly],
-  );
+  const [search, setSearch] = useState('');
+  const categories = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const matches = (i: MenuCategory['items'][number]) =>
+      !q || [i.name, i.name_hi, i.description, i.description_hi].some((v) => v?.toLowerCase().includes(q));
+    return (menu ?? [])
+      .map((c) => ({ ...c, items: c.items.filter((i) => (!vegOnly || i.food_type === 'veg') && matches(i)) }))
+      .filter((c) => c.items.length > 0);
+  }, [menu, vegOnly, search]);
   const hasDemo = (menu ?? []).some((c) => c.is_demo || c.items.some((i) => i.is_demo));
-  return { categories, vegOnly, setVegOnly, hasDemo };
+  return { categories, vegOnly, setVegOnly, search, setSearch, hasDemo };
+}
+
+/** Menu search box; each theme passes its own input classes. */
+export function MenuSearch({ value, onChange, className = '' }: { value: string; onChange: (v: string) => void; className?: string }) {
+  const { t } = useTranslation();
+  return (
+    <input
+      type="search"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={t('site.searchMenu')}
+      aria-label={t('site.searchMenu')}
+      className={className}
+    />
+  );
 }
 
 /** Accessible full-screen photo viewer: Esc closes, arrows move, focus returns to the thumbnail. */

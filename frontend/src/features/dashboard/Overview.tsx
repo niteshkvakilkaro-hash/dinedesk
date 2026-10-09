@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui';
 
 const SETUP = ['account', 'type', 'details', 'theme', 'branding', 'menu', 'live'] as const;
 // Where each finished step can be revisited.
-const EDIT: Partial<Record<(typeof SETUP)[number], string>> = { details: '/dashboard/business', theme: '/dashboard/website', branding: '/dashboard/website' };
+const EDIT: Partial<Record<(typeof SETUP)[number], string>> = { details: '/dashboard/business', theme: '/dashboard/website', branding: '/dashboard/website', menu: '/dashboard/menu' };
 
 export default function Overview() {
   const { t } = useTranslation();

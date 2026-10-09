@@ -10,6 +10,7 @@ export interface SiteImage {
   width: number;
   height: number;
   placeholder: string | null;
+  credit?: { author: string; license: string; license_url: string | null; source: string } | null;
 }
 
 export interface Milestone {
@@ -56,6 +57,7 @@ export interface SiteData {
   has_menu: boolean;
   has_gallery: boolean;
   features: { online_ordering: boolean; reservations: boolean };
+  ordering: OrderingInfo;
   seo: { title: string; description: string; description_hi: string | null; canonical: string; image: string | null; indexable: boolean };
 }
 
@@ -74,6 +76,35 @@ export interface MenuItem {
   is_chefs_special: boolean;
   image: SiteImage | null;
   is_demo: boolean;
+  variants: ItemVariant[];
+  addon_groups: AddonGroup[];
+}
+
+export interface ItemVariant {
+  id: number;
+  name: string;
+  name_hi: string | null;
+  price: string;
+  is_default: boolean;
+  is_available: boolean;
+}
+
+export interface Addon {
+  id: number;
+  name: string;
+  name_hi: string | null;
+  price: string;
+  food_type: 'veg' | 'non_veg' | 'egg';
+  is_available: boolean;
+}
+
+export interface AddonGroup {
+  id: number;
+  name: string;
+  name_hi: string | null;
+  min_select: number;
+  max_select: number | null;
+  addons: Addon[];
 }
 
 export interface MenuCategory {
@@ -93,4 +124,77 @@ export interface GalleryItem {
   category: 'food' | 'interior' | 'events';
   sort_order: number;
   is_demo: boolean;
+}
+
+export type OrderType = 'delivery' | 'takeaway' | 'dine_in';
+export type PaymentMethod = 'online' | 'cod' | 'counter';
+export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out_for_delivery' | 'completed' | 'cancelled';
+
+export interface OrderingInfo {
+  enabled: boolean;
+  types: OrderType[];
+  payment_methods: Partial<Record<OrderType, PaymentMethod[]>>;
+  scheduling: { enabled: boolean; max_days: number };
+  prep_minutes: number;
+  delivery_minutes: number;
+  packaging_fee: string;
+  prices_include_tax: boolean;
+  default_tax_rate: number;
+  has_delivery_zones: boolean;
+}
+
+export interface QuoteLine {
+  menu_item_id: number;
+  name: string;
+  name_hi: string | null;
+  variant_name: string | null;
+  addons: { id: number; name: string; price: string }[];
+  food_type: 'veg' | 'non_veg' | 'egg';
+  unit_price: string;
+  quantity: number;
+  tax_rate: string;
+  line_subtotal: string;
+  line_tax: string;
+  line_total: string;
+  notes: string | null;
+}
+
+export interface Quote {
+  lines: QuoteLine[];
+  subtotal: string;
+  tax_total: string;
+  cgst: string;
+  sgst: string;
+  items_total: string;
+  packaging_fee: string;
+  delivery_fee: string;
+  total: string;
+  prices_include_tax: boolean;
+  zone: { id: number; name: string; fee: string; min_order: string; free_above: string | null } | null;
+  zone_error: { message: string; code: string; min_order?: string } | null;
+}
+
+export interface CustomerOrder {
+  id: string;
+  number: number;
+  type: OrderType;
+  status: OrderStatus;
+  scheduled_for: string | null;
+  placed_at: string;
+  customer_name: string;
+  address: { line1: string | null; line2: string | null; landmark: string | null; pincode: string | null } | null;
+  table_label: string | null;
+  notes: string | null;
+  items: { name: string; name_hi: string | null; variant_name: string | null; addons: { name: string; price: string }[]; food_type: 'veg' | 'non_veg' | 'egg'; unit_price: string; quantity: number; tax_rate: string; line_total: string; notes: string | null }[];
+  subtotal: string;
+  tax_total: string;
+  delivery_fee: string;
+  packaging_fee: string;
+  discount_total: string;
+  total: string;
+  prices_include_tax: boolean;
+  payment_method: PaymentMethod;
+  payment_status: 'unpaid' | 'pending' | 'paid' | 'failed' | 'refund_due' | 'refunded';
+  cancel_reason: string | null;
+  timeline: { status: OrderStatus; at: string }[];
 }

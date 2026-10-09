@@ -11,6 +11,11 @@ import type { PageKey, ThemeKey, ThemeModule } from '@/themes/types';
 import { useOpenStatus, useSite, useSiteGallery, useSiteMenu } from './data';
 import { Seo } from './Seo';
 import { PREVIEW } from './preview';
+import { SkinContext } from './order/skin';
+import { Cart } from './order/Cart';
+import { PhotoCredits, WhatsAppButton } from './order/extras';
+import CheckoutPage from './order/CheckoutPage';
+import TrackPage from './order/TrackPage';
 import { useOpenLabel } from './components/bits';
 import type { SectionKey, SiteData } from './types';
 
@@ -123,16 +128,23 @@ const PAGES: { path: string; key: PageKey }[] = [
 ];
 
 /** The theme's header/footer stay mounted while pages change inside them. */
-function SiteLayout({ site, Shell, themeColor }: { site: SiteData; Shell: ThemeModule['Shell']; themeColor: string }) {
+function SiteLayout({ site, module, themeColor }: { site: SiteData; module: ThemeModule; themeColor: string }) {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
+  const { Shell } = module;
   const page = PAGES.find((p) => p.path === pathname)?.key ?? 'home';
+  // Checkout and order pages are private: never indexed.
+  const privateTitle = pathname.startsWith('/checkout') ? t('order.checkoutTitle') : pathname.startsWith('/order/') ? t('order.trackTitle') : null;
   return (
-    <>
-      <Seo site={site} page={page} themeColor={themeColor} />
+    <SkinContext.Provider value={module.skin}>
+      <Seo site={site} page={page} themeColor={themeColor} title={privateTitle} />
       <Shell site={site} page={page}>
         <Outlet />
       </Shell>
-    </>
+      <PhotoCredits site={site} />
+      <Cart />
+      <WhatsAppButton site={site} />
+    </SkinContext.Provider>
   );
 }
 
@@ -204,7 +216,7 @@ export default function SiteApp() {
     );
   }
 
-  const { Shell, pages } = module;
+  const { pages } = module;
   return (
     <HelmetProvider>
       <div style={style} className={`site-root theme-${def.key} min-h-screen bg-t-bg font-body text-t-text`} data-reduce-motion={reduce || undefined}>
@@ -212,11 +224,13 @@ export default function SiteApp() {
         <ScrollToTop />
         <Routes>
           {/* Keyed by theme so a preview switch replays that theme's entrance. */}
-          <Route element={<SiteLayout key={def.key} site={site} Shell={Shell} themeColor={(style as Record<string, string>)['--t-primary']} />}>
+          <Route element={<SiteLayout key={def.key} site={site} module={module} themeColor={(style as Record<string, string>)['--t-primary']} />}>
             {PAGES.map(({ path, key }) => {
               const Page = pages[key];
               return <Route key={key} path={path} element={<Page site={site} />} />;
             })}
+            <Route path="/checkout" element={<CheckoutPage site={site} />} />
+            <Route path="/order/:id" element={<TrackPage site={site} />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

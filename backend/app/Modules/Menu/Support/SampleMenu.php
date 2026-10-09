@@ -2,6 +2,8 @@
 
 namespace App\Modules\Menu\Support;
 
+use App\Modules\Menu\Models\AddonGroup;
+use App\Modules\Menu\Models\ItemVariant;
 use App\Modules\Menu\Models\MenuCategory;
 use App\Modules\Menu\Models\MenuItem;
 use Illuminate\Support\Str;
@@ -85,10 +87,41 @@ final class SampleMenu
         };
     }
 
-    /** Creates the sample menu for the tenant in context. Returns the number of items created. */
-    public static function install(string $key): int
+    // Dish => [[variant, variant_hi, price], ...] (the first is the default).
+    private const VARIANTS = [
+        'Dal Makhani' => [['Half', 'हाफ़', 180], ['Full', 'फ़ुल', 260]],
+        'Paneer Butter Masala' => [['Half', 'हाफ़', 190], ['Full', 'फ़ुल', 300]],
+        'Butter Chicken' => [['Half', 'हाफ़', 230], ['Full', 'फ़ुल', 380]],
+        'Cappuccino' => [['Regular', 'रेगुलर', 180], ['Large', 'लार्ज', 220]],
+        'Cold Brew' => [['Regular', 'रेगुलर', 220], ['Large', 'लार्ज', 260]],
+        'Pani Puri' => [['6 pcs', '6 पीस', 80], ['12 pcs', '12 पीस', 150]],
+    ];
+
+    // Menu key => [[group, group_hi, min, max, [[addon, addon_hi, price, food_type]], [dishes]]]
+    private const ADDONS = [
+        'restaurant' => [
+            ['Extras', 'एक्स्ट्रा', 0, 3, [['Extra butter', 'एक्स्ट्रा बटर', 20, 'veg'], ['Extra paneer', 'एक्स्ट्रा पनीर', 60, 'veg'], ['Boondi raita', 'बूंदी रायता', 70, 'veg']],
+                ['Dal Makhani', 'Paneer Butter Masala', 'Butter Chicken', 'Laal Maas']],
+        ],
+        'cafe' => [
+            ['Milk', 'दूध', 0, 1, [['Oat milk', 'ओट मिल्क', 50, 'veg'], ['Almond milk', 'बादाम मिल्क', 50, 'veg']], ['Cappuccino', 'Cold Brew']],
+            ['Extra shot', 'एक्स्ट्रा शॉट', 0, 1, [['Extra espresso shot', 'एक्स्ट्रा एस्प्रेसो शॉट', 40, 'veg']], ['Cappuccino', 'Cold Brew']],
+        ],
+        'street' => [
+            ['Make it loaded', 'और मज़ेदार बनाएँ', 0, 3, [['Extra cheese', 'एक्स्ट्रा चीज़', 25, 'veg'], ['Extra butter', 'एक्स्ट्रा बटर', 15, 'veg'], ['Extra sev', 'एक्स्ट्रा सेव', 10, 'veg']],
+                ['Vada Pav', 'Pav Bhaji', 'Paneer Kathi Roll', 'Masala Fries']],
+        ],
+    ];
+
+    /**
+     * Creates the sample menu for the tenant in context. Returns the number of items created.
+     *
+     * @param  (callable(string): ?array)|null  $photo  dish slug → stored image payload (demo businesses only)
+     */
+    public static function install(string $key, ?callable $photo = null): int
     {
         $count = 0;
+        $created = [];
         foreach (self::MENUS[$key] as $ci => [$name, $nameHi, $items]) {
             $category = MenuCategory::create([
                 'name' => $name,
@@ -98,20 +131,38 @@ final class SampleMenu
                 'is_demo' => true,
             ]);
             foreach ($items as $ii => [$item, $itemHi, $desc, $price, $type, $spice, $best, $special]) {
-                MenuItem::create([
+                $variants = self::VARIANTS[$item] ?? [];
+                $menuItem = MenuItem::create([
                     'menu_category_id' => $category->id,
                     'name' => $item,
                     'name_hi' => $itemHi,
                     'description' => $desc,
-                    'price' => $price,
+                    'price' => $variants ? $variants[0][2] : $price,
                     'food_type' => $type,
                     'spice_level' => $spice,
                     'is_bestseller' => $best,
                     'is_chefs_special' => $special,
+                    'image' => $photo ? $photo(Str::slug($item)) : null,
                     'sort_order' => $ii + 1,
                     'is_demo' => true,
                 ]);
+                foreach ($variants as $vi => [$vName, $vHi, $vPrice]) {
+                    ItemVariant::create(['menu_item_id' => $menuItem->id, 'name' => $vName, 'name_hi' => $vHi, 'price' => $vPrice, 'is_default' => $vi === 0, 'sort_order' => $vi]);
+                }
+                $created[$item] = $menuItem;
                 $count++;
+            }
+        }
+
+        foreach (self::ADDONS[$key] as $gi => [$group, $groupHi, $min, $max, $addons, $dishes]) {
+            $g = AddonGroup::create(['name' => $group, 'name_hi' => $groupHi, 'min_select' => $min, 'max_select' => $max, 'sort_order' => $gi + 1, 'is_demo' => true]);
+            foreach ($addons as $ai => [$aName, $aHi, $aPrice, $aType]) {
+                $g->addons()->create(['name' => $aName, 'name_hi' => $aHi, 'price' => $aPrice, 'food_type' => $aType, 'sort_order' => $ai]);
+            }
+            foreach ($dishes as $dish) {
+                if (isset($created[$dish])) {
+                    $created[$dish]->addonGroups()->attach($g->id, ['tenant_id' => $g->tenant_id, 'sort_order' => $gi]);
+                }
             }
         }
 

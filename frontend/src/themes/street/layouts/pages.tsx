@@ -5,7 +5,9 @@ import { ArrowRight, MapPin, Phone } from 'lucide-react';
 import { featuredItems, formatPrice, mapHref, telHref, useLocalized, useOpenStatus, useSiteGallery, useSiteMenu } from '@/site/data';
 import { FoodTypeMark, SiteImg, SpiceLevel, useOpenLabel } from '@/site/components/bits';
 import { artFor, FoodArt, type ArtKey } from '@/site/components/FoodArt';
-import { ContactList, HoursTable, Lightbox, Paragraphs, useGalleryFilter, useHomeSections, useMenuFilter } from '@/site/components/shared';
+import { ContactList, HoursTable, Lightbox, MenuSearch, Paragraphs, useGalleryFilter, useHomeSections, useMenuFilter } from '@/site/components/shared';
+import { AddButton } from '@/site/order/AddToCart';
+import { ComboBuilder } from './Combo';
 import type { MenuItem, SiteData } from '@/site/types';
 import type { PageProps } from '../../types';
 import { SPRING } from '../motion';
@@ -71,6 +73,9 @@ function DishCard({ item, i }: { item: MenuItem; i: number }) {
           {item.is_demo && <span className="rounded-md border-2 border-dashed border-[#141414] px-1.5 py-0.5">{t('common.demo')}</span>}
           <SpiceLevel level={item.spice_level} />
         </p>
+        <div className="mt-3">
+          <AddButton item={item} />
+        </div>
       </div>
     </motion.li>
   );
@@ -279,6 +284,7 @@ function Home({ site }: PageProps) {
     <>
       <Hero site={site} />
       <AngledMarquee words={words.length ? words : [site.name]} tone="chilli" />
+      <ComboBuilder />
       {sections.map((key, i) => (
         <div key={key}>
           {render[key]}
@@ -295,7 +301,7 @@ function MenuPage(_: PageProps) {
   const { t } = useTranslation();
   const l = useLocalized();
   const { data: menu, isLoading } = useSiteMenu();
-  const { categories, vegOnly, setVegOnly, hasDemo } = useMenuFilter(menu);
+  const { categories, vegOnly, setVegOnly, search, setSearch, hasDemo } = useMenuFilter(menu);
   return (
     <>
       <PageBand title={t('site.nav.menu')} />
@@ -312,6 +318,7 @@ function MenuPage(_: PageProps) {
               ))}
             </ul>
           </nav>
+          <MenuSearch value={search} onChange={setSearch} className="hidden min-h-11 w-48 rounded-[10px] border-[2.5px] border-[#141414] bg-white px-3 text-sm sm:block" />
           <label className="street-box-sm flex min-h-11 shrink-0 cursor-pointer items-center gap-2 bg-[#7ED9B5] px-3 text-sm font-bold uppercase">
             <input type="checkbox" checked={vegOnly} onChange={(e) => setVegOnly(e.target.checked)} className="h-4 w-4 accent-[#15803d]" />
             {t('site.vegOnly')}
@@ -319,9 +326,10 @@ function MenuPage(_: PageProps) {
         </div>
       </div>
       <div className="mx-auto max-w-6xl px-4 py-10">
+        <MenuSearch value={search} onChange={setSearch} className="mb-6 block min-h-12 w-full rounded-[10px] border-[2.5px] border-[#141414] bg-white px-3 sm:hidden" />
         {hasDemo && <p className="street-box-sm mb-8 bg-t-surface p-3 text-center text-sm font-bold">{t('site.sampleMenu')}</p>}
         {isLoading && <p>{t('common.loading')}</p>}
-        {!isLoading && categories.length === 0 && <p className="text-center font-bold">{vegOnly ? t('site.noVeg') : t('site.noMenu')}</p>}
+        {!isLoading && categories.length === 0 && <p className="text-center font-bold">{search ? t('site.noResults', { q: search }) : vegOnly ? t('site.noVeg') : t('site.noMenu')}</p>}
         {categories.map((c) => (
           <section key={c.id} id={`cat-${c.slug}`} className="scroll-mt-36 pb-14" aria-labelledby={`h-${c.slug}`}>
             <SectionHead id={`h-${c.slug}`} title={l(c, 'name') ?? c.name} tone="mustard" />

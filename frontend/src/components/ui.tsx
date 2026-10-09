@@ -120,6 +120,19 @@ const BADGE: Record<string, string> = {
   read_only: 'bg-warn-soft text-warn',
   past_due: 'bg-warn-soft text-warn',
   demo: 'border border-dashed border-ink/30 bg-surface text-ink',
+  // Orders
+  pending: 'bg-warn-soft text-warn',
+  confirmed: 'bg-brand-soft text-brand-strong',
+  preparing: 'bg-brand-soft text-brand-strong',
+  ready: 'bg-success-soft text-success',
+  out_for_delivery: 'bg-success-soft text-success',
+  completed: 'bg-ink/5 text-ink',
+  cancelled: 'bg-danger-soft text-danger',
+  paid: 'bg-success-soft text-success',
+  unpaid: 'bg-ink/5 text-ink',
+  failed: 'bg-danger-soft text-danger',
+  refund_due: 'bg-danger-soft text-danger',
+  refunded: 'bg-ink/5 text-ink',
 };
 
 export function Badge({ tone, children }: { tone: string; children: ReactNode }) {

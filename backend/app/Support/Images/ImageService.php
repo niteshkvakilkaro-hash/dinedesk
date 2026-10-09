@@ -70,6 +70,8 @@ class ImageService
             'width' => $width,
             'height' => (int) $stored['height'],
             'placeholder' => $stored['placeholder'] ?? null,
+            // Licensed (demo) photos carry their attribution: { author, license, source }.
+            'credit' => $stored['credit'] ?? null,
         ];
     }
 

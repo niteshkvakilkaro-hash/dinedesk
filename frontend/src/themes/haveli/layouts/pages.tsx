@@ -7,7 +7,8 @@ import { useReduceMotion } from '@/stores/motion';
 import { featuredItems, formatPrice, mapHref, telHref, useLocalized, useOpenStatus, useSiteGallery, useSiteMenu } from '@/site/data';
 import { FoodTypeMark, SiteImg, SpiceLevel, useOpenLabel } from '@/site/components/bits';
 import { artFor, FoodArt } from '@/site/components/FoodArt';
-import { ContactList, HoursTable, Lightbox, Paragraphs, useGalleryFilter, useHomeSections, useMenuFilter } from '@/site/components/shared';
+import { ContactList, HoursTable, Lightbox, MenuSearch, Paragraphs, useGalleryFilter, useHomeSections, useMenuFilter } from '@/site/components/shared';
+import { AddButton } from '@/site/order/AddToCart';
 import type { MenuItem, SiteData } from '@/site/types';
 import type { PageProps } from '../../types';
 import { CurtainReveal, Diya, Jaali, JHAROKHA_CLIP, LotusDivider, useWordRise } from './ornaments';
@@ -85,6 +86,9 @@ function MenuRow({ item }: { item: MenuItem }) {
           <SpiceLevel level={item.spice_level} />
           {item.is_demo && <span className="rounded border border-t-line px-1.5 py-0.5 text-t-muted">{t('common.demo')}</span>}
         </p>
+        <div className="mt-3">
+          <AddButton item={item} />
+        </div>
       </div>
     </li>
   );
@@ -158,6 +162,9 @@ function Specials({ site }: { site: SiteData }) {
             </h3>
             <p className="font-semibold text-t-primary">{formatPrice(item.price, i18n.language)}</p>
             {item.is_demo && <p className="text-xs text-t-muted">{t('common.demo')}</p>}
+            <div className="mt-3">
+              <AddButton item={item} />
+            </div>
           </li>
         ))}
       </ul>
@@ -318,11 +325,14 @@ function MenuPage({ site }: PageProps) {
   const { t } = useTranslation();
   const l = useLocalized();
   const { data: menu, isLoading } = useSiteMenu();
-  const { categories, vegOnly, setVegOnly, hasDemo } = useMenuFilter(menu);
+  const { categories, vegOnly, setVegOnly, search, setSearch, hasDemo } = useMenuFilter(menu);
   return (
     <>
       <PageHeader title={t('site.nav.menu')} eyebrow={site.name} />
       <div className="sticky top-[61px] z-30 border-b border-t-line bg-t-bg/95 backdrop-blur">
+        <div className="mx-auto max-w-5xl px-4 pt-2 sm:px-6">
+          <MenuSearch value={search} onChange={setSearch} className="block min-h-11 w-full rounded-[4px] border border-t-line bg-white px-3" />
+        </div>
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-2 sm:px-6">
           <nav aria-label={t('site.categories')} className="min-w-0 flex-1 overflow-x-auto">
             <ul className="flex gap-1 whitespace-nowrap">
@@ -344,7 +354,7 @@ function MenuPage({ site }: PageProps) {
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         {hasDemo && <p className="mb-6 rounded-t border border-dashed border-t-line p-3 text-center text-sm text-t-muted">{t('site.sampleMenu')}</p>}
         {isLoading && <p className="text-center text-t-muted">{t('common.loading')}</p>}
-        {!isLoading && categories.length === 0 && <p className="text-center text-t-muted">{vegOnly ? t('site.noVeg') : t('site.noMenu')}</p>}
+        {!isLoading && categories.length === 0 && <p className="text-center text-t-muted">{search ? t('site.noResults', { q: search }) : vegOnly ? t('site.noVeg') : t('site.noMenu')}</p>}
         {categories.map((c) => (
           <section key={c.id} id={`cat-${c.slug}`} className="scroll-mt-32 pb-10" aria-labelledby={`h-${c.slug}`}>
             <h2 id={`h-${c.slug}`} className="text-center text-4xl text-t-primary">

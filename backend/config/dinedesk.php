@@ -46,4 +46,12 @@ return [
         'email' => env('SUPER_ADMIN_EMAIL', 'owner@example.com'),
         'password' => env('SUPER_ADMIN_PASSWORD'),
     ],
+
+    // Public links to a business site (order tracking in messages). {host} = the business's domain.
+    'site_url_pattern' => env('SITE_URL_PATTERN', 'https://{host}'),
+
+    // WhatsApp / SMS provider for customer updates ("log" writes them to the log).
+    'messaging' => [
+        'driver' => env('MESSAGING_DRIVER', 'log'),
+    ],
 ];

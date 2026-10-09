@@ -12,10 +12,10 @@ const DAY_NAMES: Record<string, string> = { mon: 'Monday', tue: 'Tuesday', wed: 
  * Title, description, canonical, Open Graph and schema.org JSON-LD. Built
  * only from what the owner entered: no ratings, reviews or invented claims.
  */
-export function Seo({ site, page, themeColor }: { site: SiteData; page: PageKey; themeColor: string }) {
+export function Seo({ site, page, themeColor, title = null }: { site: SiteData; page: PageKey; themeColor: string; title?: string | null }) {
   const { t, i18n } = useTranslation();
   const hi = i18n.language?.startsWith('hi');
-  const pageTitle = page === 'home' ? site.seo.title : `${t(`site.nav.${page}`)} · ${site.name}`;
+  const pageTitle = title ? `${title} · ${site.name}` : page === 'home' ? site.seo.title : `${t(`site.nav.${page}`)} · ${site.name}`;
   const description = (hi && site.seo.description_hi) || site.seo.description;
   const url = `${site.seo.canonical}${PATHS[page]}`;
   const c = site.content.contact;
@@ -50,7 +50,7 @@ export function Seo({ site, page, themeColor }: { site: SiteData; page: PageKey;
       <link rel="canonical" href={url} />
       <link rel="alternate" hrefLang="en-IN" href={url} />
       <link rel="alternate" hrefLang="hi-IN" href={`${url}?lang=hi`} />
-      {!site.seo.indexable && <meta name="robots" content="noindex, nofollow" />}
+      {(!site.seo.indexable || title) && <meta name="robots" content="noindex, nofollow" />}
       <meta name="theme-color" content={themeColor} />
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content={site.name} />

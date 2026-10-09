@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: DineDesk API
-  version: 1.0.0-phase2
+  version: 1.0.0-phase3
   description: |
     Multi-tenant restaurant & hotel platform. All endpoints live under `/api/v1`.
 
@@ -9,7 +9,15 @@ info:
     `meta.code` (e.g. `validation`, `unauthenticated`, `forbidden`, `tenant_not_found`,
     `tenant_mismatch`, `onboarding_required`, `plan_limit`, `feature_unavailable`,
     `tenant_suspended`, `tenant_read_only`, `otp_invalid`, `otp_locked`, `otp_wait`, `throttled`,
-    `already_live`, `steps_incomplete`, `slug_unavailable`, `gallery_full`, `invalid_ids`).
+    `already_live`, `steps_incomplete`, `slug_unavailable`, `gallery_full`, `invalid_ids`,
+    ordering: `not_accepting`, `type_unavailable`, `payment_method_unavailable`, `closed_now`, `closed_then`,
+    `too_soon`, `too_far`, `outside_delivery_area`, `below_minimum`, `item_missing`, `item_unavailable`,
+    `variant_required`, `addons_required`, `addons_too_many`, `invalid_addon`, `payment_unverified`,
+    `invalid_transition`, `awaiting_payment`, `reason_required`; menu: `category_not_empty`, `import_invalid`, `plan_limit`).
+
+    **Money.** Amounts are strings with 2 decimals (rupees). The server prices every order from the
+    menu (item → variant → add-ons, GST per line: dish → section → business default, rounded per line);
+    clients send ids and quantities only.
 
     **SEO files.** `GET /robots.txt` and `GET /sitemap.xml` (web routes, not under /api) are per business,
     chosen by host. Unpublished, demo and suspended sites are `Disallow: /` and have no sitemap.
@@ -28,6 +36,9 @@ tags:
   - name: Public site
   - name: Business (dashboard)
   - name: Website (dashboard)
+  - name: Ordering (public)
+  - name: Orders (dashboard)
+  - name: Menu (dashboard)
   - name: Plans
   - name: Platform (super admin)
 components:
@@ -167,6 +178,44 @@ components:
         category: { type: string, enum: [food, interior, events] }
         sort_order: { type: integer }
         is_demo: { type: boolean }
+    CartLine:
+      type: object
+      required: [item_id, quantity]
+      properties:
+        item_id: { type: integer }
+        variant_id: { type: [integer, 'null'], description: required when the dish has sizes }
+        addon_ids: { type: array, items: { type: integer } }
+        quantity: { type: integer, minimum: 1, maximum: 50 }
+        notes: { type: [string, 'null'], maxLength: 200 }
+    Quote:
+      type: object
+      properties:
+        lines: { type: array, items: { type: object, description: 'menu_item_id, name, variant_name, addons[], unit_price, quantity, tax_rate, line_subtotal, line_tax, line_total' } }
+        subtotal: { type: string }
+        tax_total: { type: string }
+        cgst: { type: string }
+        sgst: { type: string }
+        items_total: { type: string }
+        packaging_fee: { type: string }
+        delivery_fee: { type: string }
+        total: { type: string }
+        prices_include_tax: { type: boolean }
+        zone: { type: [object, 'null'] }
+        zone_error: { type: [object, 'null'], description: '{ message, code (outside_delivery_area | below_minimum), min_order? }' }
+    CustomerOrder:
+      type: object
+      description: Tracking view (no staff notes or exact coordinates).
+      properties:
+        id: { type: string, description: public id }
+        number: { type: integer, example: 1001 }
+        type: { type: string, enum: [delivery, takeaway, dine_in] }
+        status: { type: string, enum: [pending, confirmed, preparing, ready, out_for_delivery, completed, cancelled] }
+        scheduled_for: { type: [string, 'null'], format: date-time }
+        items: { type: array, items: { type: object } }
+        total: { type: string }
+        payment_method: { type: string, enum: [online, cod, counter] }
+        payment_status: { type: string, enum: [unpaid, pending, paid, failed, refund_due, refunded] }
+        timeline: { type: array, items: { type: object, properties: { status: { type: string }, at: { type: string } } } }
     AuthResult:
       type: object
       properties:
@@ -595,6 +644,308 @@ paths:
       responses:
         '200': { description: Saved }
         '422': { description: '`invalid_ids` (an id that is not yours)' }
+  /site/orders/quote:
+    post:
+      tags: [Ordering (public)]
+      summary: Live price for a cart (nothing saved)
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, items]
+              properties:
+                type: { type: string, enum: [delivery, takeaway, dine_in] }
+                pincode: { type: string, example: '400050' }
+                lat: { type: number }
+                lng: { type: number }
+                items: { type: array, items: { $ref: '#/components/schemas/CartLine' } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Quote' } } } }
+        '422': { description: 'Unavailable dish / missing size / extras rules' }
+  /site/orders:
+    post:
+      tags: [Ordering (public)]
+      summary: Place an order (rate-limited per visitor and per phone)
+      description: 'Checks: ordering switched on, type and payment method allowed, open now (or a valid scheduled time within hours and the window), delivery zone and minimum. Pay-later orders alert staff immediately; online orders once paid.'
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, payment_method, customer, items]
+              properties:
+                type: { type: string, enum: [delivery, takeaway, dine_in] }
+                payment_method: { type: string, enum: [online, cod, counter] }
+                scheduled_for: { type: [string, 'null'], format: date-time }
+                customer: { type: object, properties: { name: { type: string }, phone: { type: string, example: '9876543210' }, email: { type: [string, 'null'] } } }
+                address: { type: [object, 'null'], properties: { line1: { type: string }, line2: { type: string }, landmark: { type: string }, pincode: { type: string }, lat: { type: number }, lng: { type: number } } }
+                notes: { type: [string, 'null'] }
+                items: { type: array, items: { $ref: '#/components/schemas/CartLine' } }
+      responses:
+        '201':
+          description: 'Created. token = private tracking token. razorpay (online only) = { key_id, order_id, amount (paise), currency, name, description, prefill } for Razorpay Checkout.'
+          content: { application/json: { schema: { type: object, properties: { order: { $ref: '#/components/schemas/CustomerOrder' }, token: { type: string }, razorpay: { type: [object, 'null'] } } } } }
+        '422': { description: Validation or an ordering rule (see codes above) }
+        '429': { description: Too many orders }
+  /site/orders/{id}:
+    get:
+      tags: [Ordering (public)]
+      summary: Track an order (needs the private token)
+      parameters:
+        - { $ref: '#/components/parameters/TenantHost' }
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: t, in: query, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CustomerOrder' } } } }
+        '404': { description: 'Unknown order, wrong token or another business' }
+  /site/orders/{id}/payment:
+    post:
+      tags: [Ordering (public)]
+      summary: Razorpay Checkout success — accepted only with a valid signature
+      description: 'HMAC-SHA256(razorpay_order_id|razorpay_payment_id, key_secret) must equal razorpay_signature. Idempotent with the webhook.'
+      parameters:
+        - { $ref: '#/components/parameters/TenantHost' }
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody: { content: { application/json: { schema: { type: object, required: [t, razorpay_order_id, razorpay_payment_id, razorpay_signature], properties: { t: { type: string }, razorpay_order_id: { type: string }, razorpay_payment_id: { type: string }, razorpay_signature: { type: string } } } } } }
+      responses:
+        '200': { description: Paid }
+        '422': { description: '`payment_unverified`' }
+  /webhooks/razorpay/{tenant}:
+    post:
+      tags: [Ordering (public)]
+      summary: Razorpay webhook for one business (tenant public id in the path)
+      description: 'X-Razorpay-Signature = HMAC-SHA256(raw body, webhook_secret). Handles payment.captured, order.paid, payment.failed; repeats are harmless. A payment arriving after the order was released marks it refund_due.'
+      parameters: [{ name: tenant, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Accepted (or ignored for unknown orders) }
+        '400': { description: Invalid signature }
+  /tenant/orders:
+    get:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Orders list (orders.view)
+      parameters:
+        - { name: view, in: query, schema: { type: string, enum: [active, scheduled, completed, cancelled, all] }, description: 'active = paid or pay-later, not finished, not scheduled more than 2 h ahead' }
+        - { name: type, in: query, schema: { type: string, enum: [delivery, takeaway, dine_in] } }
+        - { name: date, in: query, schema: { type: string, format: date }, description: business timezone }
+        - { name: search, in: query, schema: { type: string }, description: 'order number, name or phone' }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: 'Paginated rows; meta.counts = { pending, in_kitchen, ready, scheduled }' }
+  /tenant/orders/feed:
+    get:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Polled by the dashboard for the new-order chime
+      parameters: [{ name: after, in: query, schema: { type: integer }, description: last order id seen }]
+      responses:
+        '200': { description: '{ latest_id, new[], counts, unread }' }
+  /tenant/orders/{id}:
+    get:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Order detail with contact, address, events and allowed next statuses
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        '200': { description: OK }
+        '404': { description: Not in your business }
+  /tenant/orders/{id}/status:
+    post:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Move an order on (orders.manage)
+      description: 'pending → confirmed → preparing → ready → (out_for_delivery, delivery only) → completed; cancel from any open state with a reason (audited; paid online → refund_due). Pay-later orders are marked paid on completion. Unpaid online orders can only be cancelled.'
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [status], properties: { status: { type: string }, note: { type: [string, 'null'] } } } } } }
+      responses:
+        '200': { description: Updated order }
+        '422': { description: '`invalid_transition`, `awaiting_payment`, `reason_required`' }
+  /tenant/notifications/read:
+    post:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Mark this user's order alerts as read
+      responses:
+        '200': { description: OK }
+  /tenant/ordering:
+    get:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Ordering settings, Razorpay status (never secrets), delivery zones (business.manage)
+      responses:
+        '200': { description: '{ settings, razorpay: { key_id, has_key_secret, has_webhook_secret, mode, webhook_url }, zones[], site_host }' }
+    put:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Save settings: accepting_orders, types, payments, default_tax_rate (0/5/12/18/28), prices_include_tax, packaging_fee, prep/delivery minutes, scheduling, location, notifications'
+      responses:
+        '200': { description: Saved (audited) }
+  /tenant/ordering/razorpay:
+    put:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Connect / disconnect the business's own Razorpay account (secrets write-only, stored encrypted)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { key_id: { type: [string, 'null'], example: rzp_test_ABC123 }, key_secret: { type: [string, 'null'] }, webhook_secret: { type: [string, 'null'] } } } } } }
+      responses:
+        '200': { description: Saved }
+  /tenant/ordering/zones:
+    post:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Add a delivery zone (by pincodes or radius km from the restaurant location)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, type: { type: string, enum: [pincode, radius] }, pincodes: { type: array, items: { type: string } }, radius_km: { type: number }, fee: { type: number }, min_order: { type: number }, free_above: { type: [number, 'null'] }, is_active: { type: boolean } } } } } }
+      responses:
+        '201': { description: Created }
+  /tenant/ordering/zones/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    put:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Edit a zone
+      responses:
+        '200': { description: Saved }
+    delete:
+      tags: [Orders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Delete a zone
+      responses:
+        '200': { description: Deleted }
+  /tenant/menu:
+    get:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Whole menu incl. hidden sections and sold-out dishes (menu.manage)
+      responses:
+        '200': { description: '{ categories[ { …, items[] } ], addon_groups[] }; meta = { items_count, items_limit, has_demo, allergens }' }
+  /tenant/menu/categories:
+    post:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Add a section { name, name_hi, tax_rate (null = business default), is_active }'
+      responses:
+        '201': { description: Created }
+  /tenant/menu/categories/order:
+    put:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Reorder sections { ids }'
+      responses:
+        '200': { description: Saved }
+  /tenant/menu/categories/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    put:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Edit a section
+      responses:
+        '200': { description: Saved }
+    delete:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Delete an empty section
+      responses:
+        '200': { description: Deleted }
+        '422': { description: '`category_not_empty`' }
+  /tenant/menu/categories/{id}/items/order:
+    put:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Reorder dishes in a section { ids }'
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        '200': { description: Saved }
+  /tenant/menu/items:
+    post:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Add a dish (plan limit menu_items)
+      description: 'Fields: category_id, name/name_hi, description/description_hi, price (or variants[{id?, name, price, is_available}]), tax_rate (null = from section), food_type, spice_level 0–3, allergens[], is_available, is_bestseller, is_chefs_special, addon_group_ids[].'
+      responses:
+        '201': { description: Created }
+        '403': { description: '`plan_limit`' }
+  /tenant/menu/items/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    put:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Edit a dish (price changes are audited)
+      responses:
+        '200': { description: Saved }
+    delete:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Delete a dish (past orders keep their snapshot)
+      responses:
+        '200': { description: Deleted }
+  /tenant/menu/items/{id}/availability:
+    patch:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Sold-out switch { is_available }'
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        '200': { description: Saved }
+  /tenant/menu/items/{id}/image:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Dish photo (multipart image → WebP)
+      responses:
+        '200': { description: Saved }
+    delete:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Remove the dish photo
+      responses:
+        '200': { description: Removed }
+  /tenant/menu/addon-groups:
+    post:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Add an extras group { name, name_hi, min_select, max_select (null = no limit), addons[{ name, price, food_type, is_available }] }'
+      responses:
+        '201': { description: Created }
+  /tenant/menu/addon-groups/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    put:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Edit an extras group (addons synced by id)
+      responses:
+        '200': { description: Saved }
+    delete:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Delete an extras group
+      responses:
+        '200': { description: Deleted }
+  /tenant/menu/import/template:
+    get:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: CSV template (UTF-8 with BOM)
+      responses:
+        '200': { description: text/csv }
+  /tenant/menu/import:
+    post:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: CSV import — dry_run=1 validates every row, dry_run=0 imports all or nothing
+      requestBody: { content: { multipart/form-data: { schema: { type: object, required: [file, dry_run], properties: { file: { type: string, format: binary }, dry_run: { type: boolean } } } } } }
+      responses:
+        '200': { description: 'dry run: { valid, rows, new_categories[], errors[{ row, messages[] }], preview[] }; import: menu + meta.imported' }
+        '422': { description: '`import_invalid` with meta.report' }
+  /tenant/menu/demo:
+    delete:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Remove the sample (Demo) menu
+      responses:
+        '200': { description: Removed }
   /plans:
     get:
       tags: [Plans]

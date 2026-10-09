@@ -9,7 +9,25 @@ dinedesk/
 └── docs/       openapi.yaml (API reference)
 ```
 
-## Status: Phase 2 (Themes & public website) complete
+## Status: Phase 3 (Menu, ordering & payments) complete
+
+### Phase 3
+
+| Area | What works |
+|---|---|
+| Menu management | Sections (GST per section, show/hide, reorder), dishes with Hindi names, sizes/variants (Half/Full…), extras groups with min/max rules, allergens, spice, bestseller / chef's special, dish photos (WebP), a one-tap **sold-out** switch, reorder, plan limit on dishes, audit log of price changes. **CSV import**: template download, every row validated first (row-by-row errors), then all-or-nothing import. "Remove sample menu" for businesses that started from the Demo menu |
+| Ordering on the website | Add to cart from every theme (options dialog for sizes/extras/notes), cart sheet with live server price, menu search + veg-only filter. **Checkout**: delivery / takeaway (dine-in ready for QR in Phase 4), ASAP or a scheduled slot built from opening hours + prep time in the business timezone (holidays skipped), contact, address with pincode or current location, payment method, notes |
+| Pricing | Server-side only, in paise: dish/size + extras, GST per line (dish → section → business default; exclusive or inclusive prices), CGST/SGST split, packaging charge, delivery fee by zone with minimum order and free-delivery threshold. The browser never sends prices |
+| Delivery zones | By pincode list or by distance (radius from the restaurant's location) |
+| Payments | Cash on delivery / pay at counter, and **Razorpay** with the business's own keys (secrets encrypted, never returned): server-created Razorpay order, Checkout signature verification, signed **webhook** (payment.captured / order.paid / payment.failed, idempotent), unpaid online orders released after 30 min (`orders:expire-unpaid`, scheduled), late payments flagged refund-due. Card/UPI data never touches DineDesk |
+| Order tracking | Private link per order (`/order/{id}?t=…`): live status timeline (polling every 10 s), bill, payment state, call-the-restaurant |
+| Staff | **Orders** board (New / In the kitchen / Ready) with one-tap next step, cancel with reason (audited, refund-due for paid orders), detail with items/extras/notes, address + directions, history; search, filters, list views. New orders: chime (Web Audio), toast, nav badge, optional desktop notification — polled every 8 s (WebSockets come with the KDS in Phase 5) |
+| Notifications | Customers: order received / confirmed / ready / out for delivery / completed / cancelled, in English or Hindi, by email and/or WhatsApp/SMS through a configurable provider (`MESSAGING_DRIVER`, `log` in development), queued. Staff: in-app alerts |
+| Street extras | Chilli confetti on add-to-cart, cart bounce, and a **combo builder** (one pick per section, price = plain sum) |
+| Demo businesses | All three take real test orders (COD/counter) with delivery zones (e.g. Street: Bandra pincodes 400050–400052). Dish photos are freely licensed Wikimedia Commons images of those dishes, credited on every page (`backend/database/seeders/demo-photos/credits.json`); dishes without a correct photo keep the drawn illustration |
+| Tests | Backend 71 tests / 570 assertions (pricing & GST maths incl. inclusive prices and rounding, option rules, zones/minimums, full order lifecycle, opening-hours & scheduling rules, Razorpay signature + webhook + expiry, cross-business isolation, menu CRUD/limits/photos, CSV import). Frontend 28 unit tests (schedule slots, cart, plus Phase 2). End-to-end browser run: options → cart → delivery checkout → staff moves the order through every status while the customer's page follows → sold-out switch reaches the site |
+
+Lighthouse after Phase 3 (production build, mobile simulation, this PC): Accessibility 100 on the menu, home and checkout pages of all themes; CLS 0; TBT 0 ms. Performance 57–59 — LCP is now the real dish/cover photos, which in this setup are served one at a time by `php artisan serve`. Serve `/storage` from Nginx (or a CDN) in production, and see the pre-rendering note below.
 
 ### Phase 2
 
@@ -62,6 +80,9 @@ php artisan key:generate
 php artisan migrate --seed
 php artisan storage:link      # serves uploaded images from /storage
 php artisan serve --port=8010
+# in two more terminals (customer emails/WhatsApp and releasing unpaid online orders):
+php artisan queue:work
+php artisan schedule:work
 
 # Frontend (terminal 2)
 cd frontend
@@ -82,6 +103,8 @@ npm run dev                   # http://localhost:5173
 
 Add `?preview=1&preview_theme=street` to a business site inside the dashboard's iframe to see the live preview mode; outside an iframe the flag is ignored.
 
+**Try an order:** open a demo site during its hours (Haveli 11:00–23:00, Bistro 08:00–22:00, Street 12:00–01:00 IST — otherwise schedule it for later), add dishes, check out with delivery to pincode `302001` (Haveli), `560034` (Bistro) or `400050` (Street), then sign in as that demo's owner and open **Orders**. Customer messages are written to `backend/storage/logs/laravel.log` in development. To try Razorpay, paste your own **test** keys in Dashboard → Ordering.
+
 Mobile OTP in development: codes are written to `backend/storage/logs/laravel.log`, and shown on screen when `APP_ENV=local` and `OTP_DEV_ECHO=true`. No SMS provider is connected yet.
 
 ## Tests
@@ -96,7 +119,7 @@ Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identi
 
 ## Architecture notes
 
-- **Modules** (`backend/app/Modules`): Tenancy, Identity, Onboarding, Settings, Plans, Platform, Audit, Website (themes, content, gallery, public site, SEO files), Menu (models + sample menu; management arrives in Phase 3). Each has its own routes, models and controllers; business logic lives in Actions/Services.
+- **Modules** (`backend/app/Modules`): Tenancy, Identity, Onboarding, Settings, Plans, Platform, Audit, Website (themes, content, gallery, public site, SEO files), Menu (menu management, CSV import, sample menus), Ordering (pricing, delivery zones, orders, Razorpay, notifications). Each has its own routes, models and controllers; business logic lives in Actions/Services.
 - **Tenant isolation**: tenant-owned models use `BelongsToTenant` → `TenantScope`. No tenant in context ⇒ queries return nothing. Cross-tenant reads only via explicit `Model::withoutTenancy()` in super admin code.
 - **Feature gating**: `FeatureService` merges plan features with super-admin overrides; the same map is returned by `/auth/me` for the UI.
 - **Time**: stored in UTC, shown in the business's timezone (default Asia/Kolkata).
@@ -104,6 +127,6 @@ Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identi
 - **Laravel 12** is used instead of 11: Composer blocks every Laravel 11 release over published security advisories. The structure is identical.
 - **Development cache/queues** use the database (no Redis on XAMPP/Windows). Production uses Redis, Horizon and Reverb (Phases 5 and 8).
 
-## Next: Phase 3 — Menu & ordering
+## Next: Phase 4 — Reservations & QR table ordering
 
-Menu management (categories, variants, add-ons, photos, availability, CSV import), cart and checkout, online ordering, plus Street's add-to-cart confetti and combo builder.
+Table reservations with slot capacity, tables and QR codes, QR dine-in ordering with running table orders, call waiter / request bill.

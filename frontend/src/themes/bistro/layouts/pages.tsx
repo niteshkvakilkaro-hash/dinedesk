@@ -7,7 +7,8 @@ import { useDesktopPointer } from '@/site/motion';
 import { featuredItems, formatPrice, mapHref, telHref, useLocalized, useOpenStatus, useSiteGallery, useSiteMenu } from '@/site/data';
 import { FoodTypeMark, SiteImg, SpiceLevel, useOpenLabel } from '@/site/components/bits';
 import { artFor, FoodArt } from '@/site/components/FoodArt';
-import { ContactList, HoursTable, Lightbox, Paragraphs, useGalleryFilter, useHomeSections, useMenuFilter } from '@/site/components/shared';
+import { ContactList, HoursTable, Lightbox, MenuSearch, Paragraphs, useGalleryFilter, useHomeSections, useMenuFilter } from '@/site/components/shared';
+import { AddButton } from '@/site/order/AddToCart';
 import type { MenuItem, SiteData } from '@/site/types';
 import type { PageProps } from '../../types';
 import { Odometer, useCursorPreview, useLineReveal, VelocityMarquee } from './effects';
@@ -144,6 +145,9 @@ function Specials() {
               <span className="mono text-sm">{formatPrice(item.price, i18n.language)}</span>
             </div>
             {item.is_demo && <p className="mono mt-1 text-xs uppercase text-t-muted">{t('common.demo')}</p>}
+            <div className="mt-3">
+              <AddButton item={item} />
+            </div>
           </li>
         ))}
       </ul>
@@ -315,6 +319,7 @@ function MenuRow({ item, preview }: { item: MenuItem; preview: ReturnType<typeof
   const id = `dish-${item.id}`;
   return (
     <li className="border-b border-t-line">
+      <div className="flex items-center gap-3">
       <button
         type="button"
         aria-expanded={open}
@@ -322,7 +327,7 @@ function MenuRow({ item, preview }: { item: MenuItem; preview: ReturnType<typeof
         onClick={() => setOpen(!open)}
         onPointerEnter={(e) => e.pointerType === 'mouse' && preview.show(<DishVisual item={item} className="h-full w-full" sizes="224px" />)}
         onPointerLeave={() => preview.hide()}
-        className={`grid w-full grid-cols-[auto_1fr_auto] items-baseline gap-x-3 py-4 text-left hover:text-[var(--t-x-primaryInk)] ${item.is_available ? '' : 'opacity-60'}`}
+        className={`grid min-w-0 flex-1 grid-cols-[auto_1fr_auto] items-baseline gap-x-3 py-4 text-left hover:text-[var(--t-x-primaryInk)] ${item.is_available ? '' : 'opacity-60'}`}
       >
         <FoodTypeMark type={item.food_type} className="translate-y-0.5" />
         <span className="min-w-0">
@@ -337,6 +342,8 @@ function MenuRow({ item, preview }: { item: MenuItem; preview: ReturnType<typeof
         </span>
         <span className="mono text-sm">{formatPrice(item.price, i18n.language)}</span>
       </button>
+        <AddButton item={item} className="shrink-0" />
+      </div>
       {open && (
         <div id={id} className="grid gap-4 pb-5 sm:grid-cols-[160px_1fr]">
           <DishVisual item={item} className="aspect-square w-full max-w-[220px]" sizes="220px" />
@@ -354,13 +361,14 @@ function MenuPage({ site }: PageProps) {
   const desktop = useDesktopPointer();
   const preview = useCursorPreview(desktop && !reduce);
   const { data: menu, isLoading } = useSiteMenu();
-  const { categories, vegOnly, setVegOnly, hasDemo } = useMenuFilter(menu);
+  const { categories, vegOnly, setVegOnly, search, setSearch, hasDemo } = useMenuFilter(menu);
   return (
     <>
       <PageHead n="—" title={t('site.nav.menu')} site={site} />
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-8 md:grid-cols-12">
         <aside className="md:col-span-3">
           <div className="md:sticky md:top-24">
+            <MenuSearch value={search} onChange={setSearch} className="mb-3 block min-h-11 w-full border border-t-line bg-white px-3 text-sm" />
             <label className="mono flex min-h-11 cursor-pointer items-center gap-2 text-xs uppercase">
               <input type="checkbox" checked={vegOnly} onChange={(e) => setVegOnly(e.target.checked)} className="h-4 w-4 accent-[#15803d]" />
               {t('site.vegOnly')}
@@ -383,7 +391,7 @@ function MenuPage({ site }: PageProps) {
         <div className="md:col-span-9">
           {hasDemo && <p className="mono mb-6 border border-dashed border-t-line p-3 text-xs uppercase text-t-muted">{t('site.sampleMenu')}</p>}
           {isLoading && <p className="text-t-muted">{t('common.loading')}</p>}
-          {!isLoading && categories.length === 0 && <p className="text-t-muted">{vegOnly ? t('site.noVeg') : t('site.noMenu')}</p>}
+          {!isLoading && categories.length === 0 && <p className="text-t-muted">{search ? t('site.noResults', { q: search }) : vegOnly ? t('site.noVeg') : t('site.noMenu')}</p>}
           {categories.map((c, i) => (
             <section key={c.id} id={`cat-${c.slug}`} className="scroll-mt-20 pb-12" aria-labelledby={`h-${c.slug}`}>
               <h2 id={`h-${c.slug}`} className="flex items-baseline gap-4 border-b border-t-line pb-3 text-4xl">
