@@ -1,0 +1,420 @@
+openapi: 3.1.0
+info:
+  title: DineDesk API
+  version: 1.0.0-phase1
+  description: |
+    Multi-tenant restaurant & hotel platform. All endpoints live under `/api/v1`.
+
+    **Envelope.** Every response is `{ data, message, errors, meta }`. Errors carry a stable
+    `meta.code` (e.g. `validation`, `unauthenticated`, `forbidden`, `tenant_not_found`,
+    `tenant_mismatch`, `onboarding_required`, `plan_limit`, `feature_unavailable`,
+    `tenant_suspended`, `tenant_read_only`, `otp_invalid`, `otp_locked`, `otp_wait`, `throttled`).
+
+    **Tenancy.** Public website endpoints resolve the business from the host the visitor is on.
+    Browsers send it in `X-Tenant-Host` (the SPA always does); otherwise the request `Host` is used.
+    Dashboard endpoints (`/tenant/*`) always act on the signed-in user's own business.
+
+    **Auth.** Sanctum bearer tokens: `Authorization: Bearer <token>`.
+servers:
+  - url: http://localhost:8010/api/v1
+    description: Local development
+tags:
+  - name: Auth
+  - name: Onboarding
+  - name: Public site
+  - name: Business (dashboard)
+  - name: Plans
+  - name: Platform (super admin)
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+  parameters:
+    TenantHost:
+      name: X-Tenant-Host
+      in: header
+      required: false
+      description: Host of the page the visitor is on, e.g. `haveli-demo.localhost:5173`.
+      schema: { type: string }
+  schemas:
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        message: { type: [string, 'null'] }
+        errors:
+          type: [object, 'null']
+          additionalProperties: { type: array, items: { type: string } }
+        meta: { type: [object, 'null'] }
+    OpeningHours:
+      type: object
+      description: Keys mon..sun. A close time at or before the open time means past midnight.
+      additionalProperties:
+        type: object
+        properties:
+          closed: { type: boolean }
+          open: { type: [string, 'null'], example: '11:00' }
+          close: { type: [string, 'null'], example: '23:00' }
+    Session:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            email: { type: [string, 'null'] }
+            phone: { type: [string, 'null'], example: '+919829012345' }
+            locale: { type: string }
+            is_platform_admin: { type: boolean }
+        tenant:
+          type: [object, 'null']
+          properties:
+            id: { type: string, description: Public ULID }
+            name: { type: string }
+            slug: { type: string }
+            business_type: { type: string, enum: [restaurant, cafe, cloud_kitchen, hotel] }
+            city: { type: string }
+            status: { type: string, enum: [onboarding, live, suspended, read_only] }
+            onboarding_step: { type: integer }
+            is_demo: { type: boolean }
+            site_host: { type: string, example: the-hungry-haveli.dinedesk.in }
+            plan: { type: object, properties: { code: { type: string }, name: { type: string } } }
+            subscription:
+              type: [object, 'null']
+              properties:
+                status: { type: string }
+                trial_ends_at: { type: [string, 'null'], format: date-time }
+        role: { type: [string, 'null'], enum: [owner, manager, cashier, waiter, kitchen, front_desk, null] }
+        permissions: { type: array, items: { type: string } }
+        features: { type: object, additionalProperties: { type: boolean } }
+        limits: { type: object, additionalProperties: { type: [integer, 'null'] } }
+        next: { type: string, enum: [onboarding, dashboard, platform] }
+    AuthResult:
+      type: object
+      properties:
+        token: { type: string }
+        session: { $ref: '#/components/schemas/Session' }
+    Staff:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: [string, 'null'] }
+        phone: { type: [string, 'null'] }
+        role: { type: string }
+        status: { type: string, enum: [active, disabled] }
+        last_login_at: { type: [string, 'null'], format: date-time }
+security: []
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Sign up with email (onboarding step 1)
+      description: 10 requests/hour per IP.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, description: 8+ chars with letters and numbers }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResult' } } } }
+        '422': { description: Validation error }
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in with email and password
+      description: 5 attempts/minute per email+IP.
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, required: [email, password], properties: { email: { type: string }, password: { type: string } } }
+      responses:
+        '200': { description: Signed in, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResult' } } } }
+        '403': { description: Account disabled (`account_disabled`) }
+        '422': { description: Wrong credentials (`invalid_credentials`) }
+  /auth/otp/send:
+    post:
+      tags: [Auth]
+      summary: Send a 6-digit sign-in code to an Indian mobile
+      description: Resend allowed after 60 s; 5/hour per number, 20/hour per IP. `dev_code` is only returned when APP_ENV=local and OTP_DEV_ECHO=true.
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, required: [phone], properties: { phone: { type: string, example: '98290 12345' } } }
+      responses:
+        '200':
+          description: Code sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  expires_in: { type: integer }
+                  resend_in: { type: integer }
+                  is_new: { type: boolean }
+                  dev_code: { type: string }
+        '429': { description: Too soon (`otp_wait`) or rate limited }
+  /auth/otp/verify:
+    post:
+      tags: [Auth]
+      summary: Verify the code; signs in, or signs up when `name` is given for a new number
+      description: Codes expire after 10 minutes and lock after 5 wrong attempts. A code is consumed only on success.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, code]
+              properties:
+                phone: { type: string }
+                code: { type: string, example: '482913' }
+                name: { type: string, description: Required for new numbers }
+      responses:
+        '200': { description: Signed in, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResult' } } } }
+        '422': { description: '`otp_invalid` or `name_required`' }
+        '429': { description: '`otp_locked`' }
+  /auth/me:
+    get:
+      tags: [Auth]
+      security: [{ bearer: [] }]
+      summary: Current session (user, business, role, permissions, features, limits)
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Session' } } } }
+        '401': { description: Not signed in }
+  /auth/logout:
+    post:
+      tags: [Auth]
+      security: [{ bearer: [] }]
+      summary: Revoke the current token
+      responses:
+        '200': { description: Signed out }
+  /onboarding/business:
+    post:
+      tags: [Onboarding]
+      security: [{ bearer: [] }]
+      summary: Steps 2–3 — create the business
+      description: Creates the tenant, a provisional subdomain `{slug}.{platform}`, a 14-day Growth trial, the owner role and opening hours, in one transaction.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [business_type, name, city, opening_hours]
+              properties:
+                business_type: { type: string, enum: [restaurant, cafe, cloud_kitchen, hotel] }
+                name: { type: string }
+                city: { type: string }
+                gstin: { type: [string, 'null'], example: 08ABCDE1234F1Z5 }
+                opening_hours: { $ref: '#/components/schemas/OpeningHours' }
+      responses:
+        '201': { description: 'Created; returns the new session', content: { application/json: { schema: { $ref: '#/components/schemas/Session' } } } }
+        '409': { description: Already has a business (`already_onboarded`) }
+        '422': { description: Validation error }
+  /site:
+    get:
+      tags: [Public site]
+      summary: Public info for the business at this host
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name: { type: string }
+                  business_type: { type: string }
+                  city: { type: string }
+                  status: { type: string }
+                  is_live: { type: boolean }
+                  is_demo: { type: boolean }
+                  timezone: { type: string }
+                  opening_hours: { $ref: '#/components/schemas/OpeningHours' }
+                  open_status:
+                    type: object
+                    properties:
+                      is_open: { type: boolean }
+                      closes_at: { type: [string, 'null'] }
+                      opens_at: { type: [string, 'null'] }
+                      today: { type: string }
+        '404': { description: '`tenant_not_found` or `tenant_unavailable` (suspended)' }
+  /tenant/staff:
+    get:
+      tags: [Business (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Team list (permission `staff.manage`)
+      description: '`meta` holds `staff_count`, `staff_limit` (null = unlimited) and assignable `roles`.'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Staff' } } } } }
+        '403': { description: Role not allowed / tenant mismatch / suspended }
+        '409': { description: '`onboarding_required`' }
+    post:
+      tags: [Business (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Add a team member
+      description: Either `phone` (OTP sign-in) or `email` + `password`. Enforces the plan's `staff_accounts` limit (`plan_limit`).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, role]
+              properties:
+                name: { type: string }
+                role: { type: string, enum: [manager, cashier, waiter, kitchen, front_desk] }
+                phone: { type: string }
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '201': { description: Created }
+        '403': { description: '`plan_limit`' }
+  /tenant/staff/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    patch:
+      tags: [Business (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Change role, status or name (not the owner, not yourself). Disabling signs them out.
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { name: { type: string }, role: { type: string }, status: { type: string, enum: [active, disabled] } } }
+      responses:
+        '200': { description: Updated }
+        '404': { description: Not in your business }
+    delete:
+      tags: [Business (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Remove a team member
+      responses:
+        '200': { description: Removed }
+        '404': { description: Not in your business }
+  /tenant/business:
+    get:
+      tags: [Business (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Business details (permission `business.manage`)
+      responses:
+        '200': { description: OK }
+    put:
+      tags: [Business (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Update name, city, GSTIN, timezone, opening hours
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                city: { type: string }
+                gstin: { type: [string, 'null'] }
+                timezone: { type: string }
+                opening_hours: { $ref: '#/components/schemas/OpeningHours' }
+      responses:
+        '200': { description: Saved }
+        '403': { description: '`tenant_read_only` while billing is unresolved' }
+  /plans:
+    get:
+      tags: [Plans]
+      summary: Public plan list (prices may be null until set)
+      responses:
+        '200': { description: 'OK; meta.trial = { plan, days }' }
+  /platform/tenants:
+    get:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: All businesses
+      parameters:
+        - { name: search, in: query, schema: { type: string }, description: 'name, slug, city, owner email/phone' }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: plan, in: query, schema: { type: string } }
+        - { name: type, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [newest, oldest, name, last_active] } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: 'Rows with plan, status, owner, MRR; `meta.summary` = totals and platform MRR' }
+        '403': { description: Not a platform admin }
+  /platform/tenants/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string }, description: Tenant public ULID }]
+    get:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: Business detail incl. features, overrides, subscriptions, recent audit log
+      responses: { '200': { description: OK } }
+    patch:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: Change plan and/or status (reason required, audited). Suspending signs everyone out.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                plan: { type: string }
+                status: { type: string, enum: [onboarding, live, suspended, read_only] }
+                reason: { type: string }
+      responses: { '200': { description: Updated detail } }
+  /platform/tenants/{id}/feature-overrides:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: Force a feature on/off for one business (beats the plan)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [feature, enabled, reason]
+              properties:
+                feature: { type: string }
+                enabled: { type: boolean }
+                reason: { type: string }
+                expires_at: { type: [string, 'null'], format: date-time }
+      responses: { '200': { description: Updated detail } }
+  /platform/tenants/{id}/feature-overrides/{feature}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+      - { name: feature, in: path, required: true, schema: { type: string } }
+    delete:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: Back to the plan default
+      responses: { '200': { description: Updated detail } }
+  /platform/plans:
+    get:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: Plans with the feature catalogue and limit keys
+      responses: { '200': { description: OK } }
+  /platform/plans/{code}:
+    parameters: [{ name: code, in: path, required: true, schema: { type: string, enum: [starter, growth, pro] } }]
+    put:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: Edit prices, features, limits (null = unlimited), availability
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: [string, 'null'] }
+                price_monthly: { type: [number, 'null'] }
+                price_yearly: { type: [number, 'null'] }
+                features: { type: array, items: { type: string } }
+                limits: { type: object, additionalProperties: { type: [integer, 'null'] } }
+                is_active: { type: boolean }
+      responses: { '200': { description: Saved } }

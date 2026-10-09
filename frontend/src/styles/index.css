@@ -1,0 +1,129 @@
+@import 'tailwindcss';
+
+/*
+ * Platform (DineDesk app) tokens. Tenant website themes (Phase 2) define their
+ * own token sets in src/themes/<theme>/tokens.ts and write them to the same
+ * kind of CSS variables on the site root.
+ *
+ * Contrast (WCAG AA, checked): ink on paper 17.8:1, muted on paper 6.7:1,
+ * white on brand 5.2:1, brand on paper 4.9:1, danger on white 6.5:1,
+ * every status colour on its own soft background >= 4.5:1.
+ */
+:root {
+  --dd-ink: #14110f;
+  --dd-paper: #fbf8f3;
+  --dd-surface: #ffffff;
+  --dd-line: #e7e1d8;
+  --dd-muted: #5f574e;
+  --dd-brand: #c2410c;
+  --dd-brand-strong: #9a3412;
+  --dd-brand-soft: #fdebd9;
+  --dd-gold: #f2b544;
+  --dd-success: #15803d;
+  --dd-success-soft: #dcfce7;
+  --dd-warn: #854d0e;
+  --dd-warn-soft: #fef3c7;
+  --dd-danger: #b91c1c;
+  --dd-danger-soft: #fee2e2;
+  --dd-radius: 14px;
+  --dd-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-ink: var(--dd-ink);
+  --color-paper: var(--dd-paper);
+  --color-surface: var(--dd-surface);
+  --color-line: var(--dd-line);
+  --color-muted: var(--dd-muted);
+  --color-brand: var(--dd-brand);
+  --color-brand-strong: var(--dd-brand-strong);
+  --color-brand-soft: var(--dd-brand-soft);
+  --color-gold: var(--dd-gold);
+  --color-success: var(--dd-success);
+  --color-success-soft: var(--dd-success-soft);
+  --color-warn: var(--dd-warn);
+  --color-warn-soft: var(--dd-warn-soft);
+  --color-danger: var(--dd-danger);
+  --color-danger-soft: var(--dd-danger-soft);
+  --radius-card: var(--dd-radius);
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  --ease-dd: var(--dd-ease);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scrollbar-gutter: stable;
+  }
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+  }
+  :focus-visible {
+    outline: 3px solid var(--dd-brand);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::selection {
+    background: var(--dd-ink);
+    color: var(--dd-paper);
+  }
+}
+
+/* Composable component utilities (Tailwind v4 @utility so they can @apply each other). */
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-[background-color,transform,box-shadow,color] duration-200 ease-dd active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55;
+}
+
+@utility btn-primary {
+  @apply btn bg-ink text-paper hover:bg-ink/85;
+}
+
+@utility btn-brand {
+  @apply btn bg-brand text-white hover:bg-brand-strong;
+}
+
+@utility btn-outline {
+  @apply btn border border-line bg-surface text-ink hover:border-ink/40;
+}
+
+@utility btn-ghost {
+  @apply btn text-ink hover:bg-ink/5;
+}
+
+@utility card {
+  @apply rounded-card border border-line bg-surface;
+}
+
+@utility field-label {
+  @apply mb-1.5 block text-sm font-semibold text-ink;
+}
+
+@utility field-input {
+  @apply block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[15px] text-ink placeholder:text-muted/70 transition-[border-color,box-shadow] focus:border-ink focus:ring-2 focus:ring-ink/10 focus:outline-none;
+}
+
+@utility field-error {
+  @apply mt-1.5 text-sm font-medium text-danger;
+}
+
+@utility skeleton {
+  @apply animate-pulse rounded-lg bg-line/70;
+}
+
+@layer components {
+  .field-input[aria-invalid='true'] {
+    @apply border-danger ring-2 ring-danger/15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

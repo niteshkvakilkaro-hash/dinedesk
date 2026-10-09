@@ -1,0 +1,10 @@
+# Safety net; each app also has its own .gitignore
+.env
+.env.*
+!.env.example
+node_modules/
+vendor/
+dist/
+*.log
+.DS_Store
+Thumbs.db
