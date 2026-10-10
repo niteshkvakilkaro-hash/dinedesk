@@ -9,7 +9,28 @@ dinedesk/
 └── docs/       openapi.yaml (API reference), DESIGN.md (website design system)
 ```
 
-## Status: Phase 4 (Reservations & QR table ordering) complete
+## Status: Phase 5 (Operations) complete
+
+### Phase 5
+
+| Area | What works |
+|---|---|
+| Live updates | **Laravel Reverb** (WebSockets, Pusher protocol). Private channels per business and topic (`tenant.{business id}.orders / kitchen / tables / reservations`), authorised with the dashboard token and the matching permission. Events carry ids only; screens refetch through the API. Sent after the database commit and never allowed to break a request; without Reverb everything keeps working by polling (polling slows to 60 s while live). A **Live** badge shows the connection |
+| Kitchen Display | Full-screen dark screen at `/kitchen` (TV, tablet or phone): New / Cooking / Ready columns, ticket per order (K-number, order #, table or type), sizes, extras, dish and kitchen notes, veg/non-veg dots, tap a dish to tick it, minutes since ordered (amber after 10, red after 20), Start → Ready → Served, **recall** a mistaken bump, chime for new tickets, full-screen button. Tickets are created when an order reaches the kitchen (pay-later at once, online once paid) and move with the order both ways: starting a ticket accepts the order and marks it preparing; the Orders board moves the ticket |
+| POS | `/dashboard/pos`: menu grid with search, sections and sold-out marks, sizes / extras / dish notes, takeaway or dine-in on a table, guest name and phone (optional), **Send to kitchen** or **Charge** at once. **Open bills**: running tables (bill-asked highlighted), unbilled pay-later orders (website, QR, POS, waiter), unpaid bills |
+| GST bills | Numbered per business per financial year (`INV/2026-27/0001`, April–March). **Tax invoice** with the business GSTIN (otherwise a **Bill**): seller name, address, GSTIN, FSSAI; buyer name / phone / **GSTIN for B2B**; lines with SAC 996331, rate, discount, taxable value, GST %, CGST, SGST; packaging / delivery; **round-off** to the rupee; amount in words; payments. **Discount** by percent or amount with a required reason (audited), taken off the taxable value, shared across lines in proportion (to the paisa) and GST worked out again per line. Table bills cover every order on the table; orders already paid online count as paid. **Cancel** an unpaid bill (reason, audited) to bill again. **PDF** download (A4, ₹ in an embedded font subset, ~25 kB) |
+| Payments | Cash, UPI, card or other with UTR / card reference; **split** equally into 2–4 or any mix of modes; cash may be more than the bill (change shown, only the bill amount recorded); other modes may not. Fully paid → orders completed and paid, the table's bill closed and the table marked **cleaning** |
+| Day-end | `/dashboard/day-end`: bills issued (range, discounts, taxable value, CGST, SGST, charges, round-off, total, cancelled), money by mode, orders by type and channel, average order, cancellations, orders **paid without a bill** shown separately (website online / COD / counter), top dishes, what is still open, and the **cash drawer** (opening + cash from bills + cash orders without a bill = expected, counted, difference). **Close the day** (kept with the figures, audited; closing again updates it), PDF. Any past date |
+| Floor plan | Tables → Live shows the **floor plan** (or cards): tables where they stand, round / square / long, coloured free / occupied / bill asked / cleaning, running total and call badges, areas as filters. Tap a table: calls (done), the bill, **Bill & take payment**, **Move** guests to a free table, **Merge** two tables' bills, **Mark clean**. **Arrange floor** in Set up: drag tables (or arrow keys, Shift for bigger steps), choose shapes, save |
+| Waiter app (PWA) | `/waiter/` on a phone, **installable** (manifest, icons, service worker that caches the app shell but never the API): tables grid with live state and calls, tap a table to see its orders, **add items** (sizes / extras) and **send to the kitchen**; Calls tab with one-tap done; chime for new calls |
+| Roles | Kitchen: KDS only. Waiter: tables, waiter app, sending orders (no billing). Cashier: POS, bills, payments, day-end, table board. Manager: all of these. Kitchen display, POS and tables are Growth-plan features |
+| Tests | Backend 93 tests / 896 assertions (+ tickets follow orders both ways and cancellations, staff orders and numbering, roles and plan for the kitchen, bill numbering per financial year, GST and round-off, discount before GST across mixed rates, split / mixed / short / over payments, cash change, B2B GSTIN and tax invoice, PDF, table bill closing the table, void and re-bill, bill privacy and permissions, floor layout, transfer, merge, cleaning, day-end figures and closing). Frontend 32 unit tests. End-to-end browser run with Reverb: POS ticket appears on the kitchen screen without a reload → Start → Ready; takeaway billed and paid with change; waiter app order for T3 reaches the kitchen; T3 billed with 10% discount, split cash + UPI → table goes to cleaning; floor plan and day-end checked |
+
+**Run it:** start Reverb next to the backend: `php artisan reverb:start --port=8080` (the keys are in `backend/.env`; the frontend reads `VITE_REVERB_APP_KEY` / `VITE_REVERB_PORT`). Without Reverb, set `BROADCAST_CONNECTION=null` and screens poll.
+
+**Try it:** sign in as `demo-owner@example.com` / `DemoOwner2026`, open **POS** and **Kitchen** side by side, send an order and watch it arrive; bill it from **Open bills**; open http://localhost:5173/waiter/ in a phone-sized window for the waiter app; see **Day-end** for the day's figures.
+
+### Phase 4
 
 ### Phase 4
 
@@ -115,6 +136,7 @@ php artisan serve --port=8010
 # in two more terminals (customer emails/WhatsApp and releasing unpaid online orders):
 php artisan queue:work
 php artisan schedule:work
+php artisan reverb:start --port=8080   # live updates (optional: screens poll without it)
 
 # Frontend (terminal 2)
 cd frontend
@@ -134,6 +156,9 @@ npm run dev                   # http://localhost:5173
 | http://qsr-demo.localhost:5173 | **Demo** site, Modern QSR theme |
 | http://street-demo.localhost:5173 | **Demo** site, Street Pop theme |
 | http://haveli-demo.localhost:5173/style-guide | Style guide of that site's theme (works on every business site) |
+| http://localhost:5173/kitchen | Kitchen Display (signed in as a kitchen-capable user) |
+| http://localhost:5173/waiter/ | Waiter phone app (installable PWA) |
+| http://localhost:5173/dashboard/pos | POS and billing · `/dashboard/day-end` for the day-end report |
 | demo-owner@example.com (Haveli), demo-ember@, demo-bistro@, demo-kulhad@, demo-qsr@, demo-street@example.com / DemoOwner2026 | Demo business owners (development seed only; never created when APP_ENV=production) |
 
 Add `?preview=1&preview_theme=street` to a business site inside the dashboard's iframe to see the live preview mode; outside an iframe the flag is ignored.
@@ -150,11 +175,11 @@ cd frontend && npm test            # vitest
 cd frontend && npm run typecheck
 ```
 
-Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identity/*` (auth, OTP, roles), `Onboarding/*` (incl. `SiteSetupTest`: steps 4–7, slug rules), `Website/WebsiteTest` (themes, content, uploads, isolation, holidays, robots/sitemap), `Plans/FeatureGatingTest`, `Platform/SuperAdminTest`, `Ordering/*` (pricing, lifecycle, payments), `Reservations/ReservationTest`, `Tables/QrOrderingTest`.
+Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identity/*` (auth, OTP, roles), `Onboarding/*` (incl. `SiteSetupTest`: steps 4–7, slug rules), `Website/WebsiteTest` (themes, content, uploads, isolation, holidays, robots/sitemap), `Plans/FeatureGatingTest`, `Platform/SuperAdminTest`, `Ordering/*` (pricing, lifecycle, payments), `Reservations/ReservationTest`, `Tables/QrOrderingTest`, `Operations/*` (kitchen, billing, floor, day-end).
 
 ## Architecture notes
 
-- **Modules** (`backend/app/Modules`): Tenancy, Identity, Onboarding, Settings, Plans, Platform, Audit, Website (themes, content, gallery, public site, SEO files), Menu (menu management, CSV import, sample menus), Ordering (pricing, delivery zones, orders, Razorpay, notifications), Tables (tables, QR tokens, running table sessions, waiter/bill requests), Reservations (slots, availability, bookings, reminders). Each has its own routes, models and controllers; business logic lives in Actions/Services.
+- **Modules** (`backend/app/Modules`): Tenancy, Identity, Onboarding, Settings, Plans, Platform, Audit, Website (themes, content, gallery, public site, SEO files), Menu (menu management, CSV import, sample menus), Ordering (pricing, delivery zones, orders, Razorpay, notifications), Tables (tables, QR tokens, running table sessions, waiter/bill requests, floor plan), Reservations (slots, availability, bookings, reminders), Kitchen (KOT tickets), Billing (POS orders, GST bills, payments, day-end). Live updates go through `AppSupportRealtimeive` (reverb). Each has its own routes, models and controllers; business logic lives in Actions/Services.
 - **Tenant isolation**: tenant-owned models use `BelongsToTenant` → `TenantScope`. No tenant in context ⇒ queries return nothing. Cross-tenant reads only via explicit `Model::withoutTenancy()` in super admin code.
 - **Feature gating**: `FeatureService` merges plan features with super-admin overrides; the same map is returned by `/auth/me` for the UI.
 - **Time**: stored in UTC, shown in the business's timezone (default Asia/Kolkata).
@@ -162,9 +187,13 @@ Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identi
 - **Laravel 12** is used instead of 11: Composer blocks every Laravel 11 release over published security advisories. The structure is identical.
 - **Development cache/queues** use the database (no Redis on XAMPP/Windows). Production uses Redis, Horizon and Reverb (Phases 5 and 8).
 
-## Next: Phase 5 — Operations
+## Next: Phase 6 — Growth features
 
-Live orders board over WebSockets, Kitchen Display System, POS billing with GST invoices and day-end report, visual floor plan (drag tables), waiter PWA.
+Inventory with recipe-based stock deduction, coupons, loyalty points, gift cards, banners, customer CRM, feedback, reports and analytics with CSV export.
+
+## Done: Phase 5 — Operations
+
+See the Phase 5 section above.
 
 ## Done: Phase 4 — Reservations & QR table ordering
 

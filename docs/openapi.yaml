@@ -43,6 +43,9 @@ tags:
   - name: Reservations (dashboard)
   - name: Table ordering (public)
   - name: Tables (dashboard)
+  - name: Kitchen (dashboard)
+  - name: POS (dashboard)
+  - name: Live updates
   - name: Plans
   - name: Platform (super admin)
 components:
@@ -1162,6 +1165,189 @@ paths:
       summary: Mark a waiter / bill request handled
       responses:
         '200': { description: OK }
+  /broadcasting/auth:
+    post:
+      tags: [Live updates]
+      security: [{ bearer: [] }]
+      summary: 'Authorise a private live-update channel (Laravel Reverb / Pusher protocol): tenant.{business public id}.{orders|kitchen|tables|reservations}'
+      description: Events only say what changed (ids and status); screens refetch through the normal API. Each topic needs the matching permission.
+      requestBody: { content: { application/json: { schema: { type: object, required: [socket_id, channel_name], properties: { socket_id: { type: string }, channel_name: { type: string, example: private-tenant.01HX….kitchen } } } } } }
+      responses:
+        '200': { description: '{ auth }' }
+        '403': { description: Not your business or no permission for that topic }
+  /tenant/kitchen/tickets:
+    get:
+      tags: [Kitchen (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Kitchen Display — active tickets (new, preparing, ready) and the last 30 minutes served (to recall)
+      responses:
+        '200': { description: '{ tickets[], served[] } — each with K-number, order number, table / type, items (quantity, size, extras, notes, done), times' }
+  /tenant/kitchen/tickets/{id}/status:
+    post:
+      tags: [Kitchen (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'new → preparing → ready → served; served → ready (recall). The order follows (pending → confirmed → preparing → ready).'
+      requestBody: { content: { application/json: { schema: { type: object, required: [status], properties: { status: { type: string, enum: [preparing, ready, served] } } } } } }
+      responses:
+        '200': { description: Ticket }
+        '422': { description: '`invalid_transition`' }
+  /tenant/kitchen/items/{id}/toggle:
+    post:
+      tags: [Kitchen (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Tick / untick one dish on a ticket
+      responses:
+        '200': { description: '{ id, done }' }
+  /tenant/pos/menu:
+    get:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: The menu for staff ordering (sold-out dishes included, marked)
+      responses:
+        '200': { description: Same shape as /site/menu }
+  /tenant/pos/orders:
+    post:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Staff order (POS or waiter app) — confirmed and sent to the kitchen; dine-in joins the table's running bill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, source, items]
+              properties:
+                type: { type: string, enum: [dine_in, takeaway] }
+                source: { type: string, enum: [pos, waiter] }
+                dining_table_id: { type: [integer, 'null'], description: Required for dine-in }
+                customer: { type: [object, 'null'], properties: { name: { type: [string, 'null'] }, phone: { type: [string, 'null'] } } }
+                notes: { type: [string, 'null'] }
+                items: { type: array, items: { $ref: '#/components/schemas/CartLine' } }
+      responses:
+        '201': { description: '{ id, number, table_session_id, total }' }
+  /tenant/pos/open:
+    get:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Waiting to be paid — open tables, unbilled pay-later orders, unpaid bills
+      responses:
+        '200': { description: '{ tables[], orders[], bills[] }' }
+  /tenant/bills:
+    get:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Bills issued on a business date
+      parameters: [{ name: date, in: query, schema: { type: string, format: date } }]
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Make a GST bill for orders or a table (numbered INV/2026-27/0001 per financial year)
+      description: 'Lines come from the orders. A discount (percent or amount, reason required, audited) is taken off the taxable value and shared across lines; GST is recalculated per line (CGST + SGST); the total is rounded to the rupee. With the business GSTIN it is a Tax invoice, otherwise a Bill. Orders already paid online count as paid.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id: { type: [integer, 'null'], description: Bill a whole table }
+                order_ids: { type: [array, 'null'], items: { type: integer } }
+                discount: { type: [object, 'null'], properties: { type: { type: string, enum: [percent, amount] }, value: { type: number }, reason: { type: string } } }
+                buyer: { type: [object, 'null'], properties: { name: { type: string }, phone: { type: string }, gstin: { type: string } } }
+      responses:
+        '201': { description: 'Bill (lines, taxable value, CGST, SGST, charges, round off, total, payments, amount in words)' }
+        '422': { description: '`nothing_to_bill` / `already_billed` / `reason_required` / `discount_too_large`' }
+  /tenant/bills/{id}:
+    get:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: One bill
+      responses:
+        '200': { description: Bill }
+  /tenant/bills/{id}/pay:
+    post:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Take payment — several rows for split / mixed payment; only cash may exceed the bill (change)
+      description: Fully paid → orders completed and paid, the table's bill closed and the table marked for cleaning.
+      requestBody: { content: { application/json: { schema: { type: object, required: [payments], properties: { payments: { type: array, items: { type: object, properties: { mode: { type: string, enum: [cash, upi, card, other] }, amount: { type: number }, reference: { type: [string, 'null'] } } } } } } } } }
+      responses:
+        '200': { description: Bill }
+        '422': { description: '`short_payment` / `overpaid` / `not_payable`' }
+  /tenant/bills/{id}/void:
+    post:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Cancel an unpaid bill (reason required, audited); its orders can be billed again
+      responses:
+        '200': { description: Bill }
+        '422': { description: '`not_voidable`' }
+  /tenant/bills/{id}/pdf:
+    get:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: The bill / GST invoice as a PDF (A4)
+      responses:
+        '200': { description: application/pdf }
+  /tenant/reports/day:
+    get:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Day-end report: bills and GST, money by mode, orders by type and channel, paid without a bill, top dishes, still open, expected cash'
+      parameters:
+        - { name: date, in: query, schema: { type: string, format: date } }
+        - { name: opening_cash, in: query, schema: { type: number } }
+      responses:
+        '200': { description: OK }
+  /tenant/reports/day/close:
+    post:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Close the day with the cash count (keeps the figures; closing again updates it; audited)
+      requestBody: { content: { application/json: { schema: { type: object, required: [date, opening_cash, counted_cash], properties: { date: { type: string, format: date }, opening_cash: { type: number }, counted_cash: { type: number }, notes: { type: [string, 'null'] } } } } } }
+      responses:
+        '200': { description: The report with `closing` }
+  /tenant/reports/day/pdf:
+    get:
+      tags: [POS (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Day-end report as a PDF
+      responses:
+        '200': { description: application/pdf }
+  /tenant/tables/layout:
+    put:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Floor plan — table positions (0–1000 × 0–640 grid) and shapes
+      requestBody: { content: { application/json: { schema: { type: object, properties: { tables: { type: array, items: { type: object, properties: { id: { type: integer }, x: { type: integer }, y: { type: integer }, shape: { type: string, enum: [square, round, long] } } } } } } } } }
+      responses:
+        '200': { description: Saved }
+  /tenant/tables/{id}/clean:
+    post:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Table cleaned after guests left (cleaning → free)
+      responses:
+        '200': { description: OK }
+  /tenant/tables/sessions/{sessionId}/transfer:
+    post:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Move guests and their running bill to a free table
+      requestBody: { content: { application/json: { schema: { type: object, required: [table_id], properties: { table_id: { type: integer } } } } } }
+      responses:
+        '200': { description: OK }
+        '422': { description: '`table_in_use` / `invalid_table`' }
+  /tenant/tables/sessions/{sessionId}/merge:
+    post:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Join another table's running bill into this one
+      requestBody: { content: { application/json: { schema: { type: object, required: [session_id], properties: { session_id: { type: integer } } } } } }
+      responses:
+        '200': { description: OK }
+        '422': { description: '`invalid_merge` / `billed`' }
   /plans:
     get:
       tags: [Plans]

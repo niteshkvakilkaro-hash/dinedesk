@@ -12,7 +12,7 @@ class TableSession extends Model
 {
     use BelongsToTenant;
 
-    protected $fillable = ['tenant_id', 'dining_table_id', 'status', 'opened_at', 'bill_requested_at', 'closed_at', 'closed_by', 'payment_mode', 'total'];
+    protected $fillable = ['tenant_id', 'dining_table_id', 'status', 'merged_into', 'opened_at', 'bill_requested_at', 'closed_at', 'closed_by', 'payment_mode', 'total'];
 
     protected function casts(): array
     {

@@ -46,7 +46,7 @@ final class Roles
 
     public const MATRIX = [
         self::OWNER => '*',
-        self::MANAGER => ['staff.schedule', 'theme.manage', 'menu.manage', 'orders.view', 'orders.manage', 'orders.create', 'reservations.manage', 'tables.manage', 'tables.setup', 'reports.view', 'rooms.manage'],
+        self::MANAGER => ['staff.schedule', 'theme.manage', 'menu.manage', 'orders.view', 'orders.manage', 'orders.create', 'reservations.manage', 'tables.manage', 'tables.setup', 'reports.view', 'rooms.manage', 'kot.update', 'pos.use'],
         self::CASHIER => ['pos.use', 'orders.view', 'orders.manage', 'orders.create', 'tables.manage'],
         self::WAITER => ['orders.view', 'orders.create', 'tables.manage'],
         self::KITCHEN => ['kot.update', 'orders.view'],

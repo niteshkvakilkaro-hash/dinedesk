@@ -81,7 +81,12 @@ class QrOrderingTest extends OrderingTestCase
         $this->actingAsUser($waiter)->postJson("/api/v1/tenant/tables/sessions/{$sessionId}/close", ['payment_mode' => 'upi'])->assertStatus(422);
         $this->assertDatabaseHas('table_sessions', ['id' => $sessionId, 'status' => 'closed', 'payment_mode' => 'upi']);
         $this->assertSame(2, $this->asTenant(fn () => \App\Modules\Ordering\Models\Order::where('status', 'completed')->where('payment_status', 'paid')->count()));
-        $this->actingAsUser($waiter)->getJson('/api/v1/tenant/tables/live')->assertJsonPath('data.tables.0.state', 'free')->assertJsonCount(0, 'data.tables.0.requests');
+        // Settled: the table needs cleaning, then it is free.
+        $live = $this->actingAsUser($waiter)->getJson('/api/v1/tenant/tables/live')->assertJsonPath('data.tables.0.state', 'cleaning')->assertJsonCount(0, 'data.tables.0.requests');
+        $this->actingAsUser($waiter)->postJson('/api/v1/tenant/tables/'.$live->json('data.tables.0.id').'/clean')->assertOk();
+        $this->actingAsUser($waiter)->getJson('/api/v1/tenant/tables/live')->assertJsonPath('data.tables.0.state', 'free');
+        // The settle made a GST invoice paid by UPI.
+        $this->assertDatabaseHas('bill_payments', ['tenant_id' => $this->tenant->id, 'mode' => 'upi']);
 
         // The next guests start a fresh bill.
         $this->app['auth']->forgetGuards();

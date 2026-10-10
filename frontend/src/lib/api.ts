@@ -131,3 +131,19 @@ export function applyServerErrors(
   }
   return true;
 }
+
+/** Downloads a file (PDF…) from an authenticated endpoint and saves it. */
+export async function downloadFile(path: string, filename: string, params?: Params) {
+  const headers: Record<string, string> = { 'X-Tenant-Host': window.location.host };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(buildUrl(path, params), { headers });
+  if (!res.ok) throw new ApiError('Could not download the file.', res.status);
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}

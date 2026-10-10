@@ -13,13 +13,13 @@ class DiningTable extends Model
 {
     use BelongsToTenant, SoftDeletes;
 
-    protected $fillable = ['tenant_id', 'label', 'seats', 'area', 'qr_token', 'is_active', 'sort_order'];
+    protected $fillable = ['tenant_id', 'label', 'seats', 'area', 'pos_x', 'pos_y', 'shape', 'qr_token', 'is_active', 'cleaning_since', 'sort_order'];
 
     protected $hidden = ['qr_token'];
 
     protected function casts(): array
     {
-        return ['seats' => 'integer', 'is_active' => 'boolean', 'sort_order' => 'integer'];
+        return ['seats' => 'integer', 'is_active' => 'boolean', 'sort_order' => 'integer', 'pos_x' => 'integer', 'pos_y' => 'integer', 'cleaning_since' => 'datetime'];
     }
 
     protected static function booted(): void

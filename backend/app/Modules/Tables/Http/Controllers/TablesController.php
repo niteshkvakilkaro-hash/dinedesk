@@ -39,6 +39,7 @@ class TablesController extends Controller
         $data = $this->validated($request);
         $table = DiningTable::create($data + ['sort_order' => (int) DiningTable::max('sort_order') + 1]);
         AuditLog::record('table.created', $table, ['label' => $table->label]);
+        $this->dineIn->emit($table->id);
 
         return $this->created($this->row($table, $this->base($site)), 'Table added.');
     }
@@ -47,6 +48,7 @@ class TablesController extends Controller
     {
         $table = DiningTable::findOrFail($id);
         $table->update($this->validated($request, $table->id));
+        $this->dineIn->emit($table->id);
 
         return $this->ok($this->row($table, $this->base($site)), 'Saved.');
     }
@@ -59,6 +61,7 @@ class TablesController extends Controller
         }
         $table->delete();
         AuditLog::record('table.deleted', $table, ['label' => $table->label]);
+        $this->dineIn->emit($table->id);
 
         return $this->ok(null, 'Table removed.');
     }
@@ -105,6 +108,46 @@ class TablesController extends Controller
         return $this->ok(['session_id' => $session->id, 'total' => $session->total], 'Table closed.');
     }
 
+    /** Floor plan: positions and shapes of the tables. */
+    public function layout(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'tables' => ['required', 'array', 'max:300'],
+            'tables.*.id' => ['required', 'integer', Rule::exists('dining_tables', 'id')->where('tenant_id', $this->context->id())],
+            'tables.*.x' => ['required', 'integer', 'min:0', 'max:2000'],
+            'tables.*.y' => ['required', 'integer', 'min:0', 'max:2000'],
+            'tables.*.shape' => ['required', Rule::in(['square', 'round', 'long'])],
+        ]);
+        $this->dineIn->saveLayout($data['tables']);
+
+        return $this->ok(null, 'Floor plan saved.');
+    }
+
+    public function clean(int $id): JsonResponse
+    {
+        $this->dineIn->markClean(DiningTable::findOrFail($id));
+
+        return $this->ok(null);
+    }
+
+    /** Move guests (and their bill) to a free table. */
+    public function transfer(Request $request, int $sessionId): JsonResponse
+    {
+        $data = $request->validate(['table_id' => ['required', 'integer']]);
+        $this->dineIn->transfer(TableSession::findOrFail($sessionId), DiningTable::findOrFail($data['table_id']), $request->user());
+
+        return $this->ok(null, 'Table changed.');
+    }
+
+    /** Join another table's bill into this one. */
+    public function merge(Request $request, int $sessionId): JsonResponse
+    {
+        $data = $request->validate(['session_id' => ['required', 'integer']]);
+        $this->dineIn->merge(TableSession::findOrFail($sessionId), TableSession::findOrFail($data['session_id']), $request->user());
+
+        return $this->ok(null, 'Tables merged.');
+    }
+
     public function resolveRequest(Request $request, int $id): JsonResponse
     {
         $this->dineIn->resolveRequest(TableRequest::findOrFail($id), $request->user());
@@ -140,6 +183,9 @@ class TablesController extends Controller
             'area' => $t->area,
             'is_active' => $t->is_active,
             'sort_order' => $t->sort_order,
+            'pos_x' => $t->pos_x,
+            'pos_y' => $t->pos_y,
+            'shape' => $t->shape,
             'qr_url' => "{$base}/t/{$t->qr_token}",
         ];
     }

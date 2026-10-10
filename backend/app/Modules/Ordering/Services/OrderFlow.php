@@ -12,7 +12,10 @@ use App\Modules\Ordering\Notifications\CustomerNotifier;
 use App\Modules\Ordering\Notifications\NewOrderForStaff;
 use App\Modules\Ordering\Support\Money;
 use App\Modules\Plans\Services\FeatureService;
+use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tables\Services\DineIn;
+use App\Modules\Kitchen\Services\Kitchen;
+use App\Support\Realtime\Live;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
@@ -52,6 +55,7 @@ class OrderFlow
         private readonly CustomerNotifier $notifier,
         private readonly DineIn $dineIn,
         private readonly FeatureService $features,
+        private readonly Kitchen $kitchen,
     ) {}
 
     /**
@@ -134,6 +138,7 @@ class OrderFlow
                 'prices_include_tax' => $quote['prices_include_tax'],
                 'payment_method' => $data['payment_method'],
                 'payment_status' => $data['payment_method'] === 'online' ? 'pending' : 'unpaid',
+                'source' => $table ? 'qr' : 'website',
                 'locale' => $locale === 'hi' ? 'hi' : 'en',
                 'placed_at' => now(),
             ]);
@@ -173,6 +178,72 @@ class OrderFlow
         }
 
         return ['order' => $order->fresh('items'), 'razorpay' => $razorpay];
+    }
+
+    /**
+     * An order entered by staff at the POS or on the waiter app: already accepted, so it is
+     * confirmed and goes to the kitchen straight away. Not limited by the website's ordering
+     * switch or opening hours (staff decide); pay at the counter / table.
+     */
+    public function placeByStaff(Tenant $tenant, array $data, User $by, string $source): Order
+    {
+        $type = $data['type'];
+        $table = null;
+        if ($type === 'dine_in' && ! empty($data['dining_table_id'])) {
+            $table = DiningTable::where('is_active', true)->findOrFail($data['dining_table_id']);
+        }
+        $quote = $this->pricing->quote($type, $data['items']);
+        $phone = ! empty($data['customer']['phone']) ? Phone::normalize($data['customer']['phone']) : null;
+        $name = trim(strip_tags((string) ($data['customer']['name'] ?? ''))) ?: ($table ? "Table {$table->label}" : 'Walk-in');
+
+        $order = DB::transaction(function () use ($data, $type, $quote, $phone, $name, $table, $by, $source) {
+            $customer = null;
+            if ($phone) {
+                $customer = Customer::firstOrNew(['phone' => $phone]);
+                $customer->fill(['name' => $name, 'orders_count' => $customer->orders_count + 1, 'last_order_at' => now()])->save();
+            }
+            $session = $table ? $this->dineIn->sessionFor($table) : null;
+            $last = Order::lockForUpdate()->max('number');
+            $order = Order::create([
+                'tracking_token' => Str::random(40),
+                'number' => max(1000, (int) $last) + 1,
+                'customer_id' => $customer?->id,
+                'type' => $type,
+                'source' => $source,
+                'created_by' => $by->id,
+                'status' => 'confirmed',
+                'customer_name' => $name,
+                'customer_phone' => $phone,
+                'table_label' => $table?->label,
+                'dining_table_id' => $table?->id,
+                'table_session_id' => $session?->id,
+                'notes' => isset($data['notes']) && $data['notes'] !== '' ? strip_tags($data['notes']) : null,
+                'subtotal' => $quote['subtotal'],
+                'tax_total' => $quote['tax_total'],
+                'delivery_fee' => '0.00',
+                'packaging_fee' => $quote['packaging_fee'],
+                'discount_total' => '0.00',
+                'total' => $quote['total'],
+                'prices_include_tax' => $quote['prices_include_tax'],
+                'payment_method' => 'counter',
+                'payment_status' => 'unpaid',
+                'locale' => 'en',
+                'placed_at' => now(),
+            ]);
+            foreach ($quote['lines'] as $line) {
+                $order->items()->create(['tenant_id' => $order->tenant_id] + array_merge($line, [
+                    'addons' => array_map(fn ($a) => ['name' => $a['name'], 'price' => $a['price']], $line['addons']) ?: null,
+                ]));
+            }
+            $this->event($order, 'confirmed', ucfirst($source).' order', $by->id);
+
+            return $order;
+        });
+
+        $this->kitchen->createFor($order);
+        $this->emitOrder($order, 'order.created');
+
+        return $order->fresh('items');
     }
 
     /** Payment captured (checkout callback or webhook). Safe to call twice. */
@@ -249,7 +320,10 @@ class OrderFlow
             }
         });
 
-        $this->notifier->statusChanged($order->fresh());
+        $fresh = $order->fresh();
+        $this->kitchen->syncFromOrder($fresh);
+        $this->emitOrder($fresh, 'order.changed');
+        $this->notifier->statusChanged($fresh);
 
         return $order->fresh(['items', 'events']);
     }
@@ -277,6 +351,17 @@ class OrderFlow
             ->filter(fn (User $u) => in_array('orders.view', $u->tenantPermissions(), true));
         Notification::send($staff, new NewOrderForStaff($order));
         $this->notifier->placed($order);
+        $this->kitchen->createFor($order);
+        $this->emitOrder($order, 'order.created');
+    }
+
+    /** Live update for the Orders board (and the table board for dine-in). */
+    public function emitOrder(Order $order, string $name): void
+    {
+        Live::emit($order->tenant_id, 'orders', $name, ['id' => $order->id, 'number' => $order->number, 'status' => $order->status, 'type' => $order->type]);
+        if ($order->dining_table_id) {
+            Live::emit($order->tenant_id, 'tables', 'table.changed', ['table_id' => $order->dining_table_id]);
+        }
     }
 
     private function event(Order $order, string $status, ?string $note, ?int $userId): void

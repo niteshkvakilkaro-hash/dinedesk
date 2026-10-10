@@ -164,8 +164,9 @@ class DemoTenantSeeder extends Seeder
 
             // Sit-down demos: tables with QR codes and online table booking (no invented bookings).
             if ($dineIn) {
-                foreach ([['T1', 2], ['T2', 2], ['T3', 4], ['T4', 4], ['T5', 4], ['T6', 6], ['T7', 6], ['T8', 8]] as $ti => [$label, $seats]) {
-                    DiningTable::create(['label' => $label, 'seats' => $seats, 'sort_order' => $ti + 1]);
+                // A simple sample floor (owners drag tables to match their room).
+                foreach ([['T1', 2, 60, 70, 'round'], ['T2', 2, 230, 70, 'round'], ['T3', 4, 400, 60, 'square'], ['T4', 4, 580, 60, 'square'], ['T5', 4, 60, 330, 'square'], ['T6', 6, 260, 320, 'long'], ['T7', 6, 520, 320, 'long'], ['T8', 8, 800, 200, 'round']] as $ti => [$label, $seats, $x, $y, $shape]) {
+                    DiningTable::create(['label' => $label, 'seats' => $seats, 'pos_x' => $x, 'pos_y' => $y, 'shape' => $shape, 'sort_order' => $ti + 1]);
                 }
                 app(ReservationSettings::class)->save(array_replace(ReservationSettings::defaults(), ['enabled' => true, 'default_capacity' => 20, 'max_party' => 8]));
             }

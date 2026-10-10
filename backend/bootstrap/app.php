@@ -27,6 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // Live-update channel auth for dashboard tokens: POST /api/v1/broadcasting/auth.
+    ->withBroadcasting(__DIR__.'/../routes/channels.php', ['prefix' => 'api/v1', 'middleware' => ['api', 'auth:sanctum', 'tenant.user']])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'tenant.host' => ResolveTenantFromHost::class,

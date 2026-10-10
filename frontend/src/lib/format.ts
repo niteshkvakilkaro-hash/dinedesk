@@ -37,3 +37,12 @@ export function formatPhone(phone: string | null | undefined): string {
 export const isIndianMobile = (v: string) => /^(\+?91|0)?[6-9]\d{9}$/.test(v.replace(/[\s-]/g, ''));
 
 export const GSTIN_REGEX = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+
+const inrWhole = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+const inrPaise = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** Bills and receipts: ₹204 for whole rupees, ₹4.50 (never ₹4.5) when there are paise. */
+export function formatMoney(value: number | string | null | undefined): string {
+  const n = Number(value ?? 0);
+  return Math.round(n * 100) % 100 === 0 ? inrWhole.format(n) : inrPaise.format(n);
+}

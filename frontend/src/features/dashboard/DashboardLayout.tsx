@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, CalendarDays, Globe, Images, LayoutDashboard, LogOut, MoreHorizontal, QrCode, ReceiptText, Settings2, UtensilsCrossed, Users } from 'lucide-react';
+import { Building2, CalendarDays, ChefHat, Globe, Images, LayoutDashboard, LogOut, MoreHorizontal, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wifi } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { disconnectLive, useLive, useLiveStatus } from '@/lib/realtime';
 import { useCan, useFeature, useSession, useSignOut } from '@/hooks/useSession';
 import { Alert, Dialog, DemoBadge, toast } from '@/components/ui';
 import { LanguageToggle, Logo } from '@/components/Brand';
@@ -28,6 +30,22 @@ export default function DashboardLayout() {
   const canSetupTables = useCan('tables.setup');
   const canReservations = canManageReservations && hasReservations;
   const canTables = (canRunTables || canSetupTables) && hasQr;
+  const hasPos = useFeature('pos');
+  const hasKds = useFeature('kds');
+  const canPosPerm = useCan('pos.use');
+  const canKitchenPerm = useCan('kot.update');
+  const canCreate = useCan('orders.create');
+  const canPos = canPosPerm && hasPos;
+  const canKitchen = canKitchenPerm && hasKds;
+
+  // Live updates: any change refreshes the screens that show it (polling stays as a fallback).
+  const qc = useQueryClient();
+  const live = useLiveStatus((s) => s.connected);
+  const tenantKey = session?.tenant?.id;
+  const refresh = (...keys: string[]) => keys.forEach((k) => void qc.invalidateQueries({ queryKey: [k] }));
+  useLive(tenantKey, 'orders', canOrders, () => refresh('orders', 'orders-feed', 'pos-open', 'day-report'));
+  useLive(tenantKey, 'reservations', canReservations, () => refresh('reservations', 'reservations-feed'));
+  useLive(tenantKey, 'tables', canRunTables && hasQr, () => refresh('tables-live', 'tables-feed', 'pos-open'));
   const [more, setMore] = useState(false);
   const tenant = session?.tenant;
 
@@ -50,6 +68,9 @@ export default function DashboardLayout() {
     { to: '/dashboard/orders', label: t('dashboard.nav.orders'), icon: ReceiptText, show: canOrders, badge: pending },
     { to: '/dashboard/reservations', label: t('dashboard.nav.reservations'), icon: CalendarDays, show: canReservations, badge: bookings?.pending ?? 0 },
     { to: '/dashboard/tables', label: t('dashboard.nav.tables'), icon: QrCode, show: canTables, badge: tableFeed?.open ?? 0 },
+    { to: '/dashboard/pos', label: t('dashboard.nav.pos'), icon: Store, show: canPos },
+    { to: '/kitchen', label: t('dashboard.nav.kitchen'), icon: ChefHat, show: canKitchen },
+    { to: '/waiter/', label: t('dashboard.nav.waiter'), icon: Smartphone, show: canRunTables && canCreate && hasQr && !canPosPerm },
     { to: '/dashboard/menu', label: t('dashboard.nav.menu'), icon: UtensilsCrossed, show: canMenu },
     { to: '/dashboard/website', label: t('dashboard.nav.website'), icon: Globe, show: canTheme },
     { to: '/dashboard/gallery', label: t('dashboard.nav.gallery'), icon: Images, show: canTheme },
@@ -82,8 +103,13 @@ export default function DashboardLayout() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            {live && (
+              <span className="hidden items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success sm:inline-flex" title={t('dashboard.liveHint')}>
+                <Wifi className="h-3.5 w-3.5" aria-hidden="true" /> {t('kds.live')}
+              </span>
+            )}
             <LanguageToggle />
-            <button type="button" onClick={() => void signOut()} className="btn-ghost !min-h-10 !px-3" aria-label={t('common.signOut')}>
+            <button type="button" onClick={() => { disconnectLive(); void signOut(); }} className="btn-ghost !min-h-10 !px-3" aria-label={t('common.signOut')}>
               <LogOut className="h-5 w-5" aria-hidden="true" />
               <span className="hidden sm:inline">{t('common.signOut')}</span>
             </button>

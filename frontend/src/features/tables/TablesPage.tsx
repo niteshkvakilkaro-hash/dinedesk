@@ -8,6 +8,9 @@ import { formatINR, formatTime } from '@/lib/format';
 import { useCan } from '@/hooks/useSession';
 import { Alert, Badge, Dialog, EmptyState, ErrorState, Field, SkeletonRows, Spinner, toast, Toggle } from '@/components/ui';
 import { useLiveTables, useTables, type LiveTable, type TableBill, type TableRow } from './api';
+import { FloorEditor, FloorView } from './Floor';
+import { useLive } from '@/lib/realtime';
+import { useSession } from '@/hooks/useSession';
 
 const PAYMENT_MODES = ['cash', 'upi', 'card', 'online', 'none'] as const;
 
@@ -162,6 +165,7 @@ const STATE_STYLE: Record<LiveTable['state'], string> = {
   free: '',
   occupied: '!border-brand/50 bg-brand-soft/40',
   bill_requested: '!border-warn ring-2 ring-warn/30',
+  cleaning: 'border-dashed !border-ink/30 bg-ink/5',
   inactive: 'opacity-55',
 };
 
@@ -234,6 +238,21 @@ function LiveTab({ onSetup }: { onSetup?: () => void }) {
   const { t } = useTranslation();
   const live = useLiveTables();
   const [bill, setBill] = useState<number | null>(null);
+  const [view, setView] = useState<'floor' | 'cards'>(() => {
+    try {
+      return (localStorage.getItem('dd_tables_view') as 'floor' | 'cards') || 'floor';
+    } catch {
+      return 'floor';
+    }
+  });
+  const pick = (v: 'floor' | 'cards') => {
+    setView(v);
+    try {
+      localStorage.setItem('dd_tables_view', v);
+    } catch {
+      /* ignore */
+    }
+  };
   const tables = live.data ?? [];
   const busy = tables.filter((x) => x.session).length;
   const asks = tables.reduce((n, x) => n + x.requests.length, 0);
@@ -249,15 +268,26 @@ function LiveTab({ onSetup }: { onSetup?: () => void }) {
   }
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted">
-        {t('tablesAdmin.liveSummary', { busy, total: tables.filter((x) => x.is_active).length })}
-        {asks > 0 && ` · ${t('tablesAdmin.openRequests', { count: asks })}`}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted">
+          {t('tablesAdmin.liveSummary', { busy, total: tables.filter((x) => x.is_active).length })}
+          {asks > 0 && ` · ${t('tablesAdmin.openRequests', { count: asks })}`}
+        </p>
+        <div className="flex gap-1 rounded-full bg-ink/5 p-1" role="radiogroup" aria-label={t('tablesAdmin.view')}>
+          {(['floor', 'cards'] as const).map((v) => (
+            <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => pick(v)} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${view === v ? 'bg-surface shadow' : 'text-muted'}`}>
+              {t(`tablesAdmin.views.${v}`)}
+            </button>
+          ))}
+        </div>
+      </div>
+      {view === 'floor' ? <FloorView tables={tables} /> : (
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {tables.map((tb) => (
           <LiveCard key={tb.id} table={tb} onBill={setBill} />
         ))}
       </ul>
+      )}
       <BillDialog sessionId={bill} onClose={() => setBill(null)} />
     </div>
   );
@@ -395,6 +425,7 @@ function SetupTab() {
   const [bulk, setBulk] = useState(false);
   const [removing, setRemoving] = useState<TableRow | null>(null);
   const [renewing, setRenewing] = useState<TableRow | null>(null);
+  const [arranging, setArranging] = useState(false);
   const tables = query.data?.tables ?? [];
   const mutate = useMutation<unknown, ApiError, { kind: 'delete' | 'qr'; table: TableRow }>({
     mutationFn: ({ kind, table }) => (kind === 'delete' ? api.delete(`/tenant/tables/${table.id}`) : api.post(`/tenant/tables/${table.id}/qr`)),
@@ -422,11 +453,16 @@ function SetupTab() {
           <LayoutGrid className="h-4 w-4" aria-hidden="true" />
           {t('tablesAdmin.bulkTitle')}
         </button>
+        <button type="button" className="btn-outline !min-h-10 text-sm" aria-pressed={arranging} onClick={() => setArranging(!arranging)} disabled={!tables.length}>
+          <LayoutGrid className="h-4 w-4" aria-hidden="true" />
+          {t('tablesAdmin.arrange')}
+        </button>
         <button type="button" className="btn-outline !min-h-10 text-sm" onClick={() => window.print()} disabled={!tables.some((x) => x.is_active)}>
           <Printer className="h-4 w-4" aria-hidden="true" />
           {t('tablesAdmin.print')}
         </button>
       </div>
+      {arranging && <FloorEditor tables={tables} onSaved={() => setArranging(false)} />}
       <Alert tone="info">{t('tablesAdmin.qrHint')}</Alert>
       {!tables.length && <EmptyState title={t('tablesAdmin.emptyTitle')}>{t('tablesAdmin.emptyText')}</EmptyState>}
       <ul className="card divide-y divide-line">
@@ -488,7 +524,11 @@ function SetupTab() {
 export default function TablesPage() {
   const { t } = useTranslation();
   const canSetup = useCan('tables.setup');
+  const canRun = useCan('tables.manage');
+  const qc = useQueryClient();
+  const { data: session } = useSession();
   const [tab, setTab] = useState<'live' | 'setup'>('live');
+  useLive(session?.tenant?.id, 'tables', canRun || canSetup, () => void qc.invalidateQueries({ queryKey: ['tables-live'] }));
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">

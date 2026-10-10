@@ -20,6 +20,10 @@ const MenuPage = lazy(() => import('@/features/menu/MenuPage'));
 const OrderingSettingsPage = lazy(() => import('@/features/ordering/OrderingSettingsPage'));
 const ReservationsPage = lazy(() => import('@/features/reservations/ReservationsPage'));
 const TablesPage = lazy(() => import('@/features/tables/TablesPage'));
+const PosPage = lazy(() => import('@/features/pos/PosPage'));
+const DayEndPage = lazy(() => import('@/features/pos/DayEndPage'));
+const KitchenDisplay = lazy(() => import('@/features/kitchen/KitchenDisplay'));
+const WaiterApp = lazy(() => import('@/features/waiter/WaiterApp'));
 const PlatformLayout = lazy(() => import('@/features/platform/PlatformLayout'));
 const Tenants = lazy(() => import('@/features/platform/Tenants'));
 const TenantDetail = lazy(() => import('@/features/platform/TenantDetail'));
@@ -74,7 +78,12 @@ export default function PlatformApp() {
         <Route path="ordering" element={<OrderingSettingsPage />} />
         <Route path="reservations" element={<ReservationsPage />} />
         <Route path="tables" element={<TablesPage />} />
+        <Route path="pos" element={<PosPage />} />
+        <Route path="day-end" element={<DayEndPage />} />
       </Route>
+      {/* Full-screen staff apps: kitchen display and the waiter phone app (PWA). */}
+      <Route path="kitchen" element={<Guard need="tenant"><KitchenDisplay /></Guard>} />
+      <Route path="waiter/*" element={<Guard need="tenant"><WaiterApp /></Guard>} />
       <Route path="platform" element={<Guard need="platform"><PlatformLayout /></Guard>}>
         <Route index element={<Tenants />} />
         <Route path="tenants/:id" element={<TenantDetail />} />

@@ -4,6 +4,8 @@ namespace App\Modules\Tables\Services;
 
 use App\Models\User;
 use App\Modules\Audit\Models\AuditLog;
+use App\Modules\Billing\Models\Invoice;
+use App\Modules\Billing\Services\Billing;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderEvent;
 use App\Modules\Ordering\Services\OrderPresenter;
@@ -13,6 +15,7 @@ use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tables\Models\TableRequest;
 use App\Modules\Tables\Models\TableSession;
 use App\Support\ApiException;
+use App\Support\Realtime\Live;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -42,9 +45,15 @@ class DineIn
     public function sessionFor(DiningTable $table): TableSession
     {
         DiningTable::whereKey($table->id)->lockForUpdate()->first();
+        $open = TableSession::where('dining_table_id', $table->id)->where('status', 'open')->latest('id')->first();
+        if ($open) {
+            return $open;
+        }
+        // New guests sat down: the table is clean and in use.
+        DiningTable::whereKey($table->id)->update(['cleaning_since' => null]);
+        $this->emit($table->id);
 
-        return TableSession::where('dining_table_id', $table->id)->where('status', 'open')->latest('id')->first()
-            ?? TableSession::create(['dining_table_id' => $table->id, 'status' => 'open', 'opened_at' => now()]);
+        return TableSession::create(['dining_table_id' => $table->id, 'status' => 'open', 'opened_at' => now()]);
     }
 
     /** "Call waiter" or "Request bill" from the table. */
@@ -63,6 +72,7 @@ class DineIn
             if ($type === 'bill') {
                 $session->update(['bill_requested_at' => now()]);
             }
+            $this->emit($table->id);
 
             return TableRequest::create([
                 'dining_table_id' => $table->id,
@@ -77,6 +87,7 @@ class DineIn
     {
         if (! $request->resolved_at) {
             $request->update(['resolved_at' => now(), 'resolved_by' => $by->id]);
+            $this->emit($request->dining_table_id);
         }
     }
 
@@ -109,10 +120,11 @@ class DineIn
         $tables = DiningTable::orderBy('sort_order')->orderBy('id')->get();
         $sessions = TableSession::with(['orders' => fn ($q) => $q->withSum('items', 'quantity')])->where('status', 'open')->get()->keyBy('dining_table_id');
         $requests = TableRequest::whereNull('resolved_at')->where('created_at', '>', now()->subHours(6))->orderBy('id')->get()->groupBy('dining_table_id');
+        $bills = Invoice::whereIn('table_session_id', $sessions->pluck('id'))->where('status', 'unpaid')->get()->keyBy('table_session_id');
         $upcoming = Reservation::with('table')->whereIn('status', ['confirmed', 'seated'])->whereNotNull('dining_table_id')
             ->where('starts_at', '<', now()->addHours(2))->where('ends_at', '>', now())->orderBy('starts_at')->get()->groupBy('dining_table_id');
 
-        return $tables->map(function (DiningTable $t) use ($sessions, $requests, $upcoming) {
+        return $tables->map(function (DiningTable $t) use ($sessions, $requests, $upcoming, $bills) {
             $session = $sessions->get($t->id);
             $orders = $session ? $session->orders->filter(fn (Order $o) => $this->counts($o)) : collect();
             $reqs = $requests->get($t->id, collect());
@@ -120,6 +132,7 @@ class DineIn
                 ! $t->is_active => 'inactive',
                 $session && ($session->bill_requested_at || $reqs->contains('type', 'bill')) => 'bill_requested',
                 (bool) $session => 'occupied',
+                (bool) $t->cleaning_since => 'cleaning',
                 default => 'free',
             };
             $booking = $upcoming->get($t->id)?->first();
@@ -130,7 +143,11 @@ class DineIn
                 'seats' => $t->seats,
                 'area' => $t->area,
                 'is_active' => $t->is_active,
+                'pos_x' => $t->pos_x,
+                'pos_y' => $t->pos_y,
+                'shape' => $t->shape,
                 'state' => $state,
+                'cleaning_since' => $t->cleaning_since?->toIso8601String(),
                 'session' => $session ? [
                     'id' => $session->id,
                     'opened_at' => $session->opened_at->toIso8601String(),
@@ -138,6 +155,7 @@ class DineIn
                     'active_orders' => $orders->filter(fn (Order $o) => $o->isActive())->count(),
                     'items_count' => (int) $orders->sum('items_sum_quantity'),
                     'total' => Money::toRupees($orders->sum(fn (Order $o) => Money::toPaise($o->total))),
+                    'invoice' => ($inv = $bills->get($session->id)) ? ['id' => $inv->id, 'number' => $inv->number, 'total' => $inv->total] : null,
                 ] : null,
                 'requests' => $reqs->map(fn (TableRequest $r) => ['id' => $r->id, 'type' => $r->type, 'created_at' => $r->created_at->toIso8601String()])->values(),
                 'booking' => $booking ? ['code' => $booking->code, 'name' => $booking->name, 'party_size' => $booking->party_size, 'time' => $booking->time, 'status' => $booking->status] : null,
@@ -163,49 +181,107 @@ class DineIn
     }
 
     /**
-     * Settle the bill and free the table: the table's orders are completed, pay-later
-     * ones marked paid with the chosen mode, unpaid online ones released.
+     * Settle the table in one step: bill everything it ordered (or use its open bill) and
+     * take the whole amount in one mode. "none" = on the house (100% discount, audited).
+     * Splits, discounts and buyer GSTIN go through the POS bill screen instead.
      */
     public function close(TableSession $session, string $mode, User $by): TableSession
     {
         if ($session->status !== 'open') {
             throw new ApiException('This table has already been closed.', 422, 'already_closed');
         }
+        $billing = app(Billing::class);
+        $invoice = Invoice::where('table_session_id', $session->id)->where('status', 'unpaid')->first();
+        if (! $invoice) {
+            $orders = Order::where('table_session_id', $session->id)->get();
+            $discount = $mode === 'none' ? ['type' => 'percent', 'value' => 100, 'reason' => 'No charge (on the house)'] : null;
+            $invoice = $billing->bill($by->tenant, $orders, $session, $discount, null, $by);
+        }
+        if ($invoice->fresh()->status === 'unpaid') {
+            $due = Money::toPaise($invoice->total) - Money::toPaise($invoice->fresh()->paid);
+            $billing->pay($invoice, [['mode' => $mode === 'none' ? 'other' : $mode, 'amount' => Money::toRupees($due)]], $by);
+        }
 
-        DB::transaction(function () use ($session, $mode, $by) {
-            $session = TableSession::whereKey($session->id)->lockForUpdate()->firstOrFail();
-            $total = 0;
-            foreach (Order::where('table_session_id', $session->id)->lockForUpdate()->get() as $order) {
-                if ($order->status === 'cancelled') {
-                    continue;
-                }
-                if ($order->payment_method === 'online' && $order->payment_status !== 'paid') {
-                    $order->update(['status' => 'cancelled', 'cancel_reason' => 'Table closed before payment']);
-                    $this->event($order, 'cancelled', 'Table closed before payment', $by->id);
+        return $session->fresh();
+    }
 
-                    continue;
-                }
-                $changes = [];
-                if ($order->status !== 'completed') {
-                    $changes['status'] = 'completed';
-                }
-                if ($order->payment_status === 'unpaid') {
-                    $changes['payment_status'] = 'paid';
-                }
-                if ($changes) {
-                    $order->update($changes);
-                    if (isset($changes['status'])) {
-                        $this->event($order, 'completed', 'Table closed', $by->id);
-                    }
-                }
-                $total += Money::toPaise($order->total);
+    /** The table has been cleaned after guests left. */
+    public function markClean(DiningTable $table): void
+    {
+        $table->update(['cleaning_since' => null]);
+        $this->emit($table->id);
+    }
+
+    /** Guests move to another (free) table, with their running bill. */
+    public function transfer(TableSession $session, DiningTable $to, User $by): TableSession
+    {
+        if ($session->status !== 'open') {
+            throw new ApiException('This table has already been closed.', 422, 'already_closed');
+        }
+        if (! $to->is_active || $to->id === $session->dining_table_id) {
+            throw new ApiException('Choose another table.', 422, 'invalid_table');
+        }
+        DB::transaction(function () use ($session, $to, $by) {
+            DiningTable::whereKey([$session->dining_table_id, $to->id])->lockForUpdate()->get();
+            if (TableSession::where('dining_table_id', $to->id)->where('status', 'open')->exists()) {
+                throw new ApiException("{$to->label} is in use. Merge the tables instead.", 422, 'table_in_use');
             }
-            $session->update(['status' => 'closed', 'closed_at' => now(), 'closed_by' => $by->id, 'payment_mode' => $mode, 'total' => Money::toRupees($total)]);
-            TableRequest::where('dining_table_id', $session->dining_table_id)->whereNull('resolved_at')->update(['resolved_at' => now(), 'resolved_by' => $by->id]);
-            AuditLog::record('table.closed', $session, ['table_id' => $session->dining_table_id, 'total' => Money::toRupees($total), 'payment_mode' => $mode]);
+            $from = $session->dining_table_id;
+            $session->update(['dining_table_id' => $to->id]);
+            Order::where('table_session_id', $session->id)->update(['dining_table_id' => $to->id, 'table_label' => $to->label]);
+            TableRequest::where('dining_table_id', $from)->whereNull('resolved_at')->update(['dining_table_id' => $to->id]);
+            DiningTable::whereKey($from)->update(['cleaning_since' => now()]);
+            $to->update(['cleaning_since' => null]);
+            AuditLog::record('table.transferred', $session, ['from' => $from, 'to' => $to->id, 'by' => $by->id]);
+            $this->emit($from);
+            $this->emit($to->id);
         });
 
         return $session->fresh();
+    }
+
+    /** Two tables become one bill: the other table's orders join this one. */
+    public function merge(TableSession $into, TableSession $other, User $by): TableSession
+    {
+        if ($into->status !== 'open' || $other->status !== 'open' || $into->id === $other->id) {
+            throw new ApiException('Both tables must have an open bill.', 422, 'invalid_merge');
+        }
+        if (Invoice::whereIn('table_session_id', [$into->id, $other->id])->where('status', 'unpaid')->exists()) {
+            throw new ApiException('Cancel the open bill first, then merge.', 422, 'billed');
+        }
+        DB::transaction(function () use ($into, $other, $by) {
+            Order::where('table_session_id', $other->id)->update(['table_session_id' => $into->id]);
+            TableRequest::where('table_session_id', $other->id)->whereNull('resolved_at')->update(['resolved_at' => now(), 'resolved_by' => $by->id]);
+            $other->update(['status' => 'closed', 'merged_into' => $into->id, 'closed_at' => now(), 'closed_by' => $by->id, 'payment_mode' => 'merged']);
+            if ($other->opened_at->lt($into->opened_at)) {
+                $into->update(['opened_at' => $other->opened_at]);
+            }
+            DiningTable::whereKey($other->dining_table_id)->update(['cleaning_since' => now()]);
+            AuditLog::record('table.merged', $into, ['into' => $into->dining_table_id, 'from' => $other->dining_table_id]);
+            $this->emit($into->dining_table_id);
+            $this->emit($other->dining_table_id);
+        });
+
+        return $into->fresh();
+    }
+
+    /** Floor plan: where each table stands and its shape. */
+    public function saveLayout(array $positions): void
+    {
+        DB::transaction(function () use ($positions) {
+            foreach ($positions as $p) {
+                DiningTable::whereKey($p['id'])->update(['pos_x' => $p['x'], 'pos_y' => $p['y'], 'shape' => $p['shape']]);
+            }
+        });
+        $this->emit(null);
+    }
+
+    public function emit(?int $tableId): void
+    {
+        $tenantId = app(\App\Modules\Tenancy\Support\TenantContext::class)->id();
+        if ($tenantId) {
+            Live::emit($tenantId, 'tables', 'table.changed', ['table_id' => $tableId]);
+        }
     }
 
     /** Orders that belong on the bill (cancelled and never-paid online ones don't). */

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { usePollInterval } from '@/lib/realtime';
 import { playChime, useAlertPrefs } from '@/features/orders/alerts';
 import type { TableOrder } from '@/site/table';
 
@@ -12,6 +13,9 @@ export interface TableRow {
   is_active: boolean;
   sort_order: number;
   qr_url: string;
+  pos_x: number | null;
+  pos_y: number | null;
+  shape: 'square' | 'round' | 'long';
 }
 
 export interface LiveTable {
@@ -20,8 +24,12 @@ export interface LiveTable {
   seats: number;
   area: string | null;
   is_active: boolean;
-  state: 'free' | 'occupied' | 'bill_requested' | 'inactive';
-  session: { id: number; opened_at: string; orders_count: number; active_orders: number; items_count: number; total: string } | null;
+  pos_x: number | null;
+  pos_y: number | null;
+  shape: 'square' | 'round' | 'long';
+  state: 'free' | 'occupied' | 'bill_requested' | 'cleaning' | 'inactive';
+  cleaning_since: string | null;
+  session: { id: number; opened_at: string; orders_count: number; active_orders: number; items_count: number; total: string; invoice: { id: number; number: string; total: string } | null } | null;
   requests: { id: number; type: 'waiter' | 'bill'; created_at: string }[];
   booking: { code: string; name: string; party_size: number; time: string; status: string } | null;
 }
@@ -45,11 +53,12 @@ export function useTables(enabled = true) {
 }
 
 export function useLiveTables(enabled = true) {
+  const interval = usePollInterval(8_000);
   return useQuery({
     queryKey: ['tables-live'],
     queryFn: async () => (await api.get<{ tables: LiveTable[] }>('/tenant/tables/live')).data.tables,
     enabled,
-    refetchInterval: 8_000,
+    refetchInterval: interval,
   });
 }
 

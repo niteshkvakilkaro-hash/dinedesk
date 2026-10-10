@@ -12,6 +12,7 @@ use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Support\ApiException;
 use App\Support\Phone;
+use App\Support\Realtime\Live;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -105,6 +106,7 @@ class Bookings
             Notification::send($staff, new NewReservationForStaff($reservation));
         }
         $this->notifier->send($reservation, $reservation->status === 'pending' ? 'received' : 'confirmed');
+        $this->emit($reservation);
 
         return $reservation->fresh('table');
     }
@@ -144,6 +146,7 @@ class Bookings
             'cancelled' => $this->notifier->send($r, 'cancelled', $note),
             default => null,
         };
+        $this->emit($r);
 
         return $r->fresh('table');
     }
@@ -158,6 +161,7 @@ class Bookings
             throw new ApiException('The booking time has passed. Please call us.', 422, 'not_cancellable');
         }
         $r->update(['status' => 'cancelled', 'cancelled_by' => 'guest']);
+        $this->emit($r);
         $this->notifier->send($r, 'cancelled');
 
         return $r->fresh('table');
@@ -228,6 +232,11 @@ class Bookings
         } while (Reservation::where('code', $code)->exists());
 
         return $code;
+    }
+
+    private function emit(Reservation $r): void
+    {
+        Live::emit($r->tenant_id, 'reservations', 'reservation.changed', ['id' => $r->id, 'status' => $r->status]);
     }
 
     private function label(string $status): string
