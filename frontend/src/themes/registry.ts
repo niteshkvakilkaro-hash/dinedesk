@@ -18,6 +18,9 @@ import qsrPreview from './qsr/preview.png';
 import * as street from './street/tokens';
 import { motion as streetMotion } from './street/motion';
 import streetPreview from './street/preview.png';
+import * as rajwada from './rajwada/tokens';
+import { motion as rajwadaMotion } from './rajwada/motion';
+import rajwadaPreview from './rajwada/preview.png';
 
 const def = (
   key: ThemeKey,
@@ -41,6 +44,7 @@ export const THEMES: Record<ThemeKey, ThemeDefinition> = {
   kulhad: def('kulhad', 'Kulhad Warm', kulhad, kulhadMotion, kulhadPreview, () => import('./kulhad/layouts').then((m) => m.default)),
   qsr: def('qsr', 'Modern QSR', qsr, qsrMotion, qsrPreview, () => import('./qsr/layouts').then((m) => m.default)),
   street: def('street', 'Street Pop', street, streetMotion, streetPreview, () => import('./street/layouts').then((m) => m.default)),
+  rajwada: def('rajwada', 'Rajwada Royal', rajwada, rajwadaMotion, rajwadaPreview, () => import('./rajwada/layouts').then((m) => m.default)),
 };
 
 export const THEME_KEYS = Object.keys(THEMES) as ThemeKey[];

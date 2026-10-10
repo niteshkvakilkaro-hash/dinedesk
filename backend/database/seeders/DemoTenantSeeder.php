@@ -81,7 +81,7 @@ class DemoTenantSeeder extends Seeder
         ],
         // Hotel with a restaurant (Pro plan): rooms, booking engine, front desk, room service by QR.
         [
-            'theme' => 'haveli', 'name' => 'Hotel Demo', 'type' => 'hotel', 'city' => 'Udaipur', 'email' => 'demo-hotel@example.com', 'plan' => 'pro',
+            'theme' => 'rajwada', 'cover' => 'haveli', 'name' => 'Hotel Demo', 'type' => 'hotel', 'city' => 'Udaipur', 'email' => 'demo-hotel@example.com', 'plan' => 'pro',
             'hours' => ['07:00', '23:00'], 'location' => [24.5854, 73.7125], 'packaging' => 0,
             'zones' => [],
             'gallery' => ['ambience-haveli-2', 'room-view', 'dal-makhani', 'room-twin', 'ambience-haveli-3'],
@@ -133,7 +133,7 @@ class DemoTenantSeeder extends Seeder
 
         app(TenantContext::class)->run($tenant, function () use ($demo, $tenant) {
             $theme = ucfirst($demo['theme']);
-            ThemeSetting::current()->update(['theme' => $demo['theme'], 'cover' => $this->photo($tenant, "cover-{$demo['theme']}", 'website/cover')]);
+            ThemeSetting::current()->update(['theme' => $demo['theme'], 'cover' => $this->photo($tenant, 'cover-'.($demo['cover'] ?? $demo['theme']), 'website/cover')]);
 
             $content = SiteContent::empty();
             $content['tagline'] = "A demo website in the {$theme} theme";

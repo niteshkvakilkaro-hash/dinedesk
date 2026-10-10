@@ -31,7 +31,7 @@ export function Footer({ site }: { site: SiteData }) {
 
   return (
     <footer className="s-alt mt-auto border-t border-t-line">
-      <div className="s-wrap s-grid gap-y-10 py-16">
+      <div className="s-wrap s-grid gap-y-8 py-12">
         <div className="col-span-4 md:col-span-5">
           <Brand site={site} />
           {l(site.content, 'tagline') && <p className="s-muted mt-4 max-w-sm">{l(site.content, 'tagline')}</p>}
@@ -42,9 +42,10 @@ export function Footer({ site }: { site: SiteData }) {
             </p>
           )}
         </div>
-        <nav aria-label={t('site.footerNav')} className="col-span-2 md:col-span-2">
+        {/* Two columns of links: a hotel with every page would otherwise make a very tall footer. */}
+        <nav aria-label={t('site.footerNav')} className="col-span-4 md:col-span-4">
           <p className="s-eyebrow mb-3">{t('site.explore')}</p>
-          <ul className="space-y-1">
+          <ul className="grid grid-cols-2 gap-x-6">
             {items.map((i) => (
               <li key={i.key}>
                 <Link to={i.to} className="inline-flex min-h-10 items-center hover:underline">
@@ -80,7 +81,7 @@ export function Footer({ site }: { site: SiteData }) {
           </ul>
         </div>
         {socials.length > 0 && (
-          <div className="col-span-4 md:col-span-2">
+          <div className="col-span-2 md:col-span-3 md:col-start-10">
             <p className="s-eyebrow mb-3">{t('site.followUs')}</p>
             <ul className="space-y-1">
               {socials.map((x) => (

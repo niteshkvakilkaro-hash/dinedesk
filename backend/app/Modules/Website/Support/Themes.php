@@ -18,6 +18,7 @@ final class Themes
         'kulhad' => ['primary' => '#9C4524', 'accent' => '#C58646', 'background' => '#F4EDE4', 'text' => '#2E1A10', 'accent_role' => 'fill'],
         'qsr' => ['primary' => '#D2302A', 'accent' => '#E8A54B', 'background' => '#F3F1EC', 'text' => '#141414', 'accent_role' => 'fill'],
         'street' => ['primary' => '#D7261E', 'accent' => '#FFCB2E', 'background' => '#FFF9EC', 'text' => '#141414', 'accent_role' => 'fill'],
+        'rajwada' => ['primary' => '#24392D', 'accent' => '#F4D49A', 'background' => '#F7F0E5', 'text' => '#1C2A21', 'accent_role' => 'fill'],
     ];
 
     /** Home page sections an owner can reorder or hide. The hero is always first. */
