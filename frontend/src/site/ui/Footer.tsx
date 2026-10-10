@@ -1,15 +1,15 @@
-import { Link, useLocation } from 'react-router';
+import { Link, NavLink, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { CalendarCheck, MessageCircle, Phone, ShoppingBag, MapPin, UtensilsCrossed } from 'lucide-react';
+import { BedDouble, CalendarCheck, House, Images, Info, LayoutGrid, MapPin, MessageCircle, Navigation, PartyPopper, Phone, ShoppingBag, Tag, UtensilsCrossed } from 'lucide-react';
 import { formatPhone } from '@/lib/format';
-import { cartCount, cartEstimate, useCart } from '../cart';
+import { cartCount, useCart } from '../cart';
 import { mapHref, telHref, useLocalized, whatsappHref } from '../data';
 import { ReduceMotionToggle, SiteLanguageToggle } from '../components/bits';
-import { useNavItems } from '../components/nav';
-import { useMoney } from '../ordering';
+import { useMobileMenu, useNavItems, type NavKey } from '../components/nav';
+import { SiteDialog } from '../order/skin';
 import type { SiteData } from '../types';
 import { Brand } from './Header';
-import { useTodayHours } from './primitives';
+import { OpenBadge, useTodayHours } from './primitives';
 
 const ext = { target: '_blank', rel: 'noopener noreferrer' } as const;
 
@@ -116,59 +116,113 @@ export function Footer({ site }: { site: SiteData }) {
   );
 }
 
-/** Mobile-only bottom bar: Call · WhatsApp (or Directions) · Order / cart. */
+const TAB_ICONS: Record<NavKey, typeof House> = {
+  home: House,
+  menu: UtensilsCrossed,
+  rooms: BedDouble,
+  reserve: CalendarCheck,
+  offers: Tag,
+  about: Info,
+  gallery: Images,
+  events: PartyPopper,
+  contact: MapPin,
+};
+// Which pages earn a tab of their own; the rest go under "More".
+const TAB_ORDER: NavKey[] = ['home', 'rooms', 'menu', 'reserve', 'offers', 'about', 'gallery', 'events', 'contact'];
+
+/** Phones and tablets: app-style bottom tabs (pages + cart) with the rest in a "More" sheet. */
 export function MobileBar({ site }: { site: SiteData }) {
   const { t } = useTranslation();
-  const money = useMoney();
   const { pathname } = useLocation();
-  const lines = useCart((s) => s.lines);
-  const setOpen = useCart((s) => s.setOpen);
+  const items = useNavItems(site);
+  const count = cartCount(useCart((s) => s.lines));
+  const setCartOpen = useCart((s) => s.setOpen);
+  const [more, setMore] = useMobileMenu();
   if (pathname.startsWith('/checkout') || pathname.startsWith('/order/') || pathname.startsWith('/style-guide')) return null;
   const c = site.content.contact;
-  const count = cartCount(lines);
-  const icon = 'h-[18px] w-[18px]';
+  const cart = site.ordering.enabled;
+  const sorted = [...items].sort((a, b) => TAB_ORDER.indexOf(a.key) - TAB_ORDER.indexOf(b.key));
+  const tabs = sorted.slice(0, cart ? 3 : 4);
+  const rest = items.filter((i) => !tabs.includes(i));
+  const restActive = rest.some((i) => i.to !== '/' && pathname.startsWith(i.to));
+  const label = (i: (typeof items)[number]) => (i.key === 'reserve' ? t('site.bar.book') : i.label);
+  const icon = 'h-[22px] w-[22px]';
 
   return (
-    <nav className="s-bar" aria-label={t('site.bar.label')}>
-      {c.phone && (
-        <a href={telHref(c.phone)}>
-          <Phone className={icon} aria-hidden="true" />
-          {t('site.bar.call')}
-        </a>
-      )}
-      {c.whatsapp ? (
-        <a href={whatsappHref(c.whatsapp, t('site.whatsappHello', { name: site.name }))} {...ext}>
-          <MessageCircle className={icon} aria-hidden="true" />
-          WhatsApp
-          <span className="sr-only"> ({t('common.opensInNewTab')})</span>
-        </a>
-      ) : (
-        <a href={mapHref(site)} {...ext}>
-          <MapPin className={icon} aria-hidden="true" />
-          {t('site.bar.directions')}
-          <span className="sr-only"> ({t('common.opensInNewTab')})</span>
-        </a>
-      )}
-      {site.ordering.enabled && count > 0 ? (
-        <button type="button" className="is-main" onClick={() => setOpen(true)} aria-label={t('order.viewCart', { count })}>
-          <ShoppingBag className={icon} aria-hidden="true" />
-          <span className="tabular-nums">
-            {count} · {money(cartEstimate(lines))}
+    <>
+      <nav className="s-tabbar" aria-label={t('site.mainNav')}>
+        {tabs.map((i) => {
+          const Icon = TAB_ICONS[i.key];
+          return (
+            <NavLink key={i.key} to={i.to} end={i.to === '/'}>
+              <span className="s-tab-icon">
+                <Icon className={icon} aria-hidden="true" />
+              </span>
+              {label(i)}
+            </NavLink>
+          );
+        })}
+        {cart && (
+          <button type="button" onClick={() => setCartOpen(true)} aria-label={t('order.viewCart', { count })}>
+            <span className="s-tab-icon">
+              <ShoppingBag className={icon} aria-hidden="true" />
+              {count > 0 && <span className="s-tab-count tabular-nums">{count}</span>}
+            </span>
+            {t('site.bar.cart')}
+          </button>
+        )}
+        <button type="button" onClick={() => setMore(true)} aria-expanded={more} aria-haspopup="dialog" className={restActive ? 'is-active' : ''}>
+          <span className="s-tab-icon">
+            <LayoutGrid className={icon} aria-hidden="true" />
           </span>
+          {t('site.bar.more')}
         </button>
-      ) : !site.ordering.enabled && site.reservations?.enabled ? (
-        <Link to="/reserve" className="is-main">
-          <CalendarCheck className={icon} aria-hidden="true" />
-          {t('site.bar.book')}
-        </Link>
-      ) : (
-        site.has_menu && (
-          <Link to="/menu" className="is-main">
-            <UtensilsCrossed className={icon} aria-hidden="true" />
-            {site.ordering.enabled ? t('site.bar.order') : t('site.bar.menu')}
-          </Link>
-        )
-      )}
-    </nav>
+      </nav>
+
+      <SiteDialog open={more} onClose={() => setMore(false)} title={t('site.bar.more')}>
+        {rest.length > 0 && (
+          <ul className="grid grid-cols-2 gap-2">
+            {rest.map((i) => {
+              const Icon = TAB_ICONS[i.key];
+              return (
+                <li key={i.key}>
+                  <NavLink to={i.to} end={i.to === '/'} onClick={() => setMore(false)} className="s-card flex min-h-14 items-center gap-3 px-4 font-semibold aria-[current=page]:text-t-link">
+                    <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{i.label}</span>
+                  </NavLink>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <div className={`grid gap-2 ${rest.length ? 'mt-5' : ''} ${c.phone && c.whatsapp ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          {c.phone && (
+            <a href={telHref(c.phone)} className="s-btn s-btn-secondary !px-2">
+              <Phone className="h-[18px] w-[18px]" aria-hidden="true" />
+              {t('site.bar.call')}
+            </a>
+          )}
+          {c.whatsapp && (
+            <a href={whatsappHref(c.whatsapp, t('site.whatsappHello', { name: site.name }))} {...ext} className="s-btn s-btn-secondary !px-2">
+              <MessageCircle className="h-[18px] w-[18px]" aria-hidden="true" />
+              WhatsApp
+              <span className="sr-only"> ({t('common.opensInNewTab')})</span>
+            </a>
+          )}
+          <a href={mapHref(site)} {...ext} className="s-btn s-btn-secondary !px-2">
+            <Navigation className="h-[18px] w-[18px]" aria-hidden="true" />
+            {t('site.bar.directions')}
+            <span className="sr-only"> ({t('common.opensInNewTab')})</span>
+          </a>
+        </div>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-t-line pt-4">
+          <OpenBadge site={site} />
+          <div className="flex items-center gap-4">
+            <SiteLanguageToggle className="inline-flex min-h-11 items-center font-semibold" />
+            <ReduceMotionToggle className="s-small inline-flex min-h-11 items-center font-semibold" />
+          </div>
+        </div>
+      </SiteDialog>
+    </>
   );
 }

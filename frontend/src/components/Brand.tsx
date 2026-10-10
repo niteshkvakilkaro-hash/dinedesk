@@ -5,7 +5,7 @@ import { LANGUAGES } from '@/i18n';
 
 export function LogoMark({ className = 'h-8 w-8' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
+    <svg viewBox="0 0 32 32" className={`rounded-lg dark:ring-1 dark:ring-line ${className}`} aria-hidden="true">
       <rect width="32" height="32" rx="8" fill="#14110F" />
       <path d="M9 22h14M11 22c0-5 2.2-9 5-9s5 4 5 9" fill="none" stroke="#F2B544" strokeWidth="2.2" strokeLinecap="round" />
       <circle cx="16" cy="10.5" r="1.6" fill="#F2B544" />

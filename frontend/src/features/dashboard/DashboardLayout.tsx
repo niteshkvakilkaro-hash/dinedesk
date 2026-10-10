@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, CalendarDays, ChefHat, Contact, CreditCard, Globe, Globe2, Hotel, Images, Network, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, PanelLeftClose, PanelLeftOpen, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wifi } from 'lucide-react';
+import { Building2, CalendarDays, ChefHat, Contact, CreditCard, Globe, Globe2, Hotel, Images, Network, LayoutDashboard, LineChart, LogOut, Megaphone, Moon, MoreHorizontal, Package, PanelLeftClose, PanelLeftOpen, QrCode, ReceiptText, Settings2, Smartphone, Store, Sun, UtensilsCrossed, Users, Wifi } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { disconnectLive, useLive, useLiveStatus } from '@/lib/realtime';
 import { useCan, useFeature, useSession, useSignOut } from '@/hooks/useSession';
 import { Alert, Dialog, DemoBadge, toast } from '@/components/ui';
 import { LanguageToggle, Logo } from '@/components/Brand';
+import { useAdminTheme } from '@/lib/adminTheme';
 import { useOrderAlerts } from '@/features/orders/alerts';
 import { useReservationAlerts } from '@/features/reservations/api';
 import { useTableAlerts } from '@/features/tables/api';
@@ -61,6 +62,7 @@ export default function DashboardLayout() {
   useLive(tenantKey, 'reservations', canReservations, () => refresh('reservations', 'reservations-feed'));
   useLive(tenantKey, 'tables', canRunTables && hasQr, () => refresh('tables-live', 'tables-feed', 'pos-open'));
   const [more, setMore] = useState(false);
+  const [theme, setTheme] = useAdminTheme();
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem('dd_sidebar') === 'collapsed';
@@ -187,6 +189,9 @@ export default function DashboardLayout() {
                 <Wifi className="h-3.5 w-3.5" aria-hidden="true" /> {t('kds.live')}
               </span>
             )}
+            <button type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="btn-ghost !min-h-10 !px-2.5" aria-pressed={theme === 'dark'} aria-label={t('dashboard.darkMode')} title={theme === 'dark' ? t('dashboard.lightMode') : t('dashboard.darkMode')}>
+              {theme === 'dark' ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
+            </button>
             <LanguageToggle />
             <button type="button" onClick={() => { disconnectLive(); void signOut(); }} className="btn-ghost !min-h-10 !px-3" aria-label={t('common.signOut')}>
               <LogOut className="h-5 w-5" aria-hidden="true" />

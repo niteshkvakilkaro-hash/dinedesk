@@ -52,13 +52,13 @@ function CustomerDialog({ id, onClose }: { id: number | null; onClose: () => voi
             ))}
           </dl>
           <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={t('customers.tags')} hint={t('customers.tagsHint')}>{(a) => <input {...a} className="field-input" value={f.tags} onChange={(e) => setF({ ...f, tags: e.target.value })} />}</Field>
               <Field label={t('customers.notes')} optional>{(a) => <input {...a} className="field-input" maxLength={500} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />}</Field>
             </div>
             <Toggle checked={f.dates_opt_in} onChange={(v) => setF({ ...f, dates_opt_in: v })} label={t('customers.datesOptIn')} hint={t('customers.datesOptInHint')} />
             {f.dates_opt_in && (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Field label={t('customers.birthday')} optional>{(a) => <input {...a} type="date" className="field-input" value={f.birthday} onChange={(e) => setF({ ...f, birthday: e.target.value })} />}</Field>
                 <Field label={t('customers.anniversary')} optional>{(a) => <input {...a} type="date" className="field-input" value={f.anniversary} onChange={(e) => setF({ ...f, anniversary: e.target.value })} />}</Field>
               </div>

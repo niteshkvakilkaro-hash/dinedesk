@@ -213,7 +213,7 @@ export function SiteSetup({ session, step, setStep }: { session: Session; step: 
             <div className="card space-y-6 p-5">
               <ImageUpload slot="logo" image={website.data?.theme.logo ?? null} round />
               <ColorFields theme={theme} primary={colors.primary_color} accent={colors.accent_color} onChange={setColors} />
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Field label={t('setup.step5.tagline')} optional hint={t('setup.step5.taglineHint')}>
                   {(a) => <input {...a} maxLength={140} className="field-input" value={tagline} onChange={(e) => setTagline(e.target.value)} />}
                 </Field>
@@ -229,7 +229,7 @@ export function SiteSetup({ session, step, setStep }: { session: Session; step: 
 
         {step === 6 && (
           <>
-            <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-labelledby="step-title">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" role="radiogroup" aria-labelledby="step-title">
               {(
                 [
                   ['sample', BookOpen],

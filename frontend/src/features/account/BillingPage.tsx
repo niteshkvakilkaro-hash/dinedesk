@@ -200,7 +200,7 @@ export default function BillingPage() {
             </div>
           </div>
           {!b.payments_ready && <Alert tone="info">{t('billing.notReady')}</Alert>}
-          <ul className="grid gap-4 md:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {b.plans.map((p) => {
               const price = shownCycle === 'yearly' ? p.price_yearly : p.price_monthly;
               const charge = shownCycle === 'yearly' ? p.charge_yearly : p.charge_monthly;

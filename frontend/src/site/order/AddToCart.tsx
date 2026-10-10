@@ -160,7 +160,7 @@ export function DishOptions({ item, open, onClose }: { item: MenuItem; open: boo
       )}
 
       {variants.length > 0 && (
-        <fieldset className="mt-5">
+        <fieldset className="mt-5 min-w-0">
           <legend className="font-bold">{t('order.chooseSize')}</legend>
           <div className="mt-2 grid gap-2">
             {variants.map((v) => (
@@ -178,7 +178,7 @@ export function DishOptions({ item, open, onClose }: { item: MenuItem; open: boo
         const chosen = addonIds.filter((id) => g.addons.some((a) => a.id === id)).length;
         const full = g.max_select !== null && chosen >= g.max_select && g.max_select !== 1;
         return (
-          <fieldset key={g.id} className="mt-5">
+          <fieldset key={g.id} className="mt-5 min-w-0">
             <legend className="font-bold">
               {l(g, 'name')}{' '}
               <span className="text-sm font-normal text-t-muted">

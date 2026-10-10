@@ -120,7 +120,7 @@ export default function Plans() {
         ) : query.isError ? (
           <ErrorState message={(query.error as Error).message} onRetry={() => void query.refetch()} />
         ) : (
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             {query.data!.plans.map((p) => (
               <PlanCard key={p.id} plan={p} meta={query.data!.meta} />
             ))}

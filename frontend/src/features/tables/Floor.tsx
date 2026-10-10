@@ -188,7 +188,7 @@ export function FloorView({ tables }: { tables: LiveTable[] }) {
           </span>
         ))}
       </div>
-      <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
         <div ref={box} className="relative w-full overflow-hidden rounded-2xl border border-line bg-[repeating-linear-gradient(0deg,transparent,transparent_39px,rgb(0_0_0/0.04)_40px),repeating-linear-gradient(90deg,transparent,transparent_39px,rgb(0_0_0/0.04)_40px)] bg-surface" style={{ height: FLOOR_H * scale }}>
           {placed.map((x) => {
             const size = tableSize(x);

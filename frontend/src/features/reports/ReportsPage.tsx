@@ -121,7 +121,7 @@ export default function ReportsPage() {
       {q.isError && <ErrorState message={(q.error as Error).message} onRetry={() => void q.refetch()} />}
       {r && (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Kpi label={t('reports.sales')} value={formatMoney(r.totals.sales)} hint={t('reports.gstIn', { value: formatMoney(r.totals.gst) })} />
             <Kpi label={t('reports.orders')} value={String(r.totals.orders)} hint={t('reports.cancelled', { count: r.totals.cancelled, value: formatMoney(r.totals.cancelled_value) })} />
             <Kpi label={t('reports.aov')} value={formatMoney(r.totals.average)} hint={t('reports.discounts', { value: formatMoney(r.totals.discounts) })} />
@@ -153,7 +153,7 @@ export default function ReportsPage() {
             </div>
           </section>
 
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <Bars title={t('reports.byType')} rows={r.by_type} label={(k) => t(`order.type.${k}`)} />
             <Bars title={t('reports.byPayment')} rows={r.by_payment} label={(k) => t(`order.pay.${k}`)} />
             <Bars title={t('reports.bySource')} rows={r.by_source} label={(k) => t(`pos.source.${k}`)} />
@@ -161,7 +161,7 @@ export default function ReportsPage() {
 
           <Heatmap cells={r.heatmap} />
 
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <section className="card p-5">
               <h2 className="font-bold">{t('reports.top')}</h2>
               <ol className="mt-3 space-y-1.5 text-sm">
@@ -189,7 +189,7 @@ export default function ReportsPage() {
             </section>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <section className="card p-5">
               <h2 className="font-bold">{t('reports.bookings')}</h2>
               <p className="mt-2 text-sm">{t('reports.bookingsLine', { bookings: r.reservations.bookings, guests: r.reservations.guests })}{r.reservations.no_show_rate !== null && ` · ${t('reports.noShow', { rate: r.reservations.no_show_rate })}`}</p>

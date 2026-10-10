@@ -70,7 +70,7 @@ export default function BranchesPage() {
         {d.can_add && <button type="button" className="btn-primary" onClick={() => setAdding(true)}><Plus className="h-4 w-4" aria-hidden="true" /> {t('branches.add')}</button>}
       </div>
       {!d.enabled && <Alert tone="info">{t('branches.proOnly')}</Alert>}
-      <ul className="grid gap-3 md:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {d.outlets.map((o) => (
           <li key={o.id} className={`card space-y-2 p-5 ${o.current ? 'ring-2 ring-brand' : ''}`}>
             <div className="flex flex-wrap items-center gap-2">

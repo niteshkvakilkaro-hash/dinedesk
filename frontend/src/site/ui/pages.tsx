@@ -228,7 +228,7 @@ function Contact({ site }: PageProps) {
           )}
         </div>
         <div className="s-reveal col-span-4 md:col-span-7" style={delay(1)}>
-          <MapFacade site={site} className="h-full min-h-[360px]" />
+          <MapFacade site={site} className="h-full w-full min-h-[360px]" />
         </div>
       </div>
       <Reserve site={site} />

@@ -71,7 +71,7 @@ export default function Landing() {
             {plans.isLoading ? (
               <SkeletonRows rows={3} />
             ) : (
-              <div className="mt-8 grid gap-5 md:grid-cols-3">
+              <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
                 {plans.data?.plans.map((p) => (
                   <article key={p.code} className={`card flex flex-col p-6 ${p.code === plans.data.trial.plan ? 'ring-2 ring-ink' : ''}`}>
                     <h3 className="text-xl font-extrabold">{p.name}</h3>

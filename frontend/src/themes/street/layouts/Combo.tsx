@@ -55,7 +55,7 @@ export function ComboBuilder() {
       <p className="mt-4 max-w-xl font-bold">{t('order.comboHint')}</p>
       <div className="mt-8 space-y-8">
         {sections.map((c, si) => (
-          <fieldset key={c.id}>
+          <fieldset key={c.id} className="min-w-0">
             <legend className="s-h3">
               {si + 1}. {l(c, 'name')}
             </legend>

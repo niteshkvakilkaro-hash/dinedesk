@@ -151,14 +151,14 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
               ))}
             </div>
             {disc.type !== 'none' && (
-              <div className="mt-3 grid gap-3 sm:grid-cols-[140px_1fr]">
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[140px_1fr]">
                 <input className="field-input" type="number" min={0} step="0.01" inputMode="decimal" aria-label={t('pos.discountValue')} placeholder={disc.type === 'percent' ? '10 %' : '₹ 50'} value={disc.value} onChange={(e) => setDisc({ ...disc, value: e.target.value })} />
                 <input className="field-input" placeholder={t('pos.discountReason')} aria-label={t('pos.discountReason')} maxLength={200} value={disc.reason} onChange={(e) => setDisc({ ...disc, reason: e.target.value })} />
               </div>
             )}
           </fieldset>
           {(hasCoupons || hasLoyalty) && (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {hasCoupons && (
                 <Field label={t('pos.coupon')} optional>{(a) => <input {...a} className="field-input font-mono uppercase" maxLength={30} value={coupon} onChange={(e) => setCoupon(e.target.value)} />}</Field>
               )}
@@ -187,7 +187,7 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
               {t('pos.addBuyer')}
             </button>
             {showBuyer && (
-              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <Field label={t('order.name')} optional>{(a) => <input {...a} className="field-input" value={buyer.name} onChange={(e) => setBuyer({ ...buyer, name: e.target.value })} />}</Field>
                 <Field label={t('order.phone')} optional>{(a) => <input {...a} className="field-input" value={buyer.phone} onChange={(e) => setBuyer({ ...buyer, phone: e.target.value })} />}</Field>
                 <Field label="GSTIN" optional hint={t('pos.gstinHint')}>{(a) => <input {...a} className="field-input uppercase" maxLength={15} value={buyer.gstin} onChange={(e) => setBuyer({ ...buyer, gstin: e.target.value })} />}</Field>

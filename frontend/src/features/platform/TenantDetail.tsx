@@ -44,7 +44,7 @@ function ChangeForm({ tenant }: { tenant: PlatformTenantDetail }) {
       className="space-y-4"
       noValidate
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label={t('platform.detail.changePlan')}>
           {(a) => (
             <select {...a} className="field-input" value={plan} onChange={(e) => setPlan(e.target.value)}>
@@ -160,7 +160,7 @@ export default function TenantDetail() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <section className="card space-y-4 p-5 lg:col-span-2" aria-labelledby="change-title">
           <h2 id="change-title" className="text-lg font-bold">
             {t('platform.detail.changePlan')} / {t('platform.detail.changeStatus')}

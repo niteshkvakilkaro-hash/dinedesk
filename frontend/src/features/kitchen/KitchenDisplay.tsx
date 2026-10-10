@@ -191,7 +191,7 @@ export default function KitchenDisplay() {
               </div>
             </div>
           )}
-          <main className="grid gap-4 p-4 lg:grid-cols-3">
+          <main className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-3">
             {columns.map((c) => {
               const list = tickets.filter((k) => k.status === c.key);
               return (
@@ -200,7 +200,7 @@ export default function KitchenDisplay() {
                     {c.title} <span className="rounded-full bg-[#2a2520] px-2 py-0.5 text-[#f5f1ec] tabular-nums">{list.length}</span>
                   </h2>
                   {list.length === 0 && <p className="rounded-2xl border border-dashed border-[#3a342e] p-6 text-center text-sm text-[#8c8377]">{t('kds.empty')}</p>}
-                  <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                     {list.map((k) => (
                       <TicketCard key={k.id} ticket={k} now={now} />
                     ))}

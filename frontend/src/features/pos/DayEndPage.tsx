@@ -102,14 +102,14 @@ export default function DayEndPage() {
           {(r.open.tables > 0 || r.open.unbilled_orders > 0 || r.open.unpaid_bills > 0) && (
             <Alert tone="warn">{t('dayEnd.stillOpen', { tables: r.open.tables, orders: r.open.unbilled_orders, bills: r.open.unpaid_bills })}</Alert>
           )}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Stat label={t('dayEnd.billed')} value={formatINR(r.bills.total)} hint={r.bills.count ? t('dayEnd.billsRange', { count: r.bills.count, first: r.bills.first, last: r.bills.last }) : t('dayEnd.noBills')} />
             <Stat label={t('dayEnd.gst')} value={formatINR(Number(r.bills.cgst) + Number(r.bills.sgst))} hint={`CGST ${formatINR(r.bills.cgst)} · SGST ${formatINR(r.bills.sgst)}`} />
             <Stat label={t('dayEnd.orders')} value={String(r.orders.count)} hint={t('dayEnd.avg', { amount: formatINR(r.orders.average) })} />
             <Stat label={t('dayEnd.discounts')} value={formatINR(r.bills.discount)} hint={t('dayEnd.cancelled', { count: r.orders.cancelled.count, amount: formatINR(r.orders.cancelled.amount) })} />
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <section className="card p-5">
               <h2 className="font-bold">{t('dayEnd.payments')}</h2>
               <dl className="mt-3 space-y-1.5 text-sm">
@@ -194,7 +194,7 @@ export default function DayEndPage() {
             </section>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <section className="card p-5">
               <h2 className="font-bold">{t('dayEnd.topDishes')}</h2>
               <ol className="mt-3 space-y-1.5 text-sm">

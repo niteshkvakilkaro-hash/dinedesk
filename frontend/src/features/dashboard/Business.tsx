@@ -69,7 +69,7 @@ export default function Business() {
         <Field label={t('onboarding.businessName')} error={errors.name}>
           {(a) => <input {...a} className="field-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />}
         </Field>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field label={t('onboarding.city')} error={errors.city}>
             {(a) => <input {...a} className="field-input" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />}
           </Field>

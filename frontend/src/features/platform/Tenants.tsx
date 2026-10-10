@@ -53,7 +53,7 @@ export default function Tenants() {
     <div>
       <h1 className="text-3xl font-extrabold tracking-tight">{t('platform.tenants.title')}</h1>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {summary
           ? cards.map((c) => (
               <div key={c.label} className="card p-4">

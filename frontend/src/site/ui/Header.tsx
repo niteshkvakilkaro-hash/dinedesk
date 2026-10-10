@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Menu as MenuIcon, ShoppingBag, X } from 'lucide-react';
 import { cartCount, useCart } from '../cart';
 import { useActiveRoom } from '../hotel';
+import { useActiveTable } from '../table';
 import { telHref } from '../data';
 import { ReduceMotionToggle, SiteImg, SiteLanguageToggle } from '../components/bits';
 import { SkipLink, useMobileMenu, useNavItems } from '../components/nav';
@@ -39,6 +40,8 @@ export function Header({ site }: { site: SiteData }) {
   const { pathname } = useLocation();
   const items = useNavItems(site);
   const [open, setOpen] = useMobileMenu();
+  // Phones use the bottom tabs; at a table or in a room that bar is taken, so the menu button stays.
+  const drawer = !!useActiveTable(site) || !!useActiveRoom(site);
   const scrolled = useScrolled();
   const over = pathname === '/' && themeStyle(site).hero === 'fullbleed' && !!site.theme.cover && !scrolled && !open;
   const phone = site.content.contact.phone;
@@ -75,13 +78,13 @@ export function Header({ site }: { site: SiteData }) {
                 </a>
               )
             )}
-            <button type="button" className="s-icon-btn lg:hidden" aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen(!open)} aria-label={open ? t('site.menuClose') : t('site.menuOpen')}>
+            {drawer && <button type="button" className="s-icon-btn lg:hidden" aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen(!open)} aria-label={open ? t('site.menuClose') : t('site.menuOpen')}>
               {open ? <X className="h-6 w-6" aria-hidden="true" /> : <MenuIcon className="h-6 w-6" aria-hidden="true" />}
-            </button>
+            </button>}
           </div>
         </div>
       </header>
-      {open && (
+      {drawer && open && (
         <div id="site-menu" className="s-sheet lg:hidden" style={{ paddingTop: "calc(var(--s-header-h) + 32px)" }}>
           <nav aria-label={t('site.mainNav')} className="s-wrap flex-1 overflow-y-auto py-6">
             <ul>

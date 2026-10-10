@@ -203,7 +203,7 @@ export default function MenuPage() {
           {data.addon_groups.length === 0 ? (
             <EmptyState title={t('menuAdmin.noGroups')} />
           ) : (
-            <ul className="grid gap-3 sm:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {data.addon_groups.map((g) => (
                 <li key={g.id} className="card p-4">
                   <div className="flex items-start gap-2">

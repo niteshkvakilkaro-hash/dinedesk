@@ -46,7 +46,7 @@ export default function PlatformSettingsPage() {
       <form className="card space-y-4 p-5" onSubmit={(e) => { e.preventDefault(); save.mutate(); }} noValidate>
         <h2 className="text-lg font-bold">{t('platform.settings.seller')}</h2>
         <p className="text-sm text-muted">{t('platform.settings.sellerHint')}</p>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {seller('legal_name', t('platform.settings.legalName'), { maxLength: 150 })}
           {seller('gstin', t('platform.settings.gstin'), { maxLength: 15, className: 'field-input uppercase' })}
           {seller('address', t('platform.settings.address'), { maxLength: 300 })}
@@ -56,7 +56,7 @@ export default function PlatformSettingsPage() {
           <Field label={t('platform.settings.prefix')} error={errors['seller.invoice_prefix']}>{(a) => <input {...a} className="field-input uppercase" maxLength={6} value={f.seller.invoice_prefix} onChange={(e) => setF({ ...f, seller: { ...f.seller, invoice_prefix: e.target.value.toUpperCase() } })} />}</Field>
         </div>
         <h2 className="pt-2 text-lg font-bold">{t('platform.settings.billing')}</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label={t('platform.settings.grace')} hint={t('platform.settings.graceHint')} error={errors['billing.grace_days']}>{(a) => <input {...a} type="number" min={0} max={60} className="field-input" value={f.billing.grace_days} onChange={(e) => setF({ ...f, billing: { ...f.billing, grace_days: Number(e.target.value) } })} />}</Field>
           <Field label={t('platform.settings.gstRate')} hint={t('platform.settings.gstHint')}>{(a) => <select {...a} className="field-input" value={f.billing.gst_rate} onChange={(e) => setF({ ...f, billing: { ...f.billing, gst_rate: Number(e.target.value) } })}><option value={18}>18%</option><option value={0}>0%</option></select>}</Field>
           <Field label="SAC" hint={t('platform.settings.sacHint')} error={errors['billing.sac']}>{(a) => <input {...a} className="field-input" maxLength={6} inputMode="numeric" value={f.billing.sac} onChange={(e) => setF({ ...f, billing: { ...f.billing, sac: e.target.value } })} />}</Field>

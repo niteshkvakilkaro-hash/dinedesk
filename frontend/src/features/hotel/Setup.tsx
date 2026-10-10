@@ -31,7 +31,7 @@ function SettingsCard() {
     <section className="card space-y-4 p-5" aria-labelledby="hs-h">
       <h2 id="hs-h" className="text-lg font-bold">{t('hotel.setup.settings')}</h2>
       {errors.form && <Alert>{errors.form}</Alert>}
-      <div className="grid gap-x-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
         <Toggle checked={f.online_booking} onChange={(v) => setF({ ...f, online_booking: v })} label={t('hotel.setup.onlineBooking')} hint={t('hotel.setup.onlineBookingHint')} />
         <Toggle checked={f.auto_confirm} onChange={(v) => setF({ ...f, auto_confirm: v })} label={t('hotel.setup.autoConfirm')} hint={t('hotel.setup.autoConfirmHint')} />
         <Toggle checked={f.room_service} onChange={(v) => setF({ ...f, room_service: v })} label={t('hotel.setup.roomService')} hint={t('hotel.setup.roomServiceHint')} />
@@ -49,7 +49,7 @@ function SettingsCard() {
         {num('max_days_ahead', t('hotel.setup.maxDaysAhead'), { min: 7, max: 540 })}
         {num('hold_minutes', t('hotel.setup.holdMinutes'), { min: 10, max: 120 })}
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label={t('hotel.setup.houseRules')} optional error={errors.house_rules}>{(a) => <textarea {...a} rows={3} className="field-input" maxLength={2000} value={f.house_rules ?? ''} onChange={(e) => setF({ ...f, house_rules: e.target.value })} />}</Field>
         <Field label={t('hotel.setup.houseRulesHi')} optional>{(a) => <textarea {...a} rows={3} className="field-input" lang="hi" maxLength={2000} value={f.house_rules_hi ?? ''} onChange={(e) => setF({ ...f, house_rules_hi: e.target.value })} />}</Field>
       </div>
@@ -101,7 +101,7 @@ function TypeDialog({ type, onClose }: { type: RoomTypeRow | 'new' | null; onClo
     <Dialog open onClose={onClose} title={ty ? t('hotel.setup.editType', { name: ty.name }) : t('hotel.setup.newType')} wide>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }} noValidate>
         {errors.form && <Alert>{errors.form}</Alert>}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {text('name', t('hotel.setup.typeName'), { maxLength: 80, placeholder: t('hotel.setup.typeNameHint') })}
           {text('name_hi', t('hotel.setup.typeNameHi'), { maxLength: 80, lang: 'hi' }, true)}
           <Field label={t('hotel.setup.description')} optional error={errors.description}>{(a) => <textarea {...a} rows={3} className="field-input" maxLength={1500} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />}</Field>
@@ -163,10 +163,10 @@ function Photos({ ty }: { ty: RoomTypeRow }) {
         <figure key={p.key} className="group relative h-20 w-28 overflow-hidden rounded-lg bg-ink/5">
           <img src={p.src} srcSet={p.srcset} sizes="112px" alt={p.alt} className="h-full w-full object-cover" />
           <figcaption className="absolute inset-x-0 bottom-0 flex justify-end gap-1 bg-black/50 p-1">
-            {i > 0 && <button type="button" className="rounded bg-white/90 p-1" onClick={() => act.mutate({ key: p.key, del: false })} aria-label={t('hotel.setup.makeCover')}><Star className="h-3.5 w-3.5" aria-hidden="true" /></button>}
-            <button type="button" className="rounded bg-white/90 p-1 text-danger" onClick={() => window.confirm(t('hotel.setup.confirmPhoto')) && act.mutate({ key: p.key, del: true })} aria-label={t('hotel.setup.removePhoto')}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></button>
+            {i > 0 && <button type="button" className="rounded bg-white/90 p-1 text-[#14110f]" onClick={() => act.mutate({ key: p.key, del: false })} aria-label={t('hotel.setup.makeCover')}><Star className="h-3.5 w-3.5" aria-hidden="true" /></button>}
+            <button type="button" className="rounded bg-white/90 p-1 text-[#b91c1c]" onClick={() => window.confirm(t('hotel.setup.confirmPhoto')) && act.mutate({ key: p.key, del: true })} aria-label={t('hotel.setup.removePhoto')}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></button>
           </figcaption>
-          {i === 0 && <span className="absolute left-1 top-1 rounded bg-white/90 px-1.5 text-[10px] font-bold">{t('hotel.setup.cover')}</span>}
+          {i === 0 && <span className="absolute left-1 top-1 rounded bg-white/90 px-1.5 text-[10px] font-bold text-[#14110f]">{t('hotel.setup.cover')}</span>}
         </figure>
       ))}
       {ty.photos.length < 8 && (
@@ -278,7 +278,7 @@ function RoomsCard({ types, business }: { types: RoomTypeRow[]; business: string
         <button type="button" className="btn-outline !min-h-10 text-sm" onClick={() => window.print()} disabled={!rooms.some((r) => r.is_active)}><Printer className="h-4 w-4" aria-hidden="true" /> {t('hotel.setup.printQr')}</button>
       </div>
       {!types.length ? <p className="text-sm text-muted">{t('hotel.setup.typesFirst')}</p> : (
-        <form className="grid gap-2 sm:grid-cols-[1fr_2fr_1fr_auto]" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
+        <form className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_2fr_1fr_auto]" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
           <select className="field-input" aria-label={t('hotel.roomType')} value={add.room_type_id || String(types[0]?.id ?? '')} onChange={(e) => setAdd({ ...add, room_type_id: e.target.value })}>{types.map((ty) => <option key={ty.id} value={ty.id}>{ty.name}</option>)}</select>
           <input className="field-input" aria-label={t('hotel.setup.numbers')} placeholder={t('hotel.setup.numbersHint')} value={add.numbers} onChange={(e) => setAdd({ ...add, numbers: e.target.value })} />
           <input className="field-input" aria-label={t('hotel.setup.floorLabel')} placeholder={t('hotel.setup.floorLabel')} maxLength={20} value={add.floor} onChange={(e) => setAdd({ ...add, floor: e.target.value })} />

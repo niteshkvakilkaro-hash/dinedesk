@@ -600,9 +600,82 @@
   .s-has-bar {
     padding-bottom: calc(var(--s-bar-h) + env(safe-area-inset-bottom));
   }
-  @media (min-width: 768px) {
+  @media (min-width: 1024px) {
     .s-has-bar {
       padding-bottom: 0;
+    }
+  }
+
+  /* ---------- Phone / tablet bottom tabs (pages, cart, More) ---------- */
+  .s-tabbar {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 55;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 0 4px env(safe-area-inset-bottom);
+    background: color-mix(in srgb, var(--t-bg) 92%, transparent);
+    backdrop-filter: blur(14px) saturate(1.4);
+    box-shadow: 0 -1px 0 var(--t-line);
+  }
+  .s-tabbar > a,
+  .s-tabbar > button {
+    display: flex;
+    min-width: 0;
+    height: var(--s-bar-h);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--t-muted);
+    transition: color 0.2s var(--t-ease);
+  }
+  .s-tabbar > [aria-current='page'],
+  .s-tabbar > .is-active {
+    color: var(--t-text);
+  }
+  .s-tab-icon {
+    position: relative;
+    display: flex;
+    height: 30px;
+    width: 52px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    transition: background-color 0.25s var(--t-ease);
+  }
+  .s-tabbar > [aria-current='page'] .s-tab-icon,
+  .s-tabbar > .is-active .s-tab-icon {
+    background: color-mix(in srgb, var(--t-primary) 14%, transparent);
+    color: var(--t-link);
+  }
+  .s-tab-count {
+    position: absolute;
+    top: -3px;
+    right: 6px;
+    display: flex;
+    height: 18px;
+    min-width: 18px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0 4px;
+    font-size: 10px;
+    background: var(--t-primary);
+    color: var(--t-on-primary);
+  }
+  [data-card='sticker'] .s-tabbar > [aria-current='page'] .s-tab-icon {
+    box-shadow: inset 0 0 0 2px var(--t-text);
+  }
+  @media (min-width: 1024px) {
+    .s-tabbar {
+      display: none;
     }
   }
 
@@ -888,6 +961,27 @@
     box-shadow: none;
   }
   .theme-rajwada .s-bar .is-main {
+    background: var(--t-accent);
+    color: var(--t-on-accent);
+  }
+  .theme-rajwada .s-tabbar {
+    background: var(--t-primary);
+    box-shadow: 0 -1px 0 color-mix(in srgb, var(--t-accent) 40%, transparent);
+  }
+  .theme-rajwada .s-tabbar > a,
+  .theme-rajwada .s-tabbar > button {
+    color: color-mix(in srgb, var(--t-on-primary) 72%, transparent);
+  }
+  .theme-rajwada .s-tabbar > [aria-current='page'],
+  .theme-rajwada .s-tabbar > .is-active {
+    color: var(--t-accent);
+  }
+  .theme-rajwada .s-tabbar > [aria-current='page'] .s-tab-icon,
+  .theme-rajwada .s-tabbar > .is-active .s-tab-icon {
+    background: var(--t-accent);
+    color: var(--t-on-accent);
+  }
+  .theme-rajwada .s-tab-count {
     background: var(--t-accent);
     color: var(--t-on-accent);
   }

@@ -321,7 +321,7 @@ export function StayPanel({ id, onClose }: { id: number | null; onClose: () => v
             {s.awaiting_payment && <Badge tone="pending">{t('hotel.awaitingAdvance')}</Badge>}
             <span className="text-sm text-muted">{t(`hotel.source.${s.source}`)} · {formatDateTime(s.created_at)}</span>
           </div>
-          <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
             <div><dt className="text-muted">{t('hotel.stay')}</dt><dd className="font-semibold">{shortDate(s.check_in, true)} → {shortDate(s.check_out, true)} · {t('hotel.nights', { count: s.nights })}</dd></div>
             <div><dt className="text-muted">{t('hotel.guests')}</dt><dd className="font-semibold">{t('hotel.adults', { count: s.adults })}{s.children ? `, ${t('hotel.children', { count: s.children })}` : ''}</dd></div>
             <div><dt className="text-muted">{t('hotel.roomType')}</dt><dd className="font-semibold">{s.room_type.name}{s.room ? ` · ${t('hotel.roomNo', { number: s.room.number })}` : ''}</dd></div>

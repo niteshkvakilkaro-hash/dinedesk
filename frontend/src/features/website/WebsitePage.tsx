@@ -140,7 +140,7 @@ function ContentTab() {
   };
 
   const bilingual = (key: 'tagline' | 'about', multiline = false, max = 140) => (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {(['', '_hi'] as const).map((suffix) => {
         const k = `${key}${suffix}` as 'tagline' | 'tagline_hi' | 'about' | 'about_hi';
         const value = form[k] ?? '';
@@ -176,7 +176,7 @@ function ContentTab() {
         </h2>
         <p className="text-sm text-muted">{t('website.content.milestonesHint')}</p>
         {form.milestones.map((m, i) => (
-          <fieldset key={i} className="grid gap-3 rounded-xl border border-line p-3 sm:grid-cols-[110px_1fr_auto]">
+          <fieldset key={i} className="grid grid-cols-1 gap-3 rounded-xl border border-line p-3 sm:grid-cols-[110px_1fr_auto]">
             <legend className="sr-only">{t('website.content.milestoneN', { n: i + 1 })}</legend>
             <Field label={t('website.content.year')} error={errors[`milestones.${i}.year`]}>
               {(a) => <input {...a} maxLength={10} className="field-input" value={m.year} onChange={(e) => set('milestones', form.milestones.map((x, j) => (j === i ? { ...x, year: e.target.value } : x)))} />}
@@ -206,7 +206,7 @@ function ContentTab() {
         <h2 id="c-contact" className="text-lg font-bold">
           {t('website.content.contactTitle')}
         </h2>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field label={t('website.content.phone')} optional error={errors['contact.phone']}>
             {(a) => <input {...a} type="tel" autoComplete="tel" className="field-input" value={form.contact.phone ?? ''} onChange={(e) => contact('phone', e.target.value)} />}
           </Field>
@@ -242,7 +242,7 @@ function ContentTab() {
         <h2 id="c-social" className="text-lg font-bold">
           {t('website.content.socialTitle')}
         </h2>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {(['instagram', 'facebook', 'youtube', 'google_maps'] as const).map((k) => (
             <Field key={k} label={t(`website.content.social.${k}`)} optional error={errors[`socials.${k}`]}>
               {(a) => <input {...a} type="url" placeholder="https://" className="field-input" value={form.socials[k] ?? ''} onChange={(e) => social(k, e.target.value)} />}
@@ -256,7 +256,7 @@ function ContentTab() {
           {t('website.content.legalTitle')}
         </h2>
         <p className="text-sm text-muted">{t('website.content.legalHint')}</p>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field label={t('website.content.fssai')} optional hint={t('website.content.fssaiHint')} error={errors['legal.fssai']}>
             {(a) => <input {...a} inputMode="numeric" maxLength={14} className="field-input tabular-nums" value={legal.fssai ?? ''} onChange={(e) => set('legal', { ...legal, fssai: text(e.target.value.replace(/\D/g, '')) })} />}
           </Field>
@@ -275,7 +275,7 @@ function ContentTab() {
           {t('website.content.seoTitle')}
         </h2>
         <p className="text-sm text-muted">{t('website.content.seoHint')}</p>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {(['description', 'description_hi'] as const).map((k) => (
             <Field key={k} label={t('website.content.seoDescription') + (k.endsWith('_hi') ? ' (हिन्दी)' : ' (English)')} optional hint={`${(form.seo[k] ?? '').length}/160`} error={errors[`seo.${k}`]}>
               {(a) => <textarea {...a} rows={3} maxLength={160} className="field-input" value={form.seo[k] ?? ''} onChange={(e) => set('seo', { ...form.seo, [k]: text(e.target.value) })} />}

@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* `dark:` follows the dashboard's own switch (useAdminTheme), not the device setting. */
+@custom-variant dark (&:where([data-dd-theme='dark'], [data-dd-theme='dark'] *));
+
 /*
  * Platform (DineDesk app) tokens. Tenant website themes (Phase 2) define their
  * own token sets in src/themes/<theme>/tokens.ts and write them to the same
@@ -28,6 +31,28 @@
   --dd-radius: 14px;
   --dd-ease: cubic-bezier(0.22, 1, 0.36, 1);
   color-scheme: light;
+}
+
+/*
+ * Dashboard dark mode (set on <html> by useAdminTheme while the dashboard is open).
+ * Contrast is checked in adminTheme.test.ts.
+ */
+:root[data-dd-theme='dark'] {
+  --dd-ink: #f2ede6;
+  --dd-paper: #141210;
+  --dd-surface: #1c1a17;
+  --dd-line: #36312b;
+  --dd-muted: #a9a095;
+  --dd-brand: #f0834a;
+  --dd-brand-strong: #f59e6b;
+  --dd-brand-soft: #3b2214;
+  --dd-success: #4ade80;
+  --dd-success-soft: #12301d;
+  --dd-warn: #fcd34d;
+  --dd-warn-soft: #382a0b;
+  --dd-danger: #f87171;
+  --dd-danger-soft: #3d1717;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -133,6 +158,11 @@
 }
 
 @layer components {
+  /* Dark mode: the bright brand and status colours need dark text on them, not white. */
+  :root[data-dd-theme='dark'] :is(.bg-brand, .bg-success, .bg-danger, .bg-warn).text-white,
+  :root[data-dd-theme='dark'] .btn-brand {
+    color: #1a0f08;
+  }
   .field-input[aria-invalid='true'] {
     @apply border-danger ring-2 ring-danger/15;
   }

@@ -115,7 +115,7 @@ export default function OnboardingWizard() {
                   {t('onboarding.typeTitle')}
                 </h2>
                 <p className="text-muted">{t('onboarding.typeSubtitle')}</p>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2" role="radiogroup" aria-labelledby="type-title">
+                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2" role="radiogroup" aria-labelledby="type-title">
                   {(Object.keys(TYPE_ICONS) as BusinessType[]).map((key) => {
                     const Icon = TYPE_ICONS[key];
                     const selected = type === key;
@@ -159,7 +159,7 @@ export default function OnboardingWizard() {
                   <Field label={t('onboarding.businessName')} error={errors.name}>
                     {(a) => <input {...a} className="field-input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="organization" autoFocus />}
                   </Field>
-                  <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <Field label={t('onboarding.city')} error={errors.city}>
                       {(a) => <input {...a} className="field-input" value={city} onChange={(e) => setCity(e.target.value)} autoComplete="address-level2" />}
                     </Field>

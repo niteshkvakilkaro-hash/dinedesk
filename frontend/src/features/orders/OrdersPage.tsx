@@ -167,7 +167,7 @@ function OrderDetailDialog({ id, onClose, onCancel }: { id: number | null; onClo
           {o.payment_method === 'online' && o.payment_status !== 'paid' && o.status !== 'cancelled' && <Alert tone="warn">{t('orders.awaitingPayment')}</Alert>}
           {o.payment_status === 'refund_due' && <Alert tone="danger">{t('orders.refundDue')}</Alert>}
 
-          <section className="grid gap-3 rounded-xl bg-paper p-4 sm:grid-cols-2">
+          <section className="grid grid-cols-1 gap-3 rounded-xl bg-paper p-4 sm:grid-cols-2">
             <div>
               <p className="font-semibold">{o.customer_name}</p>
               <a href={`tel:${o.customer_phone}`} className="mt-1 inline-flex min-h-10 items-center gap-1.5 text-sm font-semibold text-brand-strong underline">
@@ -379,7 +379,7 @@ export default function OrdersPage() {
       ) : rows.length === 0 ? (
         <EmptyState title={view === 'active' ? t('orders.emptyActive') : t('orders.empty')}>{view === 'active' && t('orders.emptyActiveHint')}</EmptyState>
       ) : view === 'active' ? (
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {columns.map((c) => {
             const list = rows.filter((o) => c.statuses.includes(o.status));
             return (

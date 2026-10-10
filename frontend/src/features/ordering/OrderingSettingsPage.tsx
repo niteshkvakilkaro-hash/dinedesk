@@ -192,7 +192,7 @@ export default function OrderingSettingsPage() {
             {data.razorpay.mode ? <Badge tone={data.razorpay.mode === 'live' ? 'live' : 'trialing'}>{t(`orderingAdmin.mode.${data.razorpay.mode}`)}</Badge> : <Badge tone="neutral">{t('orderingAdmin.notConnected')}</Badge>}
           </div>
           <p className="text-sm text-muted">{t('orderingAdmin.rzpHint')}</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Key ID">{(a) => <input {...a} className="field-input font-mono" placeholder="rzp_test_…" value={rzp.key_id} onChange={(e) => setRzp({ ...rzp, key_id: e.target.value.trim() })} autoComplete="off" />}</Field>
             <Field label="Key secret" hint={data.razorpay.has_key_secret ? t('orderingAdmin.secretSaved') : undefined}>{(a) => <input {...a} type="password" className="field-input font-mono" value={rzp.key_secret} onChange={(e) => setRzp({ ...rzp, key_secret: e.target.value.trim() })} autoComplete="new-password" />}</Field>
             <Field label="Webhook secret" hint={data.razorpay.has_webhook_secret ? t('orderingAdmin.secretSaved') : t('orderingAdmin.webhookSecretHint')}>{(a) => <input {...a} type="password" className="field-input font-mono" value={rzp.webhook_secret} onChange={(e) => setRzp({ ...rzp, webhook_secret: e.target.value.trim() })} autoComplete="new-password" />}</Field>
@@ -216,7 +216,7 @@ export default function OrderingSettingsPage() {
 
       <section className="card space-y-4 p-5" aria-labelledby="time-h">
         <h2 id="time-h" className="text-lg font-bold">{t('orderingAdmin.timing')}</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('orderingAdmin.prep')} hint={t('orderingAdmin.minutes')}>{(a) => <input {...a} type="number" min={5} max={240} className="field-input" value={s.prep_minutes} onChange={(e) => up({ prep_minutes: Number(e.target.value) })} />}</Field>
           <Field label={t('orderingAdmin.deliveryTime')} hint={t('orderingAdmin.minutes')}>{(a) => <input {...a} type="number" min={5} max={240} className="field-input" value={s.delivery_minutes} onChange={(e) => up({ delivery_minutes: Number(e.target.value) })} />}</Field>
         </div>
@@ -228,7 +228,7 @@ export default function OrderingSettingsPage() {
 
       <section className="card space-y-4 p-5" aria-labelledby="tax-h">
         <h2 id="tax-h" className="text-lg font-bold">{t('orderingAdmin.charges')}</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('orderingAdmin.defaultGst')} hint={t('orderingAdmin.defaultGstHint')}>
             {(a) => (
               <select {...a} className="field-input" value={s.default_tax_rate} onChange={(e) => up({ default_tax_rate: Number(e.target.value) })}>
@@ -244,7 +244,7 @@ export default function OrderingSettingsPage() {
       <section className="card space-y-4 p-5" aria-labelledby="loc-h">
         <h2 id="loc-h" className="text-lg font-bold">{t('orderingAdmin.location')}</h2>
         <p className="text-sm text-muted">{t('orderingAdmin.locationHint')}</p>
-        <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <Field label={t('orderingAdmin.lat')}>{(a) => <input {...a} type="number" step="0.000001" className="field-input" value={s.location.lat ?? ''} onChange={(e) => up({ location: { ...s.location, lat: e.target.value === '' ? null : Number(e.target.value) } })} />}</Field>
           <Field label={t('orderingAdmin.lng')}>{(a) => <input {...a} type="number" step="0.000001" className="field-input" value={s.location.lng ?? ''} onChange={(e) => up({ location: { ...s.location, lng: e.target.value === '' ? null : Number(e.target.value) } })} />}</Field>
           <button

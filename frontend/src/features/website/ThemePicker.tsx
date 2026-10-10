@@ -11,7 +11,7 @@ import type { SectionKey } from '@/site/types';
 export function ThemeCards({ value, onChange }: { value: ThemeKey; onChange: (key: ThemeKey) => void }) {
   const { t } = useTranslation();
   return (
-    <div role="radiogroup" aria-label={t('website.chooseTheme')} className="grid gap-4 sm:grid-cols-3">
+    <div role="radiogroup" aria-label={t('website.chooseTheme')} className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       {THEME_KEYS.map((key) => {
         const def = THEMES[key];
         const selected = value === key;

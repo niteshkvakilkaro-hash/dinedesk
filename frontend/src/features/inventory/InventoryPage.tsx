@@ -93,7 +93,7 @@ function StockDialog({ item, onClose }: { item: Item | null; onClose: () => void
             <button key={k} type="button" role="radio" aria-checked={type === k} onClick={() => setType(k)} className={`flex-1 rounded-full px-3 py-2 text-sm font-semibold ${type === k ? 'bg-surface shadow' : 'text-muted'}`}>{t(`inventory.move.${k}`)}</button>
           ))}
         </div>
-        <form className="grid gap-3 sm:grid-cols-[1fr_1fr_2fr_auto]" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+        <form className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_2fr_auto]" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
           <input className="field-input" type="number" min={0} step="0.001" inputMode="decimal" aria-label={type === 'count' ? t('inventory.counted', { unit: item.unit }) : t('inventory.qty', { unit: item.unit })} placeholder={type === 'count' ? t('inventory.counted', { unit: item.unit }) : t('inventory.qty', { unit: item.unit })} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} data-autofocus />
           {type === 'purchase' ? <input className="field-input" type="number" min={0} step="0.01" aria-label={t('inventory.cost', { unit: item.unit })} placeholder={t('inventory.cost', { unit: item.unit })} value={form.unit_cost} onChange={(e) => setForm({ ...form, unit_cost: e.target.value })} /> : <span />}
           <input className="field-input" maxLength={200} aria-label={t('inventory.note')} placeholder={t('inventory.note')} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
@@ -199,7 +199,7 @@ function RecipesTab() {
   if (!stock.length) return <EmptyState title={t('inventory.emptyTitle')}>{t('inventory.recipesNeedItems')}</EmptyState>;
   const unitOf = (id: number | '') => stock.find((s) => s.id === id)?.unit ?? '';
   return (
-    <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[300px_1fr]">
       <ul className="card max-h-[70vh] divide-y divide-line overflow-y-auto">
         {dishes.map((d) => (
           <li key={d.id}>

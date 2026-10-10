@@ -60,7 +60,7 @@ function TodayTab({ onOpen }: { onOpen: (id: number) => void }) {
       </dl>
       {d.stats.rooms === 0 && <EmptyState title={t('hotel.noRoomsTitle')}>{t('hotel.noRoomsText')}</EmptyState>}
       {!!d.requests.length && <List title={t('hotel.requestsTitle')} items={d.requests} empty="" onOpen={onOpen} />}
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <List title={t('hotel.arrivals')} items={d.arrivals} empty={t('hotel.noArrivals')} onOpen={onOpen} hint={(s) => (s.check_in < d.date ? t('hotel.lateArrival') : !s.room ? t('hotel.needsRoom') : s.room.housekeeping !== 'clean' && s.room.housekeeping !== 'inspected' ? t('hotel.roomNotReady') : undefined)} />
         <List title={t('hotel.departures')} items={d.departures} empty={t('hotel.noDepartures')} onOpen={onOpen} hint={(s) => (s.check_out < d.date ? t('hotel.overstay') : undefined)} />
       </div>
@@ -203,7 +203,7 @@ function HousekeepingTab() {
         ))}
       </div>
       {!q.data.length && <EmptyState title={t('hotel.noRoomsTitle')}>{t('hotel.noRoomsText')}</EmptyState>}
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {rooms.map((r) => (
           <li key={r.id} className={`rounded-2xl border-2 p-4 ${HK_STYLE[r.housekeeping]}`}>
             <div className="flex items-start justify-between gap-2">

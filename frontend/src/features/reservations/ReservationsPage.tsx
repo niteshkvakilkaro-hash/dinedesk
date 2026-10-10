@@ -190,7 +190,7 @@ function NewBookingDialog({ open, onClose, date: initialDate, tables, timezone }
   return (
     <Dialog open={open} onClose={onClose} title={t('reservationsAdmin.newTitle')} wide>
       <form className="space-y-5" onSubmit={submit} noValidate>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label={t('site.res.date')}>{(a) => <input {...a} type="date" className="field-input" min={todayIn(timezone)} value={form.date} onChange={(e) => set('date', e.target.value)} data-autofocus />}</Field>
           <Field label={t('site.res.guests')}>{(a) => <input {...a} type="number" min={1} max={100} className="field-input" value={form.party_size} onChange={(e) => set('party_size', Math.max(1, Number(e.target.value) || 1))} />}</Field>
           <fieldset>
@@ -239,7 +239,7 @@ function NewBookingDialog({ open, onClose, date: initialDate, tables, timezone }
           </label>
         </fieldset>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('order.name')} error={errors.name}>{(a) => <input {...a} className="field-input" value={form.name} onChange={(e) => set('name', e.target.value)} autoComplete="off" />}</Field>
           <Field label={t('order.phone')} error={errors.phone}>{(a) => <input {...a} type="tel" inputMode="tel" className="field-input" value={form.phone} onChange={(e) => set('phone', e.target.value)} autoComplete="off" />}</Field>
           <Field label={t('order.email')} optional error={errors.email}>{(a) => <input {...a} type="email" className="field-input" value={form.email} onChange={(e) => set('email', e.target.value)} autoComplete="off" />}</Field>
@@ -477,7 +477,7 @@ function SettingsTab({ payload, siteUrl }: { payload: SettingsPayload; siteUrl: 
             {t('reservationsAdmin.openPublic')} <ExternalLink className="h-4 w-4" aria-hidden="true" />
           </a>
         )}
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label={t('reservationsAdmin.slotEvery')} error={errors.slot_minutes}>
             {(a) => (
               <select {...a} className="field-input" value={form.slot_minutes} onChange={(e) => set('slot_minutes', Number(e.target.value))}>

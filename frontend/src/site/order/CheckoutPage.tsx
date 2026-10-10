@@ -269,7 +269,7 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
             {table ? (
               <p className="mt-3 text-sm text-t-muted">{t('site.table.servedHere')}</p>
             ) : (
-            <fieldset className="mt-5">
+            <fieldset className="mt-5 min-w-0">
               <legend className="text-sm font-semibold">{t('order.whenTitle')}</legend>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <label className={`flex min-h-12 items-center gap-2 px-3 ${skin.chip} ${status && !status.is_open ? 'opacity-50' : ''}`}>

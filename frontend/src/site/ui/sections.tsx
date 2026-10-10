@@ -332,7 +332,7 @@ export function Visit({ site, showHours = true, showMap = true }: { site: SiteDa
           </div>
           {showMap && (
             <div className="s-reveal col-span-4 md:col-span-7" style={delay(2)}>
-              <MapFacade site={site} className="h-full min-h-[320px]" />
+              <MapFacade site={site} className="h-full w-full min-h-[320px]" />
             </div>
           )}
         </div>

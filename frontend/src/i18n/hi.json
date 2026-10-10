@@ -261,7 +261,9 @@
       "settings": "सेटिंग"
     },
     "collapseMenu": "मेन्यू छोटा करें",
-    "expandMenu": "मेन्यू बड़ा करें"
+    "expandMenu": "मेन्यू बड़ा करें",
+    "darkMode": "डार्क मोड",
+    "lightMode": "लाइट मोड"
   },
   "platform": {
     "title": "सुपर एडमिन",
@@ -517,7 +519,9 @@
       "directions": "रास्ता",
       "order": "ऑर्डर",
       "menu": "मेन्यू",
-      "book": "बुक करें"
+      "book": "बुक करें",
+      "cart": "कार्ट",
+      "more": "और"
     },
     "quick": {
       "label": "तुरंत करें",

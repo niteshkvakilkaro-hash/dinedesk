@@ -261,7 +261,9 @@
       "settings": "Settings"
     },
     "collapseMenu": "Collapse menu",
-    "expandMenu": "Expand menu"
+    "expandMenu": "Expand menu",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode"
   },
   "platform": {
     "title": "Super admin",
@@ -517,7 +519,9 @@
       "directions": "Directions",
       "order": "Order",
       "menu": "Menu",
-      "book": "Book"
+      "book": "Book",
+      "cart": "Cart",
+      "more": "More"
     },
     "quick": {
       "label": "Quick actions",

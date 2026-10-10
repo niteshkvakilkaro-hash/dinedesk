@@ -35,13 +35,13 @@ export default function Overview() {
       </motion.div>
 
       {trialDays !== null && (
-        <motion.div {...enter(1)} className="flex items-center gap-3 rounded-card bg-ink px-5 py-4 text-paper">
+        <motion.div {...enter(1)} className="flex items-center gap-3 rounded-card bg-ink px-5 py-4 text-paper dark:border dark:border-line dark:bg-surface dark:text-ink">
           <Clock className="h-5 w-5 shrink-0 text-gold" aria-hidden="true" />
           <p className="font-semibold">{t('dashboard.trialLeft', { count: trialDays, plan: tenant.plan.name })}</p>
         </motion.div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <motion.section {...enter(2)} className="card p-5 lg:col-span-2" aria-labelledby="setup-title">
           <h2 id="setup-title" className="text-lg font-bold">
             {t('dashboard.setupTitle')}
@@ -103,7 +103,7 @@ export default function Overview() {
           </h2>
           {tenant.subscription && <Badge tone={tenant.subscription.status}>{t(`statuses.${tenant.subscription.status}`)}</Badge>}
         </div>
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {Object.entries(session.features).map(([key, enabled]) => (
             <li key={key} className={`flex items-center gap-2 text-sm ${enabled ? '' : 'text-muted'}`}>
               {enabled ? <Check className="h-4 w-4 text-success" aria-hidden="true" /> : <Lock className="h-4 w-4" aria-hidden="true" />}

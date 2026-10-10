@@ -45,23 +45,23 @@ function CouponDialog({ coupon, onClose }: { coupon: Coupon | 'new' | null; onCl
   return (
     <Dialog open onClose={onClose} title={c ? t('marketing.editCoupon', { code: c.code }) : t('marketing.newCoupon')} wide>
       <form className="space-y-4" onSubmit={(ev) => { ev.preventDefault(); save.mutate(); }} noValidate>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('marketing.code')} hint={t('marketing.codeHint')} error={e.code}>{(a) => <input {...a} className="field-input font-mono uppercase" maxLength={30} value={f.code} onChange={(x) => set('code', x.target.value)} data-autofocus />}</Field>
           <Field label={t('marketing.description')} optional>{(a) => <input {...a} className="field-input" maxLength={200} value={f.description} onChange={(x) => set('description', x.target.value)} />}</Field>
         </div>
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <Field label={t('marketing.type')}>{(a) => <select {...a} className="field-input" value={f.type} onChange={(x) => set('type', x.target.value as 'flat' | 'percent')}><option value="percent">{t('marketing.percent')}</option><option value="flat">{t('marketing.flat')}</option></select>}</Field>
           <Field label={f.type === 'percent' ? t('marketing.valuePercent') : t('marketing.valueFlat')} error={e.value}>{(a) => <input {...a} type="number" min={1} max={100000} className="field-input" value={f.value} onChange={(x) => set('value', x.target.value)} />}</Field>
           {f.type === 'percent' && <Field label={t('marketing.maxDiscount')} optional>{(a) => <input {...a} type="number" min={1} className="field-input" value={f.max_discount} onChange={(x) => set('max_discount', x.target.value)} />}</Field>}
           <Field label={t('marketing.minOrder')} optional hint={t('marketing.minOrderHint')}>{(a) => <input {...a} type="number" min={0} className="field-input" value={f.min_order} onChange={(x) => set('min_order', x.target.value)} />}</Field>
         </div>
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <Field label={t('marketing.starts')} optional>{(a) => <input {...a} type="datetime-local" className="field-input" value={f.starts_at} onChange={(x) => set('starts_at', x.target.value)} />}</Field>
           <Field label={t('marketing.ends')} optional error={e.ends_at}>{(a) => <input {...a} type="datetime-local" className="field-input" value={f.ends_at} onChange={(x) => set('ends_at', x.target.value)} />}</Field>
           <Field label={t('marketing.usageLimit')} optional>{(a) => <input {...a} type="number" min={1} className="field-input" value={f.usage_limit} onChange={(x) => set('usage_limit', x.target.value)} />}</Field>
           <Field label={t('marketing.perGuest')} optional>{(a) => <input {...a} type="number" min={1} className="field-input" value={f.per_customer_limit} onChange={(x) => set('per_customer_limit', x.target.value)} />}</Field>
         </div>
-        <div className="grid gap-x-6 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
           <Toggle checked={f.online} onChange={(v) => set('online', v)} label={t('marketing.online')} />
           <Toggle checked={f.pos} onChange={(v) => set('pos', v)} label={t('marketing.pos')} />
           <Toggle checked={f.is_public} onChange={(v) => set('is_public', v)} label={t('marketing.public')} hint={t('marketing.publicHint')} />
@@ -89,7 +89,7 @@ function CouponsTab() {
       <button type="button" className="btn-primary !min-h-10 text-sm" onClick={() => setEditing('new')}><Plus className="h-4 w-4" aria-hidden="true" /> {t('marketing.newCoupon')}</button>
       {q.isLoading && <SkeletonRows rows={3} />}
       {q.data && !q.data.length && <EmptyState title={t('marketing.noCoupons')}>{t('marketing.noCouponsHint')}</EmptyState>}
-      <ul className="grid gap-3 md:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {q.data?.map((c) => (
           <li key={c.id} className={`card p-4 ${c.is_active ? '' : 'opacity-60'}`}>
             <div className="flex items-start justify-between gap-3">
@@ -136,7 +136,7 @@ function LoyaltyTab() {
   return (
     <form className="card max-w-3xl space-y-5 p-5" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
       <Toggle checked={f.enabled} onChange={(v) => setF({ ...f, enabled: v })} label={t('marketing.loyaltyOn')} hint={t('marketing.loyaltyOnHint')} />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label={t('marketing.earnPer100')} hint={t('marketing.earnExample', { count: example })}>{(a) => <input {...a} type="number" min={0} step="0.5" className="field-input" value={f.earn_per_100} onChange={(e) => n('earn_per_100')(e.target.value)} />}</Field>
         <Field label={t('marketing.pointValue')} hint={t('marketing.pointValueHint', { value: formatMoney(f.point_value * 100) })}>{(a) => <input {...a} type="number" min={0.01} step="0.01" className="field-input" value={f.point_value} onChange={(e) => n('point_value')(e.target.value)} />}</Field>
         <Field label={t('marketing.minRedeem')}>{(a) => <input {...a} type="number" min={0} className="field-input" value={f.min_redeem} onChange={(e) => n('min_redeem')(e.target.value)} />}</Field>
@@ -239,7 +239,7 @@ function BannersTab() {
     <div className="space-y-4">
       <button type="button" className="btn-primary !min-h-10 text-sm" onClick={() => setEditing('new')}><Plus className="h-4 w-4" aria-hidden="true" /> {t('marketing.newBanner')}</button>
       {q.data && !q.data.length && <EmptyState title={t('marketing.noBanners')}>{t('marketing.noBannersHint')}</EmptyState>}
-      <ul className="grid gap-3 md:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {q.data?.map((b) => (
           <li key={b.id} className="card p-4">
             <div className="flex items-start justify-between gap-2">
@@ -263,7 +263,7 @@ function BannersTab() {
             <div className="flex flex-wrap gap-2">{(['bar', 'popup', 'offer'] as const).map((p) => <button key={p} type="button" aria-pressed={f.placement === p} onClick={() => setF({ ...f, placement: p })} className={`rounded-full border px-4 py-2 text-sm font-semibold ${f.placement === p ? 'border-ink bg-ink text-paper' : 'border-line'}`}>{t(`marketing.placements.${p}`)}</button>)}</div>
             <p className="mt-1 text-sm text-muted">{t(`marketing.placementHint.${f.placement}`)}</p>
           </fieldset>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label={t('marketing.bannerTitle')} error={e.title}>{(a) => <input {...a} className="field-input" maxLength={120} value={f.title} onChange={(x) => setF({ ...f, title: x.target.value })} />}</Field>
             <Field label={`${t('marketing.bannerTitle')} (हिन्दी)`} optional>{(a) => <input {...a} className="field-input" maxLength={120} value={f.title_hi} onChange={(x) => setF({ ...f, title_hi: x.target.value })} />}</Field>
             <Field label={t('marketing.bannerText')} optional>{(a) => <textarea {...a} rows={2} className="field-input" maxLength={300} value={f.text} onChange={(x) => setF({ ...f, text: x.target.value })} />}</Field>
@@ -300,15 +300,15 @@ function CampaignsTab() {
     onError: (e) => { toast.error(e.message); setConfirm(false); },
   });
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px]">
       <form className="card space-y-4 p-5" onSubmit={(e) => { e.preventDefault(); setConfirm(true); }}>
         <Alert tone="info">{t('marketing.campaignRules')}</Alert>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('marketing.campaignName')}>{(a) => <input {...a} className="field-input" maxLength={120} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required />}</Field>
           <Field label={t('marketing.channel')}>{(a) => <select {...a} className="field-input" value={f.channel} onChange={(e) => setF({ ...f, channel: e.target.value })}>{['whatsapp', 'sms', 'email'].map((c) => <option key={c} value={c}>{t(`marketing.channels.${c}`)}</option>)}</select>}</Field>
         </div>
         <Field label={t('marketing.message')} hint={t('marketing.messageHint', { count: f.message.length })}>{(a) => <textarea {...a} rows={4} maxLength={600} className="field-input" value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} required />}</Field>
-        <fieldset className="grid gap-4 sm:grid-cols-4">
+        <fieldset className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <legend className="field-label sm:col-span-4">{t('marketing.audience')}</legend>
           <Field label={t('marketing.tags')} optional>{(a) => <input {...a} className="field-input" placeholder="vip, regular" value={f.tags} onChange={(e) => setF({ ...f, tags: e.target.value })} />}</Field>
           <Field label={t('marketing.minVisits')} optional>{(a) => <input {...a} type="number" min={0} className="field-input" value={f.min_visits} onChange={(e) => setF({ ...f, min_visits: e.target.value })} />}</Field>

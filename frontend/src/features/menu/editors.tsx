@@ -139,7 +139,7 @@ export function DishEditor({ menu, allergens, item, categoryId, open, onClose }:
       <form className="space-y-5" noValidate onSubmit={submit}>
         {error && <Alert>{error}</Alert>}
         {savedId && !item && <Alert tone="success">{t('menuAdmin.addPhotoNow')}</Alert>}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('menuAdmin.dishName')} error={errors.name}>
             {(a) => <input {...a} className="field-input" maxLength={150} value={form.name} onChange={(e) => set('name', e.target.value)} data-autofocus />}
           </Field>
@@ -167,7 +167,7 @@ export function DishEditor({ menu, allergens, item, categoryId, open, onClose }:
             </div>
           </fieldset>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('menuAdmin.description')} optional>
             {(a) => <textarea {...a} rows={2} maxLength={1000} className="field-input" value={form.description ?? ''} onChange={(e) => set('description', e.target.value)} />}
           </Field>
@@ -243,7 +243,7 @@ export function DishEditor({ menu, allergens, item, categoryId, open, onClose }:
           </fieldset>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <fieldset>
             <legend className="field-label">{t('menuAdmin.spice')}</legend>
             <div className="flex gap-2">
@@ -340,7 +340,7 @@ export function GroupEditor({ group, open, onClose }: { group: AdminGroup | null
           save.mutate(undefined, { onSuccess: () => { toast.success(t('menuAdmin.saved')); onClose(); }, onError: (err) => { setErrors(errorsOf(err)); toast.error(err.message); } });
         }}
       >
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('menuAdmin.groupName')} hint={t('menuAdmin.groupNameHint')} error={errors.name}>
             {(a) => <input {...a} className="field-input" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} data-autofocus />}
           </Field>

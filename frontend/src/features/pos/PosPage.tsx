@@ -141,7 +141,7 @@ function OpenBillsList({ onBill }: { onBill: (t: BillTarget) => void }) {
       {d.tables.length > 0 && (
         <section>
           <h2 className="mb-2 font-bold">{t('pos.openTables')}</h2>
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {d.tables.map((s) => (
               <li key={s.session_id}>
                 <button type="button" onClick={() => onBill({ title: t('pos.billForTable', { table: s.table }), sessionId: s.invoice ? undefined : s.session_id, invoiceId: s.invoice?.id })} className={`card w-full p-4 text-left hover:border-ink ${s.bill_requested ? '!border-warn ring-2 ring-warn/25' : ''}`}>
@@ -239,7 +239,7 @@ export default function PosPage() {
       </div>
 
       {tab === 'new' ? (
-        <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_380px]">
           <div>{menu.isLoading ? <SkeletonRows rows={6} /> : menu.data ? <MenuPicker menu={menu.data} onAdd={add} /> : <ErrorState message={(menu.error as Error | null)?.message} onRetry={() => void menu.refetch()} />}</div>
           <div className="lg:sticky lg:top-24 lg:self-start">
             <Ticket lines={lines} setLines={setLines} onBill={setBilling} />

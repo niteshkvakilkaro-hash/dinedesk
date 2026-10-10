@@ -82,7 +82,7 @@ export function NewStayDialog({ open, onClose, onCreated }: { open: boolean; onC
         {avail.isFetching && <Spinner />}
         {avail.isError && <Alert>{(avail.error as Error).message}</Alert>}
         {avail.data && (
-          <fieldset className="grid gap-2 sm:grid-cols-2">
+          <fieldset className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <legend className="sr-only">{t('hotel.roomType')}</legend>
             {avail.data.map((ty) => {
               const can = ty.fits && ty.free > 0;
@@ -103,7 +103,7 @@ export function NewStayDialog({ open, onClose, onCreated }: { open: boolean; onC
         {chosen && (
           <form className="space-y-4 border-t border-ink/10 pt-4" onSubmit={(e) => { e.preventDefault(); submit(); }} noValidate>
             {errors.form && <Alert>{errors.form}</Alert>}
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label={t('hotel.room')} optional hint={t('hotel.roomLaterHint')}>
                 {(a) => <select {...a} className="field-input" value={pick.room} onChange={(e) => setPick({ ...pick, room: e.target.value })}><option value="">{t('hotel.assignLater')}</option>{chosen.free_rooms.map((r) => <option key={r.id} value={r.id}>{r.number} · {t(`hotel.hk.${r.housekeeping}`)}</option>)}</select>}
               </Field>
