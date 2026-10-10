@@ -2,6 +2,8 @@
 
 namespace App\Modules\Website\Services;
 
+use App\Modules\Hotel\Models\RoomType;
+use App\Modules\Hotel\Services\HotelSettings;
 use App\Modules\Menu\Models\MenuCategory;
 use App\Modules\Menu\Services\MenuPresenter;
 use App\Modules\Ordering\Models\DeliveryZone;
@@ -59,7 +61,9 @@ class SitePresenter
                 'online_ordering' => $this->features->enabled($tenant, 'online_ordering'),
                 'reservations' => $this->features->enabled($tenant, 'reservations'),
                 'qr_ordering' => $this->features->enabled($tenant, 'qr_ordering'),
+                'hotel' => $this->features->enabled($tenant, 'hotel'),
             ],
+            'hotel' => $this->hotel($tenant),
             'reservations' => $this->reservations($tenant),
             'growth' => $this->growth($tenant),
             'seo' => [
@@ -146,6 +150,24 @@ class SitePresenter
             'coupons' => $marketing,
             'loyalty' => $loyaltyOn ? ['enabled' => true, 'earn_per_100' => $loyalty['earn_per_100'], 'point_value' => $loyalty['point_value'], 'min_redeem' => $loyalty['min_redeem'], 'max_redeem_percent' => $loyalty['max_redeem_percent']] : ['enabled' => false],
             'reviews' => app(\App\Modules\Crm\Services\FeedbackService::class)->published(),
+        ];
+    }
+
+    /** Hotel pages: rooms (once a room type has rooms), room QR ordering, event enquiries. */
+    public function hotel(Tenant $tenant): ?array
+    {
+        if (! $this->features->enabled($tenant, 'hotel')) {
+            return null;
+        }
+        $s = app(HotelSettings::class)->get();
+
+        return [
+            'has_rooms' => RoomType::where('is_active', true)->whereHas('rooms', fn ($q) => $q->where('is_active', true))->exists(),
+            'online_booking' => $s['online_booking'],
+            'room_service' => $s['room_service'],
+            'banquets' => $s['banquets'],
+            'check_in_time' => $s['check_in_time'],
+            'check_out_time' => $s['check_out_time'],
         ];
     }
 

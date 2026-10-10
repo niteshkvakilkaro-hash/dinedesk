@@ -2,6 +2,8 @@
 
 namespace App\Modules\Reports\Services;
 
+use App\Modules\Hotel\Models\Room;
+use App\Modules\Hotel\Models\RoomBooking;
 use App\Modules\Loyalty\Models\LoyaltyEntry;
 use App\Modules\Marketing\Models\CouponRedemption;
 use App\Modules\Menu\Models\MenuCategory;
@@ -9,6 +11,7 @@ use App\Modules\Menu\Models\MenuItem;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderItem;
 use App\Modules\Ordering\Support\Money;
+use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Reservations\Models\Reservation;
 use App\Modules\Tenancy\Models\Tenant;
 use Carbon\CarbonImmutable;
@@ -116,6 +119,54 @@ class Analytics
             'categories' => $this->categories($orders),
             'reservations' => $this->reservations($tenant, $from, $to),
             'offers' => $this->offers($tenant, $from, $to),
+            'hotel' => app(FeatureService::class)->enabled($tenant, 'hotel') ? $this->hotel($from, $to) : null,
+        ];
+    }
+
+    /**
+     * Rooms: occupancy, nights sold, room revenue (before GST), ADR and RevPAR, from the stays'
+     * own nightly prices. Available room-nights use today's sellable rooms.
+     */
+    public function hotel(string $from, string $to): array
+    {
+        $days = (int) CarbonImmutable::parse($from)->diffInDays(CarbonImmutable::parse($to)) + 1;
+        $rooms = Room::where('is_active', true)->where('housekeeping', '!=', 'out_of_order')->count();
+        $stays = RoomBooking::with('type')->where('check_in', '<=', $to)->where('check_out', '>', $from)->get();
+        $sold = $stays->whereIn('status', ['confirmed', 'checked_in', 'checked_out']);
+        $perDay = [];
+        $nights = $revenue = 0;
+        foreach ($sold as $b) {
+            foreach ($b->rates as $r) {
+                if ($r['date'] >= $from && $r['date'] <= $to) {
+                    $nights++;
+                    $revenue += Money::toPaise($r['price']);
+                    $perDay[$r['date']] = ($perDay[$r['date']] ?? 0) + 1;
+                }
+            }
+        }
+        $available = $rooms * $days;
+        $series = [];
+        for ($d = CarbonImmutable::parse($from); $d->format('Y-m-d') <= $to; $d = $d->addDay()) {
+            $n = $perDay[$d->format('Y-m-d')] ?? 0;
+            $series[] = ['date' => $d->format('Y-m-d'), 'sold' => $n, 'occupancy' => $rooms ? round($n / $rooms * 100, 1) : 0];
+        }
+        $arriving = $stays->filter(fn ($b) => $b->check_in->format('Y-m-d') >= $from);
+
+        return [
+            'rooms' => $rooms,
+            'nights_available' => $available,
+            'nights_sold' => $nights,
+            'occupancy' => $available ? round($nights / $available * 100, 1) : 0,
+            'room_revenue' => Money::toRupees($revenue),
+            'adr' => $nights ? Money::toRupees(intdiv($revenue, $nights)) : '0.00',
+            'revpar' => $available ? Money::toRupees(intdiv($revenue, $available)) : '0.00',
+            'stays' => $sold->count(),
+            'average_nights' => $sold->count() ? round($sold->avg('nights'), 1) : null,
+            'cancelled' => $arriving->where('status', 'cancelled')->count(),
+            'no_shows' => $arriving->where('status', 'no_show')->count(),
+            'by_source' => $sold->groupBy('source')->map(fn ($r, $k) => ['key' => $k, 'count' => $r->count()])->values(),
+            'by_type' => $sold->groupBy(fn ($b) => $b->type->name)->map(fn ($r, $k) => ['key' => $k, 'count' => $r->count(), 'nights' => (int) $r->sum('nights')])->values(),
+            'series' => $series,
         ];
     }
 

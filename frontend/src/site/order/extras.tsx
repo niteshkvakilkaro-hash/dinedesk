@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { MessageCircle } from 'lucide-react';
 import { useLocation } from 'react-router';
 import { useSiteGallery, useSiteMenu, whatsappHref } from '../data';
+import { useHotel } from '../hotel';
 import type { SiteData, SiteImage } from '../types';
 
 /** Floating WhatsApp button on wider screens (phones have it in the bottom bar) — only when the owner has confirmed the number is on WhatsApp. */
@@ -28,7 +29,8 @@ export function PhotoCredits({ site }: { site: SiteData }) {
   const { t } = useTranslation();
   const { data: menu } = useSiteMenu();
   const { data: gallery } = useSiteGallery(site.has_gallery);
-  const images: (SiteImage | null | undefined)[] = [site.theme.cover, ...(menu ?? []).flatMap((c) => c.items.map((i) => i.image)), ...(gallery ?? []).map((g) => g.image)];
+  const { data: hotel } = useHotel(!!site.hotel?.has_rooms);
+  const images: (SiteImage | null | undefined)[] = [site.theme.cover, ...(menu ?? []).flatMap((c) => c.items.map((i) => i.image)), ...(gallery ?? []).map((g) => g.image), ...(hotel?.types ?? []).flatMap((ty) => ty.photos)];
   const credits = new Map<string, NonNullable<SiteImage['credit']>>();
   for (const img of images) if (img?.credit) credits.set(img.credit.source, img.credit);
   if (!credits.size) return null;

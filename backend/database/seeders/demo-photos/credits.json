@@ -518,5 +518,26 @@
     "license_url": "https://creativecommons.org/licenses/by/2.0/",
     "source": "https://www.flickr.com/photos/111831288@N06/26618754485",
     "alt": "Peanuts roasting on a street cart"
+  },
+  "room-twin": {
+    "title": "Double Room Style 2 beds",
+    "author": "toddwight1",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/35598032@N06/6077270322"
+  },
+  "room-view": {
+    "title": "Hotel suite bedroom",
+    "author": "kcxd",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/26786061@N00/5668772114"
+  },
+  "room-suite": {
+    "title": "Hotel Room",
+    "author": "wwarby",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/26782864@N00/9638499309"
   }
 }

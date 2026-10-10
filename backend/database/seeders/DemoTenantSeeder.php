@@ -3,7 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Modules\Hotel\Models\Room;
+use App\Modules\Hotel\Models\RoomType;
+use App\Modules\Hotel\Services\HotelSettings;
 use App\Modules\Marketing\Models\Banner;
+use App\Modules\Plans\Models\Plan;
 use App\Modules\Marketing\Models\Coupon;
 use App\Modules\Menu\Support\SampleMenu;
 use App\Modules\Onboarding\Actions\CreateBusiness;
@@ -25,7 +29,8 @@ use Illuminate\Support\Str;
  * DEMO DATA: one sample business per theme so every theme can be seen live,
  * with a working menu, cart, checkout and order tracking.
  *
- * - All six are flagged is_demo, labelled "Demo" on the site and never indexed.
+ * - Plus "Hotel Demo": a hotel with a restaurant on the Pro plan (rooms, booking, front desk).
+ * - All seven are flagged is_demo, labelled "Demo" on the site and never indexed.
  * - No invented contact details, reviews or ratings. Prices are illustrative.
  * - Photos are freely licensed pictures from Wikimedia Commons and Flickr (found
  *   through Openverse; database/seeders/demo-photos, credits.json). They are not
@@ -74,6 +79,13 @@ class DemoTenantSeeder extends Seeder
             'zones' => [['Bandra', ['400050', '400051', '400052'], 25, 149, 499], ['Within 4 km', 4, 40, 199, null]],
             'gallery' => ['ambience-street-1', 'pani-puri', 'vada-pav', 'ambience-street-2', 'pav-bhaji'],
         ],
+        // Hotel with a restaurant (Pro plan): rooms, booking engine, front desk, room service by QR.
+        [
+            'theme' => 'haveli', 'name' => 'Hotel Demo', 'type' => 'hotel', 'city' => 'Udaipur', 'email' => 'demo-hotel@example.com', 'plan' => 'pro',
+            'hours' => ['07:00', '23:00'], 'location' => [24.5854, 73.7125], 'packaging' => 0,
+            'zones' => [],
+            'gallery' => ['ambience-haveli-2', 'room-view', 'dal-makhani', 'room-twin', 'ambience-haveli-3'],
+        ],
     ];
 
     public function run(): void
@@ -112,6 +124,9 @@ class DemoTenantSeeder extends Seeder
             'opening_hours' => array_fill_keys(OpeningHours::DAYS, ['closed' => false, 'open' => $open, 'close' => $close]),
         ]);
         $tenant->update(['is_demo' => true, 'status' => 'live', 'onboarding_step' => 8]);
+        if (isset($demo['plan'])) {
+            $tenant->update(['plan_id' => Plan::where('code', $demo['plan'])->value('id')]);
+        }
 
         app(TenantContext::class)->run($tenant, function () use ($demo, $tenant) {
             $theme = ucfirst($demo['theme']);
@@ -144,7 +159,7 @@ class DemoTenantSeeder extends Seeder
             $ordering = OrderingSettings::defaults();
             $ordering['accepting_orders'] = true;
             $dineIn = $tenant->business_type !== 'cloud_kitchen';
-            $ordering['types'] = ['delivery' => true, 'takeaway' => true, 'dine_in' => $dineIn];
+            $ordering['types'] = ['delivery' => (bool) $demo['zones'], 'takeaway' => true, 'dine_in' => $dineIn];
             $ordering['packaging_fee'] = $demo['packaging'];
             $ordering['location'] = ['lat' => $demo['location'][0], 'lng' => $demo['location'][1]];
             app(OrderingSettings::class)->save($ordering);
@@ -173,12 +188,49 @@ class DemoTenantSeeder extends Seeder
                 app(ReservationSettings::class)->save(array_replace(ReservationSettings::defaults(), ['enabled' => true, 'default_capacity' => 20, 'max_party' => 8]));
             }
 
+            if ($tenant->business_type === 'hotel') {
+                $this->hotel($tenant);
+            }
+
             // A sample offer so coupons and banners can be tried; clearly marked as demo.
             Coupon::create(['code' => 'DEMO10', 'description' => 'Demo coupon: 10% off (sample offer, not a real promotion)', 'type' => 'percent', 'value' => 10, 'max_discount' => 100, 'min_order' => 300, 'online' => true, 'pos' => true, 'is_public' => true, 'is_active' => true]);
             Banner::create(['placement' => 'bar', 'title' => 'Demo offer: 10% off with code DEMO10', 'title_hi' => 'डेमो ऑफ़र: कोड DEMO10 से 10% छूट', 'cta_label' => 'See offers', 'cta_link' => '/offers', 'coupon_code' => 'DEMO10', 'is_active' => true, 'sort_order' => 1]);
         });
 
         return $tenant->fresh();
+    }
+
+    /**
+     * DEMO hotel: sample room types (prices and text are examples, photos are credited stock
+     * pictures, not this hotel), rooms with QR codes, online booking, room service, events.
+     * No guests or bookings are invented.
+     */
+    private function hotel(Tenant $tenant): void
+    {
+        $note = 'Sample room type for this demo; the photo is a freely licensed picture, not this hotel.';
+        $types = [
+            ['haveli-room', 'Haveli Room', 'हवेली रूम', 'room-twin', 3200, 3800, 2, 3, 1, 600, '2 single beds or 1 double', 220, ['ac', 'wifi', 'tv', 'geyser', 'kettle', 'room_service']],
+            ['jharokha-deluxe', 'Jharokha Deluxe', 'झरोखा डीलक्स', 'room-view', 4800, 5600, 2, 3, 2, 900, '1 king bed', 320, ['ac', 'wifi', 'tv', 'geyser', 'view', 'kettle', 'workdesk', 'breakfast', 'room_service']],
+            ['maharaja-suite', 'Maharaja Suite', 'महाराजा सुइट', 'room-suite', 8500, null, 2, 2, 1, 0, '1 king bed and a sitting room', 520, ['ac', 'wifi', 'tv', 'geyser', 'view', 'minibar', 'bathtub', 'breakfast', 'room_service', 'non_smoking']],
+        ];
+        $numbers = [['101', '102', '103', '104'], ['201', '202', '203'], ['301']];
+        foreach ($types as $i => [$slug, $name, $nameHi, $photo, $price, $weekend, $base, $adults, $children, $extra, $bed, $size, $amenities]) {
+            $image = $this->photo($tenant, $photo, 'rooms');
+            $type = RoomType::create([
+                'slug' => $slug, 'name' => $name, 'name_hi' => $nameHi, 'description' => $note,
+                'description_hi' => 'इस डेमो के लिए नमूना कमरा; फ़ोटो एक मुक्त-लाइसेंस वाली तस्वीर है, इस होटल की नहीं।',
+                'photos' => $image ? [['image' => $image, 'alt' => "{$name} (sample photo)"]] : [],
+                'amenities' => $amenities, 'bed' => $bed, 'size_sqft' => $size, 'base_occupancy' => $base, 'max_adults' => $adults, 'max_children' => $children,
+                'base_price' => $price, 'weekend_price' => $weekend, 'extra_adult_price' => $extra, 'sort_order' => $i + 1,
+            ]);
+            foreach ($numbers[$i] as $n) {
+                Room::create(['room_type_id' => $type->id, 'number' => $n, 'floor' => substr($n, 0, 1), 'qr_token' => Str::random(32), 'sort_order' => (int) $n]);
+            }
+        }
+        app(HotelSettings::class)->save(array_replace(HotelSettings::defaults(), [
+            'online_booking' => true, 'room_service' => true, 'banquets' => true, 'check_in_time' => '12:00', 'check_out_time' => '11:00', 'free_cancel_days' => 2,
+            'house_rules' => 'Demo house rules: please carry a photo ID for every adult. Quiet hours 10 PM – 7 AM.',
+        ]));
     }
 
     private function credits(): array

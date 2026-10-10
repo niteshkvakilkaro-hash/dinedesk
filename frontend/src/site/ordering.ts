@@ -72,6 +72,7 @@ export const STATUS_FLOW: Record<OrderType, OrderStatus[]> = {
   delivery: ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'completed'],
   takeaway: ['pending', 'confirmed', 'preparing', 'ready', 'completed'],
   dine_in: ['pending', 'confirmed', 'preparing', 'ready', 'completed'],
+  room_service: ['pending', 'confirmed', 'preparing', 'ready', 'completed'],
 };
 
 /** Loads Razorpay Checkout on demand (only when someone pays online). */

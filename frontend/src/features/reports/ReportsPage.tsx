@@ -19,6 +19,12 @@ interface Overview {
   categories: { category: string; quantity: number; sales: string; share: number }[];
   reservations: { bookings: number; guests: number; by_status: { key: string; count: number }[]; no_show_rate: number | null };
   offers: { coupon_uses: number; coupon_discount: string; points_earned: number; points_redeemed: number };
+  hotel: null | {
+    rooms: number; nights_available: number; nights_sold: number; occupancy: number; room_revenue: string; adr: string; revpar: string;
+    stays: number; average_nights: number | null; cancelled: number; no_shows: number;
+    by_source: { key: string; count: number }[]; by_type: { key: string; count: number; nights: number }[];
+    series: { date: string; sold: number; occupancy: number }[];
+  };
 }
 
 const PRESETS = [7, 30, 90] as const;
@@ -141,7 +147,7 @@ export default function ReportsPage() {
               </ResponsiveContainer>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {(['sales', 'orders', 'dishes', 'categories', 'customers', 'reservations'] as const).map((k) => (
+              {(['sales', 'orders', 'dishes', 'categories', 'customers', 'reservations', ...(r.hotel ? (['stays'] as const) : [])] as const).map((k) => (
                 <button key={k} type="button" className="btn-outline !min-h-9 text-xs" onClick={() => csv(k)}><Download className="h-3.5 w-3.5" aria-hidden="true" /> {t(`reports.csv.${k}`)}</button>
               ))}
             </div>
@@ -194,6 +200,29 @@ export default function ReportsPage() {
               <p className="mt-2 text-sm">{t('reports.offersLine', { uses: r.offers.coupon_uses, value: formatMoney(r.offers.coupon_discount), earned: r.offers.points_earned, redeemed: r.offers.points_redeemed })}</p>
             </section>
           </div>
+
+          {r.hotel && (
+            <section className="card space-y-4 p-5" aria-labelledby="rooms-h">
+              <h2 id="rooms-h" className="font-bold">{t('reports.rooms')}</h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Kpi label={t('reports.occupancy')} value={`${r.hotel.occupancy}%`} hint={t('reports.nightsSold', { sold: r.hotel.nights_sold, available: r.hotel.nights_available })} />
+                <Kpi label={t('reports.roomRevenue')} value={formatMoney(r.hotel.room_revenue)} hint={t('reports.beforeGst')} />
+                <Kpi label={t('reports.adr')} value={formatMoney(r.hotel.adr)} hint={t('reports.adrHint')} />
+                <Kpi label={t('reports.revpar')} value={formatMoney(r.hotel.revpar)} hint={t('reports.revparHint')} />
+              </div>
+              <p className="text-sm">{t('reports.staysLine', { stays: r.hotel.stays, nights: r.hotel.average_nights ?? 0, cancelled: r.hotel.cancelled, noShows: r.hotel.no_shows })}</p>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {r.hotel.by_type.map((x) => <span key={x.key} className="rounded-full bg-ink/5 px-2.5 py-1">{x.key}: {t('reports.typeNights', { count: x.nights })}</span>)}
+                {r.hotel.by_source.map((x) => <span key={x.key} className="rounded-full bg-brand-soft px-2.5 py-1">{t(`hotel.source.${x.key}`)}: {x.count}</span>)}
+              </div>
+              {r.hotel.rooms > 0 && (
+                <div className="flex h-24 items-end gap-0.5" role="img" aria-label={t('reports.occupancyChart', { value: r.hotel.occupancy })}>
+                  {r.hotel.series.map((d) => <div key={d.date} title={`${d.date}: ${d.occupancy}%`} className="flex-1 rounded-t bg-brand/70" style={{ height: `${Math.max(2, d.occupancy)}%` }} />)}
+                </div>
+              )}
+              <p className="text-xs text-muted">{t('reports.roomsNote')}</p>
+            </section>
+          )}
         </>
       )}
     </div>

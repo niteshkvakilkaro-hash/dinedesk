@@ -52,8 +52,16 @@ class BillPresenter
     public function pdf(Invoice $i, string $timezone, bool $demo): \Barryvdh\DomPDF\PDF
     {
         $i->loadMissing(['lines', 'payments', 'orders', 'session.table']);
+        // A hotel check-out bill: the stay, and the money as it came in (advance, payments, refunds).
+        $stay = $i->room_booking_id ? \App\Modules\Hotel\Models\RoomBooking::with(['room', 'type'])->find($i->room_booking_id) : null;
+        $paid = $stay
+            ? \App\Modules\Hotel\Models\FolioPayment::where('room_booking_id', $stay->id)->orderBy('id')->get()
+                ->map(fn ($p) => [($p->kind === 'refund' ? 'Refunded' : ($p->kind === 'advance' ? 'Advance' : 'Paid')).' · '.strtoupper($p->mode).($p->reference && $p->mode !== 'online' ? ' · '.$p->reference : ''), ($p->kind === 'refund' ? '−' : '').number_format((float) $p->amount, 2)])
+            : $i->payments->map(fn ($p) => ['Paid · '.strtoupper($p->mode).($p->reference && $p->mode !== 'online' ? ' · '.$p->reference : ''), number_format((float) $p->amount, 2)]);
 
         return Pdf::loadView('pdf.invoice', [
+            'stay' => $stay ? sprintf('%s%s · %s – %s · %d night%s · booking %s', $stay->type->name, $stay->room ? ", room {$stay->room->number}" : '', $stay->check_in->format('d M Y'), $stay->check_out->format('d M Y'), $stay->nights, $stay->nights === 1 ? '' : 's', $stay->code) : null,
+            'paid' => $paid,
             'invoice' => $i,
             'demo' => $demo,
             'issued' => CarbonImmutable::parse($i->issued_at)->setTimezone($timezone)->format('d M Y, g:i A'),

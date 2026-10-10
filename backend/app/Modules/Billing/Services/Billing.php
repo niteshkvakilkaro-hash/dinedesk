@@ -58,6 +58,9 @@ class Billing
     public function bill(Tenant $tenant, Collection $orders, ?TableSession $session, ?array $discount, ?array $buyer, ?User $by, array $offers = []): Invoice
     {
         $orders = $orders->filter(fn (Order $o) => $o->status !== 'cancelled' && ! ($o->payment_method === 'online' && $o->payment_status !== 'paid'))->values();
+        if ($orders->contains('payment_method', 'room')) {
+            throw new ApiException('Room-service orders are billed with the stay at check-out.', 422, 'room_order');
+        }
         if ($orders->isEmpty()) {
             throw new ApiException('There is nothing to bill.', 422, 'nothing_to_bill');
         }

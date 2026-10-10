@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Bell, BellOff, Bike, Clock, MapPin, Phone, RefreshCw, Search, ShoppingBag, Store, UtensilsCrossed } from 'lucide-react';
+import { BedDouble, Bell, BellOff, Bike, Clock, MapPin, Phone, RefreshCw, Search, ShoppingBag, Store, UtensilsCrossed } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatINR } from '@/lib/format';
 import { useCan, useSession } from '@/hooks/useSession';
@@ -43,7 +43,7 @@ interface OrderDetail extends OrderRow {
 }
 
 type View = 'active' | 'scheduled' | 'completed' | 'cancelled' | 'all';
-const TYPE_ICON = { delivery: Bike, takeaway: ShoppingBag, dine_in: UtensilsCrossed } as const;
+const TYPE_ICON = { delivery: Bike, takeaway: ShoppingBag, dine_in: UtensilsCrossed, room_service: BedDouble } as const;
 
 function useTimeAgo() {
   const { t } = useTranslation();
@@ -360,7 +360,7 @@ export default function OrdersPage() {
         </div>
         <select aria-label={t('orders.type')} className="field-input !w-auto !py-2" value={type} onChange={(e) => { setType(e.target.value as OrderType | ''); setPage(1); }}>
           <option value="">{t('orders.allTypes')}</option>
-          {(['delivery', 'takeaway', 'dine_in'] as OrderType[]).map((ty) => (
+          {(['delivery', 'takeaway', 'dine_in', 'room_service'] as OrderType[]).map((ty) => (
             <option key={ty} value={ty}>
               {t(`order.type.${ty}`)}
             </option>

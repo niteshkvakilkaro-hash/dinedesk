@@ -5,6 +5,7 @@ namespace App\Modules\Billing\Services;
 use App\Modules\Billing\Models\BillPayment;
 use App\Modules\Billing\Models\DayClosing;
 use App\Modules\Billing\Models\Invoice;
+use App\Modules\Hotel\Models\FolioPayment;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderItem;
 use App\Modules\Ordering\Support\Money;
@@ -33,7 +34,8 @@ class DayReport
         $voided = Invoice::whereDate('business_date', $date)->where('status', 'void')->count();
         $sum = fn ($rows, string $field) => Money::toRupees($rows->sum(fn ($r) => Money::toPaise($r->{$field})));
 
-        $payments = BillPayment::whereDate('business_date', $date)->get()->groupBy('mode')
+        // Hotel check-out bills are settled from the stay's folio: that money is counted below, on the day it came in.
+        $payments = BillPayment::whereDate('business_date', $date)->where('mode', '!=', 'folio')->get()->groupBy('mode')
             ->map(fn ($rows, $mode) => ['mode' => $mode, 'count' => $rows->count(), 'amount' => $sum($rows, 'amount')])->values();
 
         $orders = Order::where('placed_at', '>=', $from)->where('placed_at', '<', $to)->get();
@@ -57,7 +59,12 @@ class DayReport
         $cards = \App\Modules\Loyalty\Models\GiftCardTransaction::where('type', 'issue')->where('created_at', '>=', $from)->where('created_at', '<', $to)->get();
         $cardsByMode = $cards->groupBy(fn ($t) => $t->mode ?? 'other')->map(fn ($rows, $mode) => ['mode' => $mode, 'count' => $rows->count(), 'amount' => $sum($rows, 'amount')])->values();
         $cashCards = (int) $cards->where('mode', 'cash')->sum(fn ($t) => Money::toPaise($t->amount));
-        $expected = Money::toPaise($openingCash) + $cashBills + $cashOutside + $cashCards;
+        // Hotel: advances, payments and refunds for stays taken today (by mode; refunds take money out).
+        $folio = FolioPayment::whereDate('business_date', $date)->get();
+        $signed = fn ($p) => ($p->kind === 'refund' ? -1 : 1) * Money::toPaise($p->amount);
+        $hotelByMode = $folio->groupBy('mode')->map(fn ($rows, $mode) => ['mode' => $mode, 'count' => $rows->count(), 'amount' => Money::toRupees($rows->sum($signed))])->values();
+        $cashHotel = (int) $folio->where('mode', 'cash')->sum($signed);
+        $expected = Money::toPaise($openingCash) + $cashBills + $cashOutside + $cashCards + $cashHotel;
 
         return [
             'date' => $date,
@@ -80,6 +87,12 @@ class DayReport
             'payments' => $payments,
             'outside_bills' => $outside,
             'gift_cards_sold' => $cardsByMode,
+            'hotel' => [
+                'by_mode' => $hotelByMode,
+                'advances' => Money::toRupees((int) $folio->where('kind', 'advance')->sum(fn ($p) => Money::toPaise($p->amount))),
+                'refunds' => Money::toRupees((int) $folio->where('kind', 'refund')->sum(fn ($p) => Money::toPaise($p->amount))),
+                'net' => Money::toRupees((int) $folio->sum($signed)),
+            ],
             'orders' => [
                 'count' => $live->count(),
                 'value' => $sum($live, 'total'),
@@ -91,7 +104,7 @@ class DayReport
             'top_items' => $top,
             'open' => [
                 'tables' => TableSession::where('status', 'open')->count(),
-                'unbilled_orders' => Order::whereNull('table_session_id')->where('payment_status', 'unpaid')->whereNotIn('status', ['cancelled'])
+                'unbilled_orders' => Order::whereNull('table_session_id')->where('payment_method', '!=', 'room')->where('payment_status', 'unpaid')->whereNotIn('status', ['cancelled'])
                     ->where('placed_at', '>=', $from)->where('placed_at', '<', $to)->whereNotIn('id', DB::table('invoice_order')->select('order_id'))->count(),
                 'unpaid_bills' => Invoice::where('status', 'unpaid')->count(),
             ],
@@ -100,6 +113,7 @@ class DayReport
                 'from_bills' => Money::toRupees($cashBills),
                 'outside_bills' => Money::toRupees($cashOutside),
                 'gift_cards' => Money::toRupees($cashCards),
+                'hotel' => Money::toRupees($cashHotel),
                 'expected' => Money::toRupees($expected),
             ],
             'closing' => ($c = DayClosing::whereDate('business_date', $date)->first()) ? [

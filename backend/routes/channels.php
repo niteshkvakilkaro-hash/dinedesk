@@ -19,5 +19,6 @@ Broadcast::channel('tenant.{tenantKey}.{topic}', function (User $user, string $t
         'kitchen' => $can('kot.update', 'orders.view'),
         'tables' => $can('tables.manage', 'tables.setup', 'orders.create'),
         'reservations' => $can('reservations.manage'),
+        'hotel' => $can('rooms.manage', 'housekeeping.update'),
     };
 });

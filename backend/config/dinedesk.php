@@ -50,6 +50,16 @@ return [
     // Public links to a business site (order tracking in messages). {host} = the business's domain.
     'site_url_pattern' => env('SITE_URL_PATTERN', 'https://{host}'),
 
+    // GST on room tariff by the price of one room for one night (SAC 996311). Highest slab last.
+    // Check the current rates with your CA; change them here when the law changes.
+    'hotel_gst' => [
+        ['up_to' => 7500, 'rate' => 5],
+        ['up_to' => null, 'rate' => 18],
+    ],
+
+    // Guest ID photos (hotel): stored encrypted on this private disk.
+    'guest_documents_disk' => env('GUEST_DOCUMENTS_DISK', 'local'),
+
     // WhatsApp / SMS provider for customer updates ("log" writes them to the log).
     'messaging' => [
         'driver' => env('MESSAGING_DRIVER', 'log'),

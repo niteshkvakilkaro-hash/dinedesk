@@ -42,6 +42,7 @@ export function Seo({ site, page, themeColor, title = null, path }: { site: Site
             .map(([d, h]) => ({ '@type': 'OpeningHoursSpecification', dayOfWeek: DAY_NAMES[d], opens: h.open, closes: h.close })),
         }
       : {}),
+    ...(site.hotel?.has_rooms ? { checkinTime: site.hotel.check_in_time, checkoutTime: site.hotel.check_out_time } : {}),
     sameAs: Object.values(site.content.socials).filter(Boolean),
   };
 

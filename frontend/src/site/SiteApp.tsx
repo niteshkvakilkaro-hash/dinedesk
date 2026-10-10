@@ -19,6 +19,8 @@ import { ReservationLookupPage, ReservePage } from './ui/ReservePage';
 import { OffersPage, UnsubscribePage } from './ui/Growth';
 import { TableLanding, TablePage } from './ui/TablePages';
 import TrackPage from './order/TrackPage';
+import { EventsPage, RoomCheckout, RoomLanding, RoomsPage, StayLookupPage, StayPage } from './ui/HotelPages';
+import { useActiveRoom } from './hotel';
 import { useOpenLabel } from './components/bits';
 import type { SectionKey, SiteData } from './types';
 
@@ -151,8 +153,10 @@ function SiteLayout({ site, module, themeColor }: { site: SiteData; module: Them
           ? t('site.table.pageTitle')
           : pathname === '/reservation' || pathname === '/unsubscribe'
             ? t('site.res.lookupTitle')
-            : null;
-  const publicTitle = pathname === '/reserve' ? { title: t('site.reserveTitle'), path: '/reserve' } : pathname === '/offers' ? { title: t('site.offers.title'), path: '/offers' } : null;
+            : pathname.startsWith('/stay') || pathname.startsWith('/r/')
+              ? t('site.stay.yourBooking')
+              : null;
+  const publicTitle = pathname === '/reserve' ? { title: t('site.reserveTitle'), path: '/reserve' } : pathname === '/offers' ? { title: t('site.offers.title'), path: '/offers' } : pathname === '/rooms' ? { title: t('site.stay.title'), path: '/rooms' } : pathname === '/events' ? { title: t('site.events.title'), path: '/events' } : null;
   return (
     <SkinContext.Provider value={module.skin}>
       <Seo site={site} page={page} themeColor={themeColor} title={privateTitle ?? publicTitle?.title ?? null} path={publicTitle?.path} />
@@ -164,6 +168,12 @@ function SiteLayout({ site, module, themeColor }: { site: SiteData; module: Them
       <WhatsAppButton site={site} />
     </SkinContext.Provider>
   );
+}
+
+/** Ordering from a hotel room (its QR) uses the room-service checkout. */
+function CheckoutRoute({ site }: { site: SiteData }) {
+  const room = useActiveRoom(site);
+  return room ? <RoomCheckout site={site} /> : <CheckoutPage site={site} />;
 }
 
 function ScrollToTop() {
@@ -258,7 +268,12 @@ export default function SiteApp() {
               const Page = pages[key];
               return <Route key={key} path={path} element={<Page site={site} />} />;
             })}
-            <Route path="/checkout" element={<CheckoutPage site={site} />} />
+            <Route path="/checkout" element={<CheckoutRoute site={site} />} />
+            <Route path="/rooms" element={<RoomsPage site={site} />} />
+            <Route path="/stay" element={<StayLookupPage site={site} />} />
+            <Route path="/stay/:id" element={<StayPage site={site} />} />
+            <Route path="/r/:token" element={<RoomLanding site={site} />} />
+            <Route path="/events" element={<EventsPage site={site} />} />
             <Route path="/order/:id" element={<TrackPage site={site} />} />
             <Route path="/reserve" element={<ReservePage site={site} />} />
             <Route path="/reservation" element={<ReservationLookupPage site={site} />} />

@@ -9,7 +9,32 @@ dinedesk/
 └── docs/       openapi.yaml (API reference), DESIGN.md (website design system)
 ```
 
-## Status: Phase 6 (Growth) complete
+## Status: Phase 7 (Hotel module) complete
+
+### Phase 7
+
+| Area | What works |
+|---|---|
+| Room types & rates | `/dashboard/hotel` → Set up: room types with photos (up to 8, cover photo), Hindi name and description, amenities, beds, size, adults included / max adults / max children. Price per night before GST, a **Friday & Saturday** price, extra adult and child charges, **seasonal prices** between dates (the newest wins). Rooms added in bulk (`101-110, 201`), each with a **QR code** (printable sheet, can be regenerated). Pro plan only |
+| GST on rooms | Per night by the price of the room for that night: **5% up to ₹7,500, 18% above** (SAC 996311). Slabs are in `config/dinedesk.php` (`hotel_gst`), so a rate change needs no code. Can be switched off for a business that is not registered |
+| Booking engine | `/rooms` on the website: dates, adults, children → which types are free with the full price night by night (weekend, season, extra guests, GST). Only "few left" is shown, never the stock. Booking form (arrival time, requests, company GSTIN). **Never oversold**: a business-wide lock and a per-night count of bookings against sellable rooms (out-of-order rooms are not sold), from the website and from the desk |
+| Advance & confirmation | Optional advance of 10–100% through **Razorpay** (the room is held, released after the hold time if unpaid; a payment after release takes the room back if it is still free). Webhook and checkout callback both confirm, and repeats are ignored. Without an advance the hotel confirms requests, or confirms them automatically. Guest messages for received / confirmed / cancelled stays (WhatsApp / SMS / email per the business's settings) |
+| Guest booking page | `/stay/{id}?t=…` (private link) and `/stay` (find with booking ID + phone): status, price, pay the advance, **cancel online** up to the hotel's cut-off |
+| Front desk | Today (arrivals, departures, guests in, requests, tonight's rooms), **calendar** (rooms × 14 days, bookings as bars, bookings without a room), search. Bookings by phone / walk-in with an advance. Confirm, assign / move room, **check-in** (room must be clean or inspected unless confirmed anyway; ID type and last 4 characters only), change dates (existing nights keep their price), agreed rate (audited), extra charges, payments and refunds, no-show, cancel |
+| Folio & check-out | Room nights posted at check-in and kept in step with the dates, room-service food, extras, payments. **Check-out**: room-service orders must be finished, the balance paid (several modes), optionally charge only the nights stayed when leaving early. The **GST bill** (same `INV/FY/0001` series) lists room nights (996311), each dish (996331, its own GST rate) and extras, with the stay and every payment on the PDF. Hotel money is counted in **day-end** on the day it came in (advances, payments, refunds; cash goes into the expected drawer), never twice |
+| In-room dining | The QR in each room (`/r/{token}`) opens the menu in room mode. Ordering needs a guest checked in to that room and the **last 4 digits of the phone** the stay is booked under (5 tries per room, then a pause). Orders are a new type, **room service**, go to the kitchen like any order, appear on the folio, can't be billed at the POS, and are marked paid at check-out |
+| Housekeeping | Board of every room: clean / dirty / inspected / out of order (reason), occupied, arriving / leaving today, who changed what. Check-out marks the room dirty; a move marks the old room dirty. New **Housekeeping** role (board only); the front desk can update it too |
+| Guest IDs | **Off by default** (owner turns it on, with a warning). Files are encrypted with the app key before they reach the private disk, served with `no-store`, every upload / view / deletion is in the audit log with the staff member and IP, and they are deleted automatically a set number of days after check-out |
+| Events | `/events` enquiry form (wedding, birthday, anniversary, corporate, other; date, guests, message). Front desk follows up: status (new → contacted → quote sent → booked / not going ahead), follow-up date, notes |
+| Reports | Rooms section: occupancy, room-nights sold / available, room revenue before GST, ADR, RevPAR, average stay, cancellations, no-shows, by source and room type, daily occupancy. **Stays CSV** |
+| Website | Rooms and Events in the navigation, sitemap, `Hotel` JSON-LD with check-in / check-out times, room photos credited with the others |
+| Tests | Backend 110 tests / 1,298 assertions (+ prices with weekends, seasons, extra guests and both GST slabs; overselling from the website and the desk; guest lookup and the cancellation cut-off; Razorpay advance, webhook repeats, hold expiry and late payment; a full stay with room service charged to the room, wrong PIN, check-out bill lines and SAC codes, day-end and occupancy; dates, agreed rate and early departure; housekeeping states and roles; guest IDs off by default, encrypted, logged and purged; event enquiries; Pro-plan gating and tenant isolation; setup with photos, bulk rooms and QR codes). Frontend 36 unit tests. End-to-end browser run on the demo hotel: rooms and prices → booking → booking page; event enquiry; confirm and check in; room QR → menu → wrong PIN refused → order charged to room 101 → kitchen completes it; check-out with the bill `INV/2026-27/0001`; housekeeping, reports, setup |
+
+**Demo:** "Hotel Demo" (Haveli theme, Udaipur, Pro plan): three sample room types (prices and text are examples; photos are credited CC BY pictures, not this hotel), eight rooms, online booking, room service and events on. No guests, bookings or reviews are invented. Sign in as `demo-hotel@example.com` / `DemoOwner2026`; the site is http://hotel-demo.localhost:5173.
+
+**Run it:** `php artisan schedule:work` also runs `hotel:expire-holds` (every 5 minutes) and `hotel:purge-documents` (daily). Guest IDs use the private `local` disk unless `GUEST_DOCUMENTS_DISK` says otherwise.
+
+**Check with your CA:** room GST slabs, whether restaurant food served in a hotel with rooms above ₹7,500 needs a different rate (set it on the menu), and how long you must keep guest records.
 
 ### Phase 6
 
@@ -206,9 +231,13 @@ Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identi
 - **Laravel 12** is used instead of 11: Composer blocks every Laravel 11 release over published security advisories. The structure is identical.
 - **Development cache/queues** use the database (no Redis on XAMPP/Windows). Production uses Redis, Horizon and Reverb (Phases 5 and 8).
 
-## Next: Phase 7 — Hotel module
+## Next: Phase 8 — SaaS billing
 
-The hotel module from the master plan.
+Plans, subscriptions and billing for businesses, from the master plan.
+
+## Done: Phase 7 — Hotel module
+
+See the Phase 7 section above.
 
 ## Done: Phase 6 — Growth features
 

@@ -18,7 +18,7 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /** Business modules; each may ship a routes.php mounted under /api/v1. */
-    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports'];
+    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports', 'Hotel'];
 
     public function register(): void
     {
@@ -78,12 +78,18 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('otp-verify', fn (Request $request) => Limit::perMinutes(10, 10)
             ->by('otp-verify|'.preg_replace('/\D+/', '', (string) $request->input('phone')).'|'.$request->ip()));
 
-        // Public order placement: a few per minute per visitor (and per phone number).
-        RateLimiter::for('orders', fn (Request $request) => [
-            Limit::perMinute(6)->by('orders-ip|'.$request->ip())
-                ->response($tooMany('Too many orders from this network. Please wait a minute.')),
-            Limit::perHour(20)->by('orders-phone|'.preg_replace('/\D+/', '', (string) $request->input('customer.phone'))),
-        ]);
+        // Public order placement: a few per minute per visitor (and per phone number, when there
+        // is one: table and room orders may have none, and must not share one bucket).
+        RateLimiter::for('orders', function (Request $request) use ($tooMany) {
+            $limits = [Limit::perMinute(6)->by('orders-ip|'.$request->ip())
+                ->response($tooMany('Too many orders from this network. Please wait a minute.'))];
+            $digits = preg_replace('/\D+/', '', (string) $request->input('customer.phone'));
+            if ($digits !== '') {
+                $limits[] = Limit::perHour(20)->by('orders-phone|'.$digits);
+            }
+
+            return $limits;
+        });
 
         // Table bookings: a few per minute per visitor, and per phone number.
         RateLimiter::for('reservations', fn (Request $request) => [

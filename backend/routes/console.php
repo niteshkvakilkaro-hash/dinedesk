@@ -41,3 +41,30 @@ Artisan::command('reservations:send-reminders', function (TenantContext $context
 })->purpose('Remind guests of confirmed table bookings');
 
 Schedule::command('reservations:send-reminders')->everyFiveMinutes()->withoutOverlapping();
+
+// Hotel: website bookings whose online advance never came in release their room.
+Artisan::command('hotel:expire-holds', function (TenantContext $context) {
+    $tenantIds = \App\Modules\Hotel\Models\RoomBooking::withoutTenancy()
+        ->where('status', 'pending')->whereNotNull('hold_expires_at')->where('hold_expires_at', '<', now())
+        ->distinct()->pluck('tenant_id');
+    $total = 0;
+    foreach (Tenant::whereIn('id', $tenantIds)->get() as $tenant) {
+        $total += $context->run($tenant, fn () => app(\App\Modules\Hotel\Services\RoomBookings::class)->expireHolds());
+    }
+    $this->info("Released {$total} unpaid room booking(s).");
+})->purpose('Cancel room bookings whose advance was never paid');
+
+Schedule::command('hotel:expire-holds')->everyFiveMinutes()->withoutOverlapping();
+
+// Hotel: guest ID documents are deleted once their keep period after check-out ends.
+Artisan::command('hotel:purge-documents', function (TenantContext $context) {
+    $tenantIds = \App\Modules\Hotel\Models\GuestDocument::withoutTenancy()
+        ->where('delete_after', '<', now()->format('Y-m-d'))->distinct()->pluck('tenant_id');
+    $total = 0;
+    foreach (Tenant::whereIn('id', $tenantIds)->get() as $tenant) {
+        $total += $context->run($tenant, fn () => app(\App\Modules\Hotel\Services\GuestDocuments::class)->purge());
+    }
+    $this->info("Deleted {$total} guest document(s).");
+})->purpose('Delete guest ID documents past their keep date');
+
+Schedule::command('hotel:purge-documents')->dailyAt('03:30')->withoutOverlapping();

@@ -13,7 +13,7 @@ use Throwable;
  */
 final class Live
 {
-    public const TOPICS = ['orders', 'kitchen', 'tables', 'reservations'];
+    public const TOPICS = ['orders', 'kitchen', 'tables', 'reservations', 'hotel'];
 
     /** Channels use the business's public id, never the internal one. */
     private static array $keys = [];

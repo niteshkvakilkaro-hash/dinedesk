@@ -3,6 +3,7 @@
 namespace App\Modules\Ordering\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Hotel\Services\RoomBookings;
 use App\Modules\Ordering\Models\Payment;
 use App\Modules\Ordering\Services\OrderFlow;
 use App\Modules\Ordering\Services\Razorpay;
@@ -38,6 +39,18 @@ class RazorpayWebhookController extends Controller
             $payment = $orderId ? Payment::where('provider_order_id', $orderId)->first() : null;
             if (! $payment) {
                 return response()->json(['ok' => true, 'ignored' => 'unknown order']);
+            }
+
+            // Advance for a room booking (hotel module).
+            if ($payment->room_booking_id) {
+                $stays = app(RoomBookings::class);
+                match ($event) {
+                    'payment.captured', 'order.paid' => $stays->advancePaid($payment, (string) ($entity['id'] ?? $payment->provider_payment_id ?? 'webhook'), $entity['method'] ?? null),
+                    'payment.failed' => $stays->advanceFailed($payment, $entity['error_description'] ?? null),
+                    default => null,
+                };
+
+                return response()->json(['ok' => true]);
             }
 
             $flow = app(OrderFlow::class);

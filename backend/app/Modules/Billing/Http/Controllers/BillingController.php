@@ -64,7 +64,8 @@ class BillingController extends Controller
     {
         $billed = DB::table('invoice_order')->join('invoices', 'invoices.id', '=', 'invoice_order.invoice_id')->where('invoices.status', '!=', 'void')->select('invoice_order.order_id');
         $sessions = TableSession::with(['table', 'orders'])->where('status', 'open')->orderBy('opened_at')->get();
-        $orders = Order::whereNull('table_session_id')->whereNotIn('status', ['cancelled'])->where('payment_status', 'unpaid')
+        // Room-service orders are billed with the stay at check-out.
+        $orders = Order::whereNull('table_session_id')->where('payment_method', '!=', 'room')->whereNotIn('status', ['cancelled'])->where('payment_status', 'unpaid')
             ->whereNotIn('id', $billed)->where('placed_at', '>', now()->subDays(2))->orderBy('id')->get();
         $unpaid = Invoice::with('session.table')->where('status', 'unpaid')->orderBy('id')->get()->keyBy('table_session_id');
         $sum = fn ($rows) => Money::toRupees($rows->sum(fn ($o) => Money::toPaise($o->total)));

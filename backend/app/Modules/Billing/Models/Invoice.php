@@ -16,7 +16,7 @@ class Invoice extends Model
     use BelongsToTenant, HasUlids;
 
     protected $fillable = [
-        'tenant_id', 'number', 'financial_year', 'sequence', 'table_session_id', 'kind', 'status', 'seller', 'buyer',
+        'tenant_id', 'number', 'financial_year', 'sequence', 'table_session_id', 'room_booking_id', 'kind', 'status', 'seller', 'buyer',
         'items_total', 'discount', 'discount_reason', 'taxable_value', 'cgst', 'sgst', 'charges', 'round_off', 'total', 'paid',
         'prices_include_tax', 'void_reason', 'created_by', 'issued_at', 'business_date',
     ];

@@ -2,6 +2,7 @@ import { Link, NavLink, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Menu as MenuIcon, ShoppingBag, X } from 'lucide-react';
 import { cartCount, useCart } from '../cart';
+import { useActiveRoom } from '../hotel';
 import { telHref } from '../data';
 import { ReduceMotionToggle, SiteImg, SiteLanguageToggle } from '../components/bits';
 import { SkipLink, useMobileMenu, useNavItems } from '../components/nav';
@@ -22,7 +23,8 @@ function CartButton({ site }: { site: SiteData }) {
   const { t } = useTranslation();
   const count = cartCount(useCart((s) => s.lines));
   const setOpen = useCart((s) => s.setOpen);
-  if (!site.ordering.enabled) return null;
+  const room = useActiveRoom(site);
+  if (!site.ordering.enabled && !room) return null;
   return (
     <button type="button" className="s-icon-btn relative" onClick={() => setOpen(true)} aria-label={t('order.viewCart', { count })}>
       <ShoppingBag className="h-5 w-5" aria-hidden="true" />

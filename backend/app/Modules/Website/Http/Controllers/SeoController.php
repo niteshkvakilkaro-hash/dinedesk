@@ -43,10 +43,19 @@ class SeoController extends Controller
         abort_if(! $tenant || ! $this->indexable($tenant), 404);
 
         $host = $this->presenter->primaryHost($tenant);
-        $pages = $this->context->run($tenant, fn () => array_values(array_filter(
-            self::PAGES,
-            fn ($p) => $p !== '/gallery' || GalleryImage::exists(),
-        )));
+        $pages = $this->context->run($tenant, function () use ($tenant) {
+            $pages = array_values(array_filter(self::PAGES, fn ($p) => $p !== '/gallery' || GalleryImage::exists()));
+            // Hotel pages, when the business has them.
+            $hotel = $this->presenter->hotel($tenant);
+            if ($hotel && $hotel['has_rooms']) {
+                $pages[] = '/rooms';
+            }
+            if ($hotel && $hotel['banquets']) {
+                $pages[] = '/events';
+            }
+
+            return $pages;
+        });
         $lastmod = $tenant->updated_at->toDateString();
 
         $urls = collect($pages)->map(fn ($p) => sprintf(

@@ -28,12 +28,15 @@ export interface Paginated {
 export class ApiError extends Error {
   status: number;
   errors: Record<string, string[]> | null;
+  /** The server's error code (meta.code), e.g. "room_not_ready". */
+  code: string | null;
 
-  constructor(message: string, status: number, errors: Record<string, string[]> | null = null) {
+  constructor(message: string, status: number, errors: Record<string, string[]> | null = null, code: string | null = null) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.errors = errors;
+    this.code = code;
   }
 }
 
@@ -106,7 +109,8 @@ export async function request<T>(path: string, { method = 'GET', body, params, s
         : response.status >= 500
           ? 'Something went wrong on our side. Please try again.'
           : 'Request failed.';
-    throw new ApiError(payload?.message || fallback, response.status, payload?.errors ?? null);
+    const code = (payload?.meta as { code?: string } | null)?.code ?? null;
+    throw new ApiError(payload?.message || fallback, response.status, payload?.errors ?? null, code);
   }
 
   return payload ?? ({ data: null, message: null, errors: null, meta: null } as Envelope<T>);
@@ -130,6 +134,28 @@ export function applyServerErrors(
     setError(field as never, { type: 'server', message: messages[0] });
   }
   return true;
+}
+
+/** Opens a private file (e.g. a guest's ID) from an authenticated endpoint in a new tab, without saving it. */
+export async function openFile(path: string) {
+  const win = window.open('', '_blank');
+  const headers: Record<string, string> = { 'X-Tenant-Host': window.location.host };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(buildUrl(path), { headers, cache: 'no-store' });
+  if (!res.ok) {
+    win?.close();
+    let message = 'Could not open the file.';
+    try {
+      message = ((await res.json()) as { message?: string }).message || message;
+    } catch {
+      /* not JSON */
+    }
+    throw new ApiError(message, res.status);
+  }
+  const url = URL.createObjectURL(await res.blob());
+  if (win) win.location.href = url;
+  else window.location.assign(url);
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 /** Downloads a file (PDF…) from an authenticated endpoint and saves it. */

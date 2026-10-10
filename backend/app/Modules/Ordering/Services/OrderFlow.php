@@ -14,6 +14,10 @@ use App\Modules\Ordering\Support\Money;
 use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tables\Services\DineIn;
+use App\Modules\Hotel\Models\Room;
+use App\Modules\Hotel\Models\RoomBooking;
+use App\Modules\Hotel\Services\Folio;
+use App\Modules\Hotel\Services\HotelSettings;
 use App\Modules\Kitchen\Services\Kitchen;
 use App\Support\Realtime\Live;
 use App\Modules\Crm\Services\CustomerActivity;
@@ -27,6 +31,7 @@ use App\Support\Phone;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
 /**
@@ -66,6 +71,9 @@ class OrderFlow
      */
     public function place(Tenant $tenant, array $data, string $locale = 'en'): array
     {
+        if ($data['type'] === 'room_service') {
+            return $this->placeForRoom($tenant, $data, $locale);
+        }
         $s = $this->ordering->get();
         $type = $data['type'];
 
@@ -194,6 +202,87 @@ class OrderFlow
         }
 
         return ['order' => $order->fresh('items'), 'razorpay' => $razorpay];
+    }
+
+    /**
+     * Room service from a room's QR code (hotel). Only the guest staying in the room can
+     * order to it: they confirm the last 4 digits of the mobile number the stay is booked
+     * under. The order is charged to the room's folio and paid at check-out.
+     *
+     * @return array{order: Order, razorpay: null}
+     */
+    private function placeForRoom(Tenant $tenant, array $data, string $locale): array
+    {
+        $hotel = app(HotelSettings::class)->get();
+        if (! $this->features->enabled($tenant, 'hotel') || ! $hotel['room_service']) {
+            throw new ApiException('Ordering from the room is not available. Please call reception.', 422, 'room_service_off');
+        }
+        if (! $this->ordering->get()['accepting_orders']) {
+            throw new ApiException('The kitchen is not taking orders right now. Please call reception.', 422, 'not_accepting');
+        }
+        if (($data['payment_method'] ?? null) !== 'room') {
+            throw new ApiException('Room service is charged to your room.', 422, 'payment_method_unavailable', ['field' => 'payment_method']);
+        }
+        $room = Room::where('qr_token', (string) ($data['room_token'] ?? ''))->where('is_active', true)->first();
+        if (! $room) {
+            throw new ApiException('This room QR code is not active. Please call reception.', 404, 'room_not_found');
+        }
+        $stay = RoomBooking::where('room_id', $room->id)->where('status', 'checked_in')->first();
+        if (! $stay) {
+            throw new ApiException('Ordering to the room opens once you have checked in. Please call reception.', 422, 'no_guest');
+        }
+        // A few tries per room, so the 4 digits can't be guessed.
+        $key = "room-pin|{$tenant->id}|{$room->id}";
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            throw new ApiException('Too many tries. Please call reception.', 429, 'too_many_attempts');
+        }
+        if (! hash_equals(substr($stay->phone, -4), (string) ($data['room_pin'] ?? ''))) {
+            RateLimiter::hit($key, 15 * 60);
+            throw new ApiException('That doesn\'t match the mobile number this room is booked under.', 422, 'room_verify', ['field' => 'room_pin']);
+        }
+        RateLimiter::clear($key);
+
+        $quote = $this->pricing->quote('room_service', $data['items']);
+        $order = DB::transaction(function () use ($data, $quote, $locale, $room, $stay) {
+            $last = Order::lockForUpdate()->max('number');
+            $order = Order::create([
+                'tracking_token' => Str::random(40),
+                'number' => max(1000, (int) $last) + 1,
+                'customer_id' => $stay->customer_id,
+                'type' => 'room_service',
+                'status' => 'pending',
+                'customer_name' => $stay->name,
+                'customer_phone' => $stay->phone,
+                'customer_email' => $stay->email,
+                'table_label' => "Room {$room->number}",
+                'room_booking_id' => $stay->id,
+                'notes' => isset($data['notes']) ? strip_tags($data['notes']) : null,
+                'subtotal' => $quote['subtotal'],
+                'tax_total' => $quote['tax_total'],
+                'delivery_fee' => $quote['delivery_fee'],
+                'packaging_fee' => $quote['packaging_fee'],
+                'total' => $quote['total'],
+                'prices_include_tax' => $quote['prices_include_tax'],
+                'payment_method' => 'room',
+                'payment_status' => 'unpaid',
+                'source' => 'room',
+                'locale' => $locale === 'hi' ? 'hi' : 'en',
+                'placed_at' => now(),
+            ]);
+            foreach ($quote['lines'] as $line) {
+                $order->items()->create(['tenant_id' => $order->tenant_id] + array_merge($line, [
+                    'addons' => array_map(fn ($a) => ['name' => $a['name'], 'price' => $a['price']], $line['addons']) ?: null,
+                ]));
+            }
+            $this->event($order, 'pending', null, null);
+            app(Folio::class)->chargeOrder($order);
+
+            return $order;
+        });
+        $this->announce($order);
+        Live::emit($order->tenant_id, 'hotel', 'stay.changed', ['id' => $stay->id, 'status' => $stay->status]);
+
+        return ['order' => $order->fresh('items'), 'razorpay' => null];
     }
 
     /**
@@ -398,6 +487,9 @@ class OrderFlow
         }
         if ($to === 'cancelled') {
             app(CustomerActivity::class)->orderCancelled($fresh);
+            if ($fresh->room_booking_id) {
+                app(Folio::class)->orderCancelled($fresh);
+            }
         }
         $this->emitOrder($fresh, 'order.changed');
         $this->notifier->statusChanged($fresh);

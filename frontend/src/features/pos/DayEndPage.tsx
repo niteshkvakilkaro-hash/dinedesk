@@ -16,7 +16,9 @@ interface Report {
   orders: { count: number; value: string; average: string; by_type: { key: string; count: number; amount: string }[]; by_source: { key: string; count: number; amount: string }[]; cancelled: { count: number; amount: string } };
   top_items: { name: string; quantity: number; amount: string }[];
   open: { tables: number; unbilled_orders: number; unpaid_bills: number };
-  cash: { opening: string; from_bills: string; outside_bills: string; expected: string };
+  cash: { opening: string; from_bills: string; outside_bills: string; gift_cards?: string; hotel?: string; expected: string };
+  gift_cards_sold?: { mode: string; count: number; amount: string }[];
+  hotel?: { by_mode: { mode: string; count: number; amount: string }[]; advances: string; refunds: string; net: string };
   closing: { opening_cash: string; counted_cash: string; expected_cash: string; difference: string; notes: string | null; closed_at: string } | null;
   recent_closings: { date: string; counted: string; expected: string; difference: string }[];
 }
@@ -129,6 +131,21 @@ export default function DayEndPage() {
                   </div>
                 ))}
               </dl>
+              {!!r.hotel?.by_mode.length && (
+                <>
+                  <h3 className="mt-5 font-bold">{t('dayEnd.hotel')}</h3>
+                  <dl className="mt-2 space-y-1 text-sm">
+                    {r.hotel.by_mode.map((p) => (
+                      <div key={p.mode} className="flex justify-between">
+                        <dt>{t(`hotel.mode.${p.mode}`)} <span className="text-muted">({p.count})</span></dt>
+                        <dd className="font-semibold tabular-nums">{formatINR(p.amount)}</dd>
+                      </div>
+                    ))}
+                    {Number(r.hotel.refunds) > 0 && <p className="text-muted">{t('dayEnd.hotelRefunds', { amount: formatINR(r.hotel.refunds) })}</p>}
+                    <p className="text-xs text-muted">{t('dayEnd.hotelHint')}</p>
+                  </dl>
+                </>
+              )}
               <h3 className="mt-5 font-bold">{t('dayEnd.byType')}</h3>
               <dl className="mt-2 space-y-1 text-sm">
                 {r.orders.by_type.map((x) => (
@@ -155,6 +172,8 @@ export default function DayEndPage() {
               <dl className="mt-4 space-y-1 text-sm">
                 <div className="flex justify-between"><dt>{t('dayEnd.cashBills')}</dt><dd className="tabular-nums">{formatINR(r.cash.from_bills)}</dd></div>
                 <div className="flex justify-between"><dt>{t('dayEnd.cashOutside')}</dt><dd className="tabular-nums">{formatINR(r.cash.outside_bills)}</dd></div>
+                {Number(r.cash.gift_cards ?? 0) > 0 && <div className="flex justify-between"><dt>{t('dayEnd.cashGiftCards')}</dt><dd className="tabular-nums">{formatINR(r.cash.gift_cards!)}</dd></div>}
+                {Number(r.cash.hotel ?? 0) !== 0 && <div className="flex justify-between"><dt>{t('dayEnd.cashHotel')}</dt><dd className="tabular-nums">{formatINR(r.cash.hotel!)}</dd></div>}
                 <div className="flex justify-between border-t border-line pt-2 text-base font-bold"><dt>{t('dayEnd.expected')}</dt><dd className="tabular-nums">{formatINR(r.cash.expected)}</dd></div>
                 {diff !== null && (
                   <div className={`flex justify-between font-bold ${Math.abs(diff) < 0.005 ? 'text-success' : 'text-danger'}`}>

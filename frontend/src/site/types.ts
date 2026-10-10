@@ -59,7 +59,9 @@ export interface SiteData {
   open_status: (OpenStatus & { timezone: string }) | null;
   has_menu: boolean;
   has_gallery: boolean;
-  features: { online_ordering: boolean; reservations: boolean; qr_ordering: boolean };
+  features: { online_ordering: boolean; reservations: boolean; qr_ordering: boolean; hotel?: boolean };
+  /** Hotel pages (rooms, room-service QR, event enquiries); null when the plan has no hotel module. */
+  hotel?: HotelInfo | null;
   reservations: ReservationInfo;
   growth: GrowthInfo;
   ordering: OrderingInfo;
@@ -131,8 +133,18 @@ export interface GalleryItem {
   is_demo: boolean;
 }
 
-export type OrderType = 'delivery' | 'takeaway' | 'dine_in';
-export type PaymentMethod = 'online' | 'cod' | 'counter';
+export type OrderType = 'delivery' | 'takeaway' | 'dine_in' | 'room_service';
+/** room = charged to the guest's room (paid at check-out). */
+export type PaymentMethod = 'online' | 'cod' | 'counter' | 'room';
+
+export interface HotelInfo {
+  has_rooms: boolean;
+  online_booking: boolean;
+  room_service: boolean;
+  banquets: boolean;
+  check_in_time: string;
+  check_out_time: string;
+}
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out_for_delivery' | 'completed' | 'cancelled';
 
 export interface SiteBanner {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, CalendarDays, ChefHat, Contact, Globe, Images, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wifi } from 'lucide-react';
+import { Building2, CalendarDays, ChefHat, Contact, Globe, Hotel, Images, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wifi } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { disconnectLive, useLive, useLiveStatus } from '@/lib/realtime';
 import { useCan, useFeature, useSession, useSignOut } from '@/hooks/useSession';
@@ -43,6 +43,10 @@ export default function DashboardLayout() {
   const canInventoryPerm = useCan('inventory.manage');
   const hasInventory = useFeature('inventory');
   const canReports = useCan('reports.view');
+  const hasHotel = useFeature('hotel');
+  const canDesk = useCan('rooms.manage');
+  const canHousekeeping = useCan('housekeeping.update');
+  const canRoomSetup = useCan('rooms.setup');
   const canKitchen = canKitchenPerm && hasKds;
 
   // Live updates: any change refreshes the screens that show it (polling stays as a fallback).
@@ -79,6 +83,7 @@ export default function DashboardLayout() {
     { to: '/kitchen', label: t('dashboard.nav.kitchen'), icon: ChefHat, show: canKitchen },
     { to: '/waiter/', label: t('dashboard.nav.waiter'), icon: Smartphone, show: canRunTables && canCreate && hasQr && !canPosPerm },
     { to: '/dashboard/menu', label: t('dashboard.nav.menu'), icon: UtensilsCrossed, show: canMenu },
+    { to: '/dashboard/hotel', label: t('dashboard.nav.hotel'), icon: Hotel, show: hasHotel && (canDesk || canHousekeeping || canRoomSetup) },
     { to: '/dashboard/customers', label: t('dashboard.nav.customers'), icon: Contact, show: canCustomers },
     { to: '/dashboard/marketing', label: t('dashboard.nav.marketing'), icon: Megaphone, show: canMarketingPerm && (hasCoupons || hasLoyaltyPlan) },
     { to: '/dashboard/inventory', label: t('dashboard.nav.inventory'), icon: Package, show: canInventoryPerm && hasInventory },

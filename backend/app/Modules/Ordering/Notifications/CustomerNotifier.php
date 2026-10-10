@@ -29,7 +29,7 @@ class CustomerNotifier
     {
         $kind = match ($order->status) {
             'confirmed' => 'confirmed',
-            'ready' => $order->type === 'delivery' ? null : 'ready_'.$order->type,
+            'ready' => in_array($order->type, ['delivery', 'room_service'], true) ? null : 'ready_'.$order->type,
             'out_for_delivery' => 'out_for_delivery',
             'completed' => 'completed',
             'cancelled' => 'cancelled',

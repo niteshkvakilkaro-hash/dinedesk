@@ -41,7 +41,8 @@
       <div><strong>{{ $invoice->kind === 'tax_invoice' ? 'Invoice' : 'Bill' }} no.:</strong> {{ $invoice->number }}</div>
       <div><strong>Date:</strong> {{ $issued }}</div>
       @if ($table)<div><strong>Table:</strong> {{ $table }}</div>@endif
-      <div><strong>Order{{ count($orders) > 1 ? 's' : '' }}:</strong> {{ implode(', ', array_map(fn ($n) => '#'.$n, $orders)) }}</div>
+      @if ($stay)<div><strong>Stay:</strong> {{ $stay }}</div>@endif
+      @if (count($orders))<div><strong>Order{{ count($orders) > 1 ? 's' : '' }}:</strong> {{ implode(', ', array_map(fn ($n) => '#'.$n, $orders)) }}</div>@endif
       <div class="muted">Place of supply: intra-state (CGST + SGST)</div>
     </td>
   </tr>
@@ -98,8 +99,8 @@
   @endif
   <tr class="grand"><td>Total</td><td class="r">₹{{ $money($invoice->total) }}</td></tr>
   <tr><td colspan="2" class="muted">{{ $words }}</td></tr>
-  @foreach ($invoice->payments as $p)
-    <tr><td class="muted">Paid · {{ strtoupper($p->mode) }}{{ $p->reference && $p->mode !== 'online' ? ' · '.$p->reference : '' }}</td><td class="r muted">{{ $money($p->amount) }}</td></tr>
+  @foreach ($paid as [$label, $amount])
+    <tr><td class="muted">{{ $label }}</td><td class="r muted">{{ $amount }}</td></tr>
   @endforeach
   @if ($invoice->status === 'unpaid')
     <tr><td><strong>Due</strong></td><td class="r"><strong>₹{{ $money((float) $invoice->total - (float) $invoice->paid) }}</strong></td></tr>

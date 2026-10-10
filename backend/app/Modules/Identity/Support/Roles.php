@@ -19,11 +19,12 @@ final class Roles
     public const WAITER = 'waiter';
     public const KITCHEN = 'kitchen';
     public const FRONT_DESK = 'front_desk';
+    public const HOUSEKEEPING = 'housekeeping';
 
-    public const ALL = [self::OWNER, self::MANAGER, self::CASHIER, self::WAITER, self::KITCHEN, self::FRONT_DESK];
+    public const ALL = [self::OWNER, self::MANAGER, self::CASHIER, self::WAITER, self::KITCHEN, self::FRONT_DESK, self::HOUSEKEEPING];
 
     /** Roles an owner can give to staff (owner is not assignable). */
-    public const ASSIGNABLE = [self::MANAGER, self::CASHIER, self::WAITER, self::KITCHEN, self::FRONT_DESK];
+    public const ASSIGNABLE = [self::MANAGER, self::CASHIER, self::WAITER, self::KITCHEN, self::FRONT_DESK, self::HOUSEKEEPING];
 
     public const PERMISSIONS = [
         'business.manage',     // business details, hours, domains
@@ -41,7 +42,9 @@ final class Roles
         'kot.update',          // kitchen display
         'pos.use',
         'reports.view',
-        'rooms.manage',        // hotel front desk
+        'rooms.manage',        // hotel front desk: bookings, check-in/out, folios, banquet enquiries
+        'rooms.setup',         // room types, prices, rooms and their QR codes, hotel settings
+        'housekeeping.update', // room cleaning status
         'inventory.manage',    // raw materials, stock, recipes
         'marketing.manage',    // coupons, loyalty, gift cards, banners, campaigns
         'customers.view',      // CRM, feedback
@@ -49,11 +52,12 @@ final class Roles
 
     public const MATRIX = [
         self::OWNER => '*',
-        self::MANAGER => ['staff.schedule', 'theme.manage', 'menu.manage', 'orders.view', 'orders.manage', 'orders.create', 'reservations.manage', 'tables.manage', 'tables.setup', 'reports.view', 'rooms.manage', 'kot.update', 'pos.use', 'inventory.manage', 'marketing.manage', 'customers.view'],
+        self::MANAGER => ['staff.schedule', 'theme.manage', 'menu.manage', 'orders.view', 'orders.manage', 'orders.create', 'reservations.manage', 'tables.manage', 'tables.setup', 'reports.view', 'rooms.manage', 'rooms.setup', 'housekeeping.update', 'kot.update', 'pos.use', 'inventory.manage', 'marketing.manage', 'customers.view'],
         self::CASHIER => ['pos.use', 'orders.view', 'orders.manage', 'orders.create', 'tables.manage', 'customers.view'],
         self::WAITER => ['orders.view', 'orders.create', 'tables.manage'],
         self::KITCHEN => ['kot.update', 'orders.view'],
-        self::FRONT_DESK => ['rooms.manage', 'reservations.manage', 'orders.view', 'orders.create', 'customers.view'],
+        self::FRONT_DESK => ['rooms.manage', 'housekeeping.update', 'reservations.manage', 'orders.view', 'orders.create', 'customers.view'],
+        self::HOUSEKEEPING => ['housekeeping.update'],
     ];
 
     /** Create/refresh every permission and role (idempotent). */

@@ -1640,11 +1640,370 @@ paths:
       security: [{ bearer: [] }]
       summary: 'CSV (Excel-friendly, UTF-8 BOM): sales, orders, dishes, categories, customers, reservations; up to 366 days'
       parameters:
-        - { name: type, in: path, required: true, schema: { type: string, enum: [sales, orders, dishes, categories, customers, reservations] } }
+        - { name: type, in: path, required: true, schema: { type: string, enum: [sales, orders, dishes, categories, customers, reservations, stays] } }
         - { name: from, in: query, schema: { type: string, format: date } }
         - { name: to, in: query, schema: { type: string, format: date } }
       responses:
         '200': { description: text/csv }
+  /site/hotel:
+    get:
+      tags: [Hotel (public)]
+      summary: 'Room types on sale (photos, amenities, capacity, from-price) and how booking works (times, advance, cancellation, house rules)'
+      responses:
+        '200': { description: OK }
+        '403': { description: Hotel module not in the plan }
+  /site/hotel/availability:
+    get:
+      tags: [Hotel (public)]
+      summary: 'Free room types for the dates and guests with the full price night by night (weekend, season, extra guests, GST slab); only "few left", never the stock'
+      parameters:
+        - { name: check_in, in: query, required: true, schema: { type: string, format: date } }
+        - { name: check_out, in: query, required: true, schema: { type: string, format: date } }
+        - { name: adults, in: query, required: true, schema: { type: integer } }
+        - { name: children, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: OK }
+        '422': { description: '`invalid_dates` / `too_long`' }
+  /site/hotel/bookings:
+    post:
+      tags: [Hotel (public)]
+      summary: 'Book a room type; never oversold. Returns the private token and, with an online advance, a Razorpay order (the room is held until it is paid)'
+      requestBody: { content: { application/json: { schema: { type: object, required: [room_type_id, check_in, check_out, adults, name, phone], properties: { room_type_id: { type: integer }, check_in: { type: string, format: date }, check_out: { type: string, format: date }, adults: { type: integer }, children: { type: integer }, name: { type: string }, phone: { type: string }, email: { type: [string, 'null'] }, arrival_time: { type: [string, 'null'] }, requests: { type: [string, 'null'] }, company: { type: [string, 'null'] }, gstin: { type: [string, 'null'] } } } } } }
+      responses:
+        '201': { description: '{ booking, token, razorpay }' }
+        '422': { description: '`sold_out` / `not_accepting` / `too_many_guests` / `invalid_dates`' }
+  /site/hotel/bookings/lookup:
+    post:
+      tags: [Hotel (public)]
+      summary: 'Find a booking with its ID and phone number (same answer for any mismatch)'
+      responses:
+        '200': { description: '{ id, t }' }
+        '404': { description: Not found }
+  /site/hotel/bookings/{publicId}:
+    get:
+      tags: [Hotel (public)]
+      summary: 'The guest''s booking (needs the private token `t`)'
+      responses:
+        '200': { description: OK }
+  /site/hotel/bookings/{publicId}/pay:
+    post:
+      tags: [Hotel (public)]
+      summary: 'A new Razorpay order for the advance while the room is still held'
+      responses:
+        '200': { description: '{ razorpay }' }
+  /site/hotel/bookings/{publicId}/verify-payment:
+    post:
+      tags: [Hotel (public)]
+      summary: 'Razorpay Checkout success (signature checked) → booking confirmed; the webhook does the same'
+      responses:
+        '200': { description: OK }
+        '422': { description: '`payment_unverified`' }
+  /site/hotel/bookings/{publicId}/cancel:
+    post:
+      tags: [Hotel (public)]
+      summary: 'Guest cancels up to the hotel''s cut-off (free_cancel_days before check-in)'
+      responses:
+        '200': { description: OK }
+        '422': { description: '`not_cancellable`' }
+  /site/hotel/rooms/{token}:
+    get:
+      tags: [Hotel (public)]
+      summary: 'A room''s QR code: room number and whether room service is open (a guest is checked in)'
+      responses:
+        '200': { description: OK }
+  /site/hotel/banquets:
+    post:
+      tags: [Hotel (public)]
+      summary: 'Event / banquet enquiry (when the hotel takes them online)'
+      responses:
+        '201': { description: Saved }
+  /tenant/hotel/today:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Front desk: arrivals, departures, guests in the hotel, requests to confirm, tonight''s rooms'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/calendar:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Room × date grid with bookings (7–31 days) and bookings without a room'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/availability:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Free rooms of each type for a stay, with the price'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/bookings:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Search bookings (name, phone, ID; status or upcoming)'
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Booking at the desk (phone / walk-in / email), confirmed at once, optional room and advance'
+      responses:
+        '201': { description: Created }
+        '422': { description: '`sold_out` / `room_taken`' }
+  /tenant/hotel/bookings/{id}:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'A stay with its folio (room nights, room service, extras, payments), orders and ID documents'
+      responses:
+        '200': { description: OK }
+    put:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Guest details, notes, company / GSTIN, ID type and last 4 characters'
+      responses:
+        '200': { description: Saved }
+  /tenant/hotel/bookings/{id}/status:
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Confirm, cancel (reason) or no-show (from the check-in day)'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/bookings/{id}/room:
+    put:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Assign or change the room (same type, free for the nights; a mid-stay move marks the old room dirty)'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/bookings/{id}/check-in:
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Check in: room (ready, or force), ID type and last 4; posts the nights to the folio'
+      responses:
+        '200': { description: OK }
+        '422': { description: '`room_not_ready` / `too_early` / `room_required`' }
+  /tenant/hotel/bookings/{id}/dates:
+    put:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'New dates (existing nights keep their price, new nights priced afresh; availability checked)'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/bookings/{id}/rate:
+    put:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Agreed nightly rate for the whole stay (reason required, audited)'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/bookings/{id}/charges:
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Extra charge on the folio (laundry, pick-up…) at 0 / 5 / 12 / 18% GST'
+      responses:
+        '201': { description: OK }
+  /tenant/hotel/bookings/{id}/charges/{itemId}/void:
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Remove an extra charge (reason, audited)'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/bookings/{id}/payments:
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Advance, payment or refund (cash / UPI / card / online / other), counted on the day received'
+      responses:
+        '201': { description: OK }
+  /tenant/hotel/bookings/{id}/check-out:
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Check out: last payments, optional charge-only-nights-stayed, GST bill (996311 rooms, 996331 food, extras); room → dirty'
+      responses:
+        '200': { description: OK }
+        '422': { description: '`orders_open` / `balance_due` / `overpaid`' }
+  /tenant/hotel/bookings/{id}/invoice:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: The check-out bill as a PDF
+      responses:
+        '200': { description: application/pdf }
+  /tenant/hotel/bookings/{id}/documents:
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Upload a guest ID (only when the hotel turned it on); encrypted at rest, audited, deleted after the keep period'
+      responses:
+        '201': { description: Saved }
+        '422': { description: '`documents_off`' }
+  /tenant/hotel/documents/{docId}:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'View a guest ID (decrypted, no-store, every view audited)'
+      responses:
+        '200': { description: The file }
+    delete:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Delete a guest ID now (audited)
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/banquets:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Event enquiries with counts by status
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/banquets/{id}:
+    put:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Follow up: status (new / contacted / quoted / booked / lost), follow-up date, notes'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/housekeeping:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Housekeeping board: every room''s state, occupied, arriving / leaving today'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/rooms/{id}/housekeeping:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Who changed the room''s state, when'
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Set clean / dirty / inspected / out of order (reason; not while occupied). Out-of-order rooms are not sold'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/types:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Room types with seasonal prices and room counts'
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'New room type (prices per night before GST, weekend price, extra adult / child, capacity, amenities)'
+      responses:
+        '201': { description: Created }
+  /tenant/hotel/types/{id}:
+    put:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Update a room type (price changes audited)
+      responses:
+        '200': { description: Saved }
+    delete:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Remove a room type with no current bookings'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/types/{id}/photos:
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Add a photo (up to 8, WebP widths)'
+      responses:
+        '201': { description: OK }
+  /tenant/hotel/types/{id}/photos/{key}:
+    put:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Make it the cover photo
+      responses:
+        '200': { description: OK }
+    delete:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Remove a photo
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/types/{id}/rates:
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Seasonal price between two dates (optional weekend price)'
+      responses:
+        '201': { description: OK }
+  /tenant/hotel/rates/{rateId}:
+    put:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Update a seasonal price
+      responses:
+        '200': { description: OK }
+    delete:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Remove a seasonal price
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/rooms:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Rooms with their QR URLs (/r/{token})'
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Add rooms in bulk ("101-110, 201"), unique numbers'
+      responses:
+        '201': { description: OK }
+  /tenant/hotel/rooms/{id}:
+    put:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Number, type, floor, in use'
+      responses:
+        '200': { description: Saved }
+    delete:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Remove a room with no current bookings
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/rooms/{id}/qr:
+    post:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'New QR code (the printed one stops working)'
+      responses:
+        '200': { description: OK }
+  /tenant/hotel/settings:
+    get:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Hotel settings
+      responses:
+        '200': { description: OK }
+    put:
+      tags: [Hotel (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Online booking, auto-confirm, times, advance %, cancellation, GST on rooms, room service, events, guest IDs (off by default) and keep days'
+      responses:
+        '200': { description: Saved }
   /plans:
     get:
       tags: [Plans]

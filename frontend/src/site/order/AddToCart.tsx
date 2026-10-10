@@ -7,13 +7,16 @@ import { FoodTypeMark } from '../components/bits';
 import type { MenuItem } from '../types';
 import { SiteDialog, useSkin } from './skin';
 import { useMoney } from '../ordering';
+import { useActiveRoom } from '../hotel';
 
 const priceOf = (v: string) => Number(v);
 
 /** Can this site take orders right now (ordering on and the dish available)? */
 export function useCanOrder(item?: MenuItem) {
   const { data: site } = useSite();
-  return !!site?.ordering?.enabled && (!item || item.is_available);
+  // A hotel guest ordering from their room's QR can order even if the site takes no other orders.
+  const room = useActiveRoom(site);
+  return (!!site?.ordering?.enabled || !!room) && (!item || item.is_available);
 }
 
 /** "Add" for a dish: simple dishes go straight in; dishes with options open a chooser. */

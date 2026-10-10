@@ -9,6 +9,7 @@ import { useMoney, useQuote } from '../ordering';
 import type { OrderType, Quote, SiteData } from '../types';
 import { SiteDialog, useSkin } from './skin';
 import { useActiveTable } from '../table';
+import { useActiveRoom } from '../hotel';
 
 export function OrderTypePicker({ site, value, onChange }: { site: SiteData; value: OrderType | null; onChange: (t: OrderType) => void }) {
   const { t } = useTranslation();
@@ -104,8 +105,9 @@ export function Cart() {
   const status = useOpenStatus(site!);
   const button = useRef<HTMLButtonElement>(null);
   const table = useActiveTable(site);
-  // At a table, orders are always dine-in for that table.
-  const effectiveType = table && site?.ordering.types.includes('dine_in') ? 'dine_in' : type && site?.ordering.types.includes(type) ? type : (site?.ordering.types[0] ?? null);
+  const room = useActiveRoom(site);
+  // At a table, orders are always dine-in for that table; in a hotel room, room service.
+  const effectiveType = room ? 'room_service' : table && site?.ordering.types.includes('dine_in') ? 'dine_in' : type && site?.ordering.types.includes(type) ? type : (site?.ordering.types[0] ?? null);
   const quote = useQuote(open ? effectiveType : null);
 
   // A little nudge whenever something is added (no motion when reduced).
@@ -114,9 +116,9 @@ export function Cart() {
     button.current.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12)' }, { transform: 'scale(1)' }], { duration: 350, easing: 'cubic-bezier(0.34,1.56,0.64,1)' });
   }, [tick]);
 
-  if (!site?.ordering.enabled) return null;
+  if (!site || (!site.ordering.enabled && !room)) return null;
   const count = cartCount(lines);
-  const hidden = pathname.startsWith('/checkout') || pathname.startsWith('/order/') || !!table;
+  const hidden = pathname.startsWith('/checkout') || pathname.startsWith('/order/') || !!table || !!room;
 
   return (
     <>

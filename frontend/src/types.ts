@@ -1,4 +1,4 @@
-export type Role = 'owner' | 'manager' | 'cashier' | 'waiter' | 'kitchen' | 'front_desk';
+export type Role = 'owner' | 'manager' | 'cashier' | 'waiter' | 'kitchen' | 'front_desk' | 'housekeeping';
 export type BusinessType = 'restaurant' | 'cafe' | 'cloud_kitchen' | 'hotel';
 export type TenantStatus = 'onboarding' | 'live' | 'suspended' | 'read_only';
 export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';

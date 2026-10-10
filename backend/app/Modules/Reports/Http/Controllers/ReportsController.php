@@ -3,6 +3,7 @@
 namespace App\Modules\Reports\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Hotel\Models\RoomBooking;
 use App\Modules\Ordering\Models\Customer;
 use App\Modules\Reports\Services\Analytics;
 use App\Modules\Reservations\Models\Reservation;
@@ -17,7 +18,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /** Dashboard → Reports: analytics for a period and CSV exports. */
 class ReportsController extends Controller
 {
-    public const EXPORTS = ['orders', 'sales', 'dishes', 'categories', 'customers', 'reservations'];
+    public const EXPORTS = ['orders', 'sales', 'dishes', 'categories', 'customers', 'reservations', 'stays'];
 
     public function __construct(private readonly TenantContext $context, private readonly Analytics $analytics) {}
 
@@ -70,6 +71,13 @@ class ReportsController extends Controller
                 ['Booking ID', 'Date', 'Time', 'Guests', 'Name', 'Phone', 'Status', 'Source', 'Table'],
                 Reservation::with('table')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to)->orderBy('starts_at')->get()->map(fn ($r) => [
                     $r->code, $r->date->format('Y-m-d'), $r->time, $r->party_size, $r->name, $r->phone, $r->status, $r->source, $r->table?->label,
+                ]),
+            ],
+            'stays' => [
+                ['Booking ID', 'Check-in', 'Check-out', 'Nights', 'Room type', 'Room', 'Guest', 'Phone', 'Adults', 'Children', 'Status', 'Source', 'Room charges', 'GST', 'Total', 'Invoice'],
+                RoomBooking::with(['type', 'room', 'invoice'])->where('check_in', '<=', $to)->where('check_out', '>', $from)->orderBy('check_in')->get()->map(fn ($b) => [
+                    $b->code, $b->check_in->format('Y-m-d'), $b->check_out->format('Y-m-d'), $b->nights, $b->type->name, $b->room?->number, $b->name, $b->phone,
+                    $b->adults, $b->children, $b->status, $b->source, $b->room_total, $b->tax_total, $b->total, $b->invoice?->number,
                 ]),
             ],
         };

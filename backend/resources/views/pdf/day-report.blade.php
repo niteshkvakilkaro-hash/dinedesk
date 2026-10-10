@@ -67,6 +67,12 @@
   <tr><td>Opening cash</td><td class="r">₹{{ $r['cash']['opening'] }}</td></tr>
   <tr><td>Cash from bills</td><td class="r">₹{{ $r['cash']['from_bills'] }}</td></tr>
   <tr><td>Cash orders without a bill</td><td class="r">₹{{ $r['cash']['outside_bills'] }}</td></tr>
+  @if ((float) ($r['cash']['gift_cards'] ?? 0) > 0)
+    <tr><td>Cash for gift cards sold</td><td class="r">₹{{ $r['cash']['gift_cards'] }}</td></tr>
+  @endif
+  @if ((float) ($r['cash']['hotel'] ?? 0) != 0)
+    <tr><td>Hotel stays (advances, payments, refunds) in cash</td><td class="r">₹{{ $r['cash']['hotel'] }}</td></tr>
+  @endif
   <tr><td><strong>Expected in drawer</strong></td><td class="r"><strong>₹{{ $r['cash']['expected'] }}</strong></td></tr>
   @if ($r['closing'])
     <tr><td>Counted</td><td class="r">₹{{ $r['closing']['counted_cash'] }}</td></tr>
