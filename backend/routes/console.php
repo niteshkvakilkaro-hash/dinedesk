@@ -68,3 +68,67 @@ Artisan::command('hotel:purge-documents', function (TenantContext $context) {
 })->purpose('Delete guest ID documents past their keep date');
 
 Schedule::command('hotel:purge-documents')->dailyAt('03:30')->withoutOverlapping();
+
+// Billing: trials and paid periods that ran out get a grace period, then read-only (hourly).
+Artisan::command('subscriptions:enforce', function () {
+    $done = app(\App\Modules\Subscriptions\Services\SubscriptionManager::class)->enforce();
+    $this->info("Grace started: {$done['grace']}, made read-only: {$done['read_only']}.");
+})->purpose('Start grace periods and apply read-only mode for unpaid businesses');
+
+Schedule::command('subscriptions:enforce')->hourly()->withoutOverlapping();
+
+// Data exports are kept for 7 days.
+Artisan::command('exports:purge', function () {
+    $count = 0;
+    \App\Modules\DataExport\Models\DataExport::withoutTenancy()->where('expires_at', '<', now())->whereNotNull('path')->each(function ($e) use (&$count) {
+        \Illuminate\Support\Facades\Storage::disk('local')->delete($e->path);
+        $e->update(['path' => null, 'status' => 'expired']);
+        $count++;
+    });
+    $this->info("Removed {$count} expired export(s).");
+})->purpose('Delete data exports older than 7 days');
+
+Schedule::command('exports:purge')->dailyAt('04:00');
+
+// Nightly database backup (gzip) under storage/app/private/backups, older ones removed.
+// Copy them off the server too (see docs/DEPLOYMENT.md).
+Artisan::command('backup:database', function () {
+    $c = config('database.connections.'.config('database.default'));
+    $dir = storage_path('app/private/backups');
+    @mkdir($dir, 0750, true);
+    $file = $dir.'/'.$c['database'].'-'.now()->format('Y-m-d-His').'.sql.gz';
+    $cmd = [config('dinedesk.backups.mysqldump'), '--single-transaction', '--quick', '--routines', '-h', $c['host'], '-P', (string) $c['port'], '-u', $c['username'], $c['database']];
+    $process = new \Symfony\Component\Process\Process($cmd, null, ['MYSQL_PWD' => (string) $c['password']], null, 1800);
+    $gz = gzopen($file, 'wb6');
+    try {
+        $process->run(function ($type, $buffer) use ($gz) {
+            if ($type === \Symfony\Component\Process\Process::OUT) {
+                gzwrite($gz, $buffer);
+            }
+        });
+    } catch (\Throwable $e) {
+        gzclose($gz);
+        @unlink($file);
+        $this->error('Backup failed: '.$e->getMessage());
+
+        return 1;
+    }
+    gzclose($gz);
+    if (! $process->isSuccessful()) {
+        @unlink($file);
+        $this->error('Backup failed: '.trim($process->getErrorOutput()));
+
+        return 1;
+    }
+    $keep = now()->subDays(config('dinedesk.backups.keep_days'))->getTimestamp();
+    foreach (glob($dir.'/*.sql.gz') ?: [] as $old) {
+        if (filemtime($old) < $keep) {
+            @unlink($old);
+        }
+    }
+    $this->info('Backup saved: '.basename($file).' ('.round(filesize($file) / 1024).' KB)');
+
+    return 0;
+})->purpose('Back up the database to storage/app/private/backups');
+
+Schedule::command('backup:database')->dailyAt('02:30')->withoutOverlapping();

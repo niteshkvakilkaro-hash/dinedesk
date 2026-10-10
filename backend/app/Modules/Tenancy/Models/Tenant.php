@@ -24,7 +24,7 @@ class Tenant extends Model
 
     protected $fillable = [
         'name', 'slug', 'business_type', 'city', 'gstin', 'timezone', 'status',
-        'onboarding_step', 'plan_id', 'last_active_at', 'is_demo',
+        'onboarding_step', 'plan_id', 'last_active_at', 'is_demo', 'parent_tenant_id',
     ];
 
     protected function casts(): array
@@ -79,6 +79,23 @@ class Tenant extends Model
     public function featureOverrides(): HasMany
     {
         return $this->hasMany(FeatureOverride::class)->withoutGlobalScope(TenantScope::class);
+    }
+
+    /** The main business of a branch (branches share its plan, subscription and owner). */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_tenant_id');
+    }
+
+    public function branches(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_tenant_id')->orderBy('id');
+    }
+
+    /** Whoever pays: the business itself, or its main business when it is a branch. */
+    public function billingRoot(): self
+    {
+        return $this->parent_tenant_id ? ($this->parent ?? $this) : $this;
     }
 
     public function isWritable(): bool

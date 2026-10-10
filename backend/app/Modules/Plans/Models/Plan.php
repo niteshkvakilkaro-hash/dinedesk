@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Plan extends Model
 {
-    protected $fillable = ['code', 'name', 'description', 'price_monthly', 'price_yearly', 'features', 'limits', 'sort_order', 'is_active'];
+    protected $fillable = ['code', 'name', 'description', 'price_monthly', 'price_yearly', 'features', 'limits', 'razorpay_plans', 'sort_order', 'is_active'];
 
     protected function casts(): array
     {
@@ -16,6 +16,7 @@ class Plan extends Model
             'price_yearly' => 'decimal:2',
             'features' => 'array',
             'limits' => 'array',
+            'razorpay_plans' => 'array',
             'is_active' => 'boolean',
         ];
     }

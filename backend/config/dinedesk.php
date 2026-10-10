@@ -23,6 +23,26 @@ return [
         'days' => 14,
     ],
 
+    // The platform's own Razorpay account (subscriptions from businesses). Each business's
+    // customer payments use that business's keys instead (Ordering settings).
+    'platform_razorpay' => [
+        'key_id' => env('RAZORPAY_KEY_ID'),
+        'key_secret' => env('RAZORPAY_KEY_SECRET'),
+        'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
+    ],
+
+    // Custom domains point here (CNAME) or at these IPs (A records). TLS is issued on demand by Caddy.
+    'domains' => [
+        'cname_target' => env('CUSTOM_DOMAIN_TARGET') ?: 'sites.'.env('PLATFORM_DOMAIN', 'localhost'),
+        'ips' => array_filter(explode(',', (string) env('CUSTOM_DOMAIN_IPS', ''))),
+    ],
+
+    // Nightly database backups (php artisan backup:database).
+    'backups' => [
+        'keep_days' => (int) env('BACKUP_KEEP_DAYS', 14),
+        'mysqldump' => env('MYSQLDUMP_PATH') ?: 'mysqldump',
+    ],
+
     'otp' => [
         'driver' => env('OTP_DRIVER', 'log'),
         'length' => 6,

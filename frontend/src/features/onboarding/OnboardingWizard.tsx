@@ -10,6 +10,7 @@ import { Alert, Field, Spinner } from '@/components/ui';
 import { LanguageToggle, Logo } from '@/components/Brand';
 import { defaultHours, HoursEditor, validateHours } from '@/components/HoursEditor';
 import { useSession } from '@/hooks/useSession';
+import { OutletSwitcher } from '@/features/dashboard/AccountBanners';
 import type { BusinessType, DayKey, OpeningHours, Session } from '@/types';
 import { SiteSetup, type SetupStep } from './SiteSetup';
 
@@ -92,7 +93,11 @@ export default function OnboardingWizard() {
     <div className="min-h-screen">
       <header className="flex items-center justify-between px-5 py-4 sm:px-8">
         <Logo />
-        <LanguageToggle />
+        <div className="flex items-center gap-2">
+          {/* A new branch is set up here: its owner can switch back to another outlet. */}
+          {session && <OutletSwitcher session={session} />}
+          <LanguageToggle />
+        </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 pb-16 pt-4">
         <h1 className="text-3xl font-extrabold tracking-tight">{t('onboarding.title')}</h1>

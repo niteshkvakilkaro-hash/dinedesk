@@ -88,7 +88,7 @@ class CreateBusiness
     }
 
     /** "The Hungry Haveli" → "the-hungry-haveli", "-2", "-3"... avoiding reserved words. */
-    private function uniqueSlug(string $name): string
+    public function uniqueSlug(string $name): string
     {
         $base = Str::of(Str::ascii($name))->slug()->limit(40, '')->trim('-')->value() ?: 'business';
         if (in_array($base, config('dinedesk.reserved_slugs'), true) || strlen($base) < 3) {

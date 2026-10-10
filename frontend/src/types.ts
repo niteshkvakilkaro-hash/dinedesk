@@ -1,4 +1,12 @@
 export type Role = 'owner' | 'manager' | 'cashier' | 'waiter' | 'kitchen' | 'front_desk' | 'housekeeping';
+
+export interface Outlet {
+  id: string;
+  name: string;
+  city: string | null;
+  is_main: boolean;
+  current: boolean;
+}
 export type BusinessType = 'restaurant' | 'cafe' | 'cloud_kitchen' | 'hotel';
 export type TenantStatus = 'onboarding' | 'live' | 'suspended' | 'read_only';
 export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
@@ -23,8 +31,13 @@ export interface Session {
     is_demo: boolean;
     site_host: string;
     plan: { code: string; name: string };
-    subscription: { status: string; trial_ends_at: string | null } | null;
+    subscription: { status: string; trial_ends_at: string | null; grace_ends_at: string | null; current_period_ends_at: string | null; cancel_at_period_end: boolean } | null;
+    is_branch: boolean;
   };
+  /** A super admin inside this business for support. */
+  support: { reason: string; read_only: boolean; expires_at: string } | null;
+  /** Outlets of the same business this person can switch to (empty with one outlet). */
+  branches: Outlet[];
   role: Role | null;
   permissions: string[];
   features: Record<string, boolean>;

@@ -81,7 +81,8 @@ class FeatureService
             return $this->memo[$tenant->id];
         }
 
-        $plan = $tenant->plan;
+        // A branch has its main business's plan.
+        $plan = $tenant->billingRoot()->plan;
         $planFeatures = $plan?->features ?? [];
         $features = array_fill_keys(Features::keys(), false);
         foreach ($planFeatures as $key) {

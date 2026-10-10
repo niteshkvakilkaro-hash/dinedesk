@@ -2,6 +2,7 @@
 
 namespace App\Modules\Tenancy\Http\Middleware;
 
+use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Modules\Tenancy\Support\TenantResolver;
 use App\Support\ApiException;
@@ -16,7 +17,9 @@ use Symfony\Component\HttpFoundation\Response;
  * - no business yet          → 409 onboarding_required
  * - opened from another
  *   tenant's site host        → 403 tenant_mismatch
- * - suspended / read-only     → writes refused
+ * - suspended / read-only     → writes refused (billing stays open so the owner can pay)
+ * - super admin with a support token → that business, read-only unless the session allows
+ *   changes; every change made in support is audited
  */
 class UseUserTenant
 {
@@ -28,6 +31,10 @@ class UseUserTenant
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
+        $support = $user->supportSession();
+        if ($support) {
+            $user->enterSupport($support);
+        }
 
         if (! $user->tenant_id) {
             throw new ApiException('Finish setting up your business first.', 409, 'onboarding_required');
@@ -47,11 +54,21 @@ class UseUserTenant
         if ($tenant->status === 'suspended') {
             throw new ApiException('This business account is suspended. Please contact support.', 403, 'tenant_suspended');
         }
-        if ($tenant->status === 'read_only' && ! $request->isMethodSafe()) {
+        if ($support && $support->read_only && ! $request->isMethodSafe()) {
+            throw new ApiException('This support session is read-only.', 403, 'support_read_only');
+        }
+        if ($tenant->status === 'read_only' && ! $request->isMethodSafe() && ! $request->routeIs('saas.*', 'data.*')) {
             throw new ApiException('Your account is read-only until billing is resolved. You can still view your data.', 403, 'tenant_read_only');
         }
 
         $this->context->set($tenant);
+        if ($support) {
+            if (! $request->isMethodSafe()) {
+                AuditLog::record('support.change', null, ['admin' => $user->email, 'session' => $support->id, 'method' => $request->method(), 'path' => $request->path()], $tenant->id);
+            }
+
+            return $next($request);
+        }
 
         // Cheap "last active" for the super admin list (at most every 5 minutes).
         if (! $tenant->last_active_at || $tenant->last_active_at->lt(now()->subMinutes(5))) {

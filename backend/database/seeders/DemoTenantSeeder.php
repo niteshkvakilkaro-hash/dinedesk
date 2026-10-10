@@ -125,7 +125,10 @@ class DemoTenantSeeder extends Seeder
         ]);
         $tenant->update(['is_demo' => true, 'status' => 'live', 'onboarding_step' => 8]);
         if (isset($demo['plan'])) {
-            $tenant->update(['plan_id' => Plan::where('code', $demo['plan'])->value('id')]);
+            $planId = Plan::where('code', $demo['plan'])->value('id');
+            $tenant->update(['plan_id' => $planId]);
+            // The trial is on the same plan (Billing shows the subscription's plan).
+            \App\Modules\Plans\Models\Subscription::withoutTenancy()->where('tenant_id', $tenant->id)->update(['plan_id' => $planId]);
         }
 
         app(TenantContext::class)->run($tenant, function () use ($demo, $tenant) {

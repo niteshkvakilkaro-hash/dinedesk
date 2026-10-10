@@ -14,10 +14,15 @@ final class SessionPayload
 {
     public static function for(User $user): array
     {
+        $support = $user->supportSession();
+        if ($support) {
+            $user->enterSupport($support);
+        }
         $tenant = $user->tenant;
         $features = app(FeatureService::class);
 
         $next = match (true) {
+            (bool) $support => 'dashboard',
             $user->is_platform_admin => 'platform',
             ! $tenant => 'onboarding',
             // Steps 4–7 (theme, branding, menu, go live) are the owner's to finish.
@@ -40,10 +45,15 @@ final class SessionPayload
             'features' => (object) [],
             'limits' => (object) [],
             'next' => $next,
+            // A super admin inside a business for support (shown as a banner with "End").
+            'support' => $support ? ['reason' => $support->reason, 'read_only' => $support->read_only, 'expires_at' => $support->expires_at->toIso8601String()] : null,
+            // Other outlets this person can switch to (branches of the same business).
+            'branches' => $tenant && ! $support ? \App\Modules\Branches\Services\Branches::switchable($user) : [],
         ];
 
         if ($tenant) {
-            $subscription = $tenant->currentSubscription;
+            // Branches show their main business's subscription.
+            $subscription = $tenant->billingRoot()->currentSubscription;
             $payload['tenant'] = [
                 'id' => $tenant->public_id,
                 'name' => $tenant->name,
@@ -58,7 +68,11 @@ final class SessionPayload
                 'subscription' => $subscription ? [
                     'status' => $subscription->status,
                     'trial_ends_at' => $subscription->trial_ends_at?->toIso8601String(),
+                    'grace_ends_at' => $subscription->grace_ends_at?->toIso8601String(),
+                    'current_period_ends_at' => $subscription->current_period_ends_at?->toIso8601String(),
+                    'cancel_at_period_end' => (bool) $subscription->cancel_at_period_end,
                 ] : null,
+                'is_branch' => (bool) $tenant->parent_tenant_id,
             ];
             $payload['role'] = $user->tenantRole();
             $payload['permissions'] = $user->tenantPermissions();

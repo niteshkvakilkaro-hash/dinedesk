@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Modules\Identity\Support\Roles;
+use App\Modules\Platform\Models\SupportSession;
 use App\Modules\Tenancy\Models\Tenant;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Sanctum\PersonalAccessToken;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -57,11 +60,41 @@ class User extends Authenticatable
         return $this->status === 'active';
     }
 
+    private ?SupportSession $support = null;
+
+    private bool $supportChecked = false;
+
+    /** An open support session, when a super admin is signed in with a support token. */
+    public function supportSession(): ?SupportSession
+    {
+        if ($this->supportChecked) {
+            return $this->support;
+        }
+        $this->supportChecked = true;
+        $token = $this->currentAccessToken();
+        if (! $this->is_platform_admin || ! $token instanceof PersonalAccessToken || $token->name !== 'support') {
+            return null;
+        }
+        $session = SupportSession::with('tenant')->where('token_id', $token->id)->first();
+
+        return $this->support = $session && $session->isOpen() ? $session : null;
+    }
+
+    /** In a support session the admin works inside that business (in memory only, never saved). */
+    public function enterSupport(SupportSession $session): void
+    {
+        $this->setRawAttributes(array_merge($this->getAttributes(), ['tenant_id' => $session->tenant_id]), true);
+        $this->setRelation('tenant', $session->tenant);
+    }
+
     /** The user's role inside their own business (owner, manager, ...), or null. */
     public function tenantRole(): ?string
     {
         if (! $this->tenant_id) {
             return null;
+        }
+        if ($this->supportSession()) {
+            return 'owner';
         }
 
         return $this->withinOwnTenant(fn () => $this->roles()->first()?->name);
@@ -72,6 +105,10 @@ class User extends Authenticatable
     {
         if (! $this->tenant_id) {
             return [];
+        }
+        // Support sees everything the owner sees (writes are refused in a read-only session).
+        if ($this->supportSession()) {
+            return Roles::PERMISSIONS;
         }
 
         return $this->withinOwnTenant(fn () => $this->getAllPermissions()->pluck('name')->values()->all());

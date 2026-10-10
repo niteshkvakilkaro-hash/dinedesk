@@ -9,7 +9,25 @@ dinedesk/
 └── docs/       openapi.yaml (API reference), DESIGN.md (website design system)
 ```
 
-## Status: Phase 7 (Hotel module) complete
+## Status: Phase 8 (SaaS billing & scale) complete — all eight phases done
+
+### Phase 8
+
+| Area | What works |
+|---|---|
+| Subscriptions | **Razorpay Subscriptions** on the platform's own account (`RAZORPAY_*` in `.env`). Dashboard → **Billing** (owner): plans with monthly / yearly prices (yearly savings shown), GST shown, checkout in Razorpay, signature-checked verification, webhook `/api/v1/webhooks/razorpay-platform` (activated, charged, pending, halted, cancelled, completed; repeats ignored). A Razorpay plan is created per plan, cycle and price, so a new price never changes existing subscribers silently. Plans with no price can't be bought (no invented prices: the super admin sets them) |
+| Trials, grace, read-only | 14-day Growth trial. When a trial ends, a payment fails or a cancelled period runs out, a **grace period** starts (default 7 days, platform setting); after it the business **and its branches** become **read-only**: everything can be viewed and exported, Billing works, nothing is deleted. Paying again restores it at once. Hourly `subscriptions:enforce`; demo businesses are left alone. Dashboard banners: trial ending, payment due, read-only |
+| Upgrades & downgrades | Upgrades apply now (features on immediately); downgrades and cycle changes from the next period (applied with that period's first charge). Plan limits are enforced at once on new items; a downgrade warns when current use is over the new limits (nothing is deleted). Cancel = stop renewing, the paid period stays |
+| Invoices | A tax invoice per charge, `DD/2026-27/0001` (prefix set by the platform): seller = the platform's legal name, GSTIN, address; buyer = the business (and its GSTIN); SAC; CGST + SGST within the platform's state, IGST across states; GST only once the platform has a GSTIN. PDF for the owner |
+| Branches (Pro) | **Linked outlets**: each branch is its own business (website / subdomain, menu, staff, orders) tied to the main one; it shares the plan and the subscription. Add a branch (optionally copying the menu with photos, the theme and settings, never payment keys), switch outlets from the header (also in the set-up wizard), copy a menu into an empty outlet, combined report for all outlets. Billing only from the main business |
+| Custom domains | Dashboard → **Domain** (Growth / Pro, up to 3): add a domain, see the CNAME / A records, **Check DNS**, make it the main address (links, messages, canonical). The platform subdomain keeps working. **Automatic TLS** with Caddy on-demand: `/api/v1/tls/ask` allows certificates only for the platform, real business subdomains and verified domains (Cloudflare for SaaS documented as the alternative) |
+| Super admin | **Revenue**: MRR, ARR, paying, on trial, in grace, read-only, MRR at risk, trial → paid conversion (90 days), churn (30 days), MRR by plan, money collected by month, new businesses; demo businesses and branches left out. **Settings**: invoice details, GST, SAC, grace days, Razorpay / domain set-up. Plan prices on **Plans** |
+| Support login | "Open as support" on a business: a reason (10+ characters), view-only unless changes are allowed, a separate 60-minute token in its own browser tab (it never replaces the admin's sign-in and can't reach the platform panel). The business's audit log shows the start, every change (with the admin's name) and the end. A banner with **End session** is always visible |
+| Data export & backups | Owners download all their data as a ZIP (JSON per table + Excel-ready CSVs of orders, customers and menu; no passwords, tokens or payment keys; guest ID files left out), also while read-only; kept 7 days. The super admin can export a business (reason, audited). `backup:database` makes a nightly gzip'd `mysqldump` (kept `BACKUP_KEEP_DAYS`); copying it off the server is in the deployment guide |
+| Deployment | **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**: one Ubuntu VPS with Caddy (on-demand TLS) → Nginx → PHP-FPM, MySQL, Redis, Horizon, Reverb, Supervisor, cron, Razorpay webhook set-up, backups off-site, updates, checklist |
+| Tests | Backend 119 tests / 1,463 assertions (+ checkout with GST, signature checks, webhook charge → invoice once with CGST/SGST, halted → grace → read-only → paid → restored, trial end → grace → read-only with demos untouched, upgrade now / downgrade at period end / cancel, no price or no keys, support session view-only / changes audited / expiry / no platform access, revenue numbers, branches (feature, copy menu, switch, isolation, read-only follows the main business), custom domains with DNS and TLS ask, data export contents without secrets and purge). Frontend 36 unit tests. Browser run: revenue and settings pages; support session in its own tab with banner, write refused, end closes the tab and the admin stays signed in; owner billing page with prices; branch added and switched to (set-up wizard with the outlet switcher) and back; domain added and DNS checked |
+
+**Try it:** sign in as the super admin (`SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` from `backend/.env`), set prices under **Plans**, see **Revenue** and **Settings**, open a business and use **Open as support**. As `demo-hotel@example.com` / `DemoOwner2026` (Pro) open **Billing**, **Branches** and **Domain**. Subscription checkout needs Razorpay test keys in `backend/.env` (without them the page says payments aren't switched on).
 
 ### Phase 7
 
@@ -231,9 +249,13 @@ Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identi
 - **Laravel 12** is used instead of 11: Composer blocks every Laravel 11 release over published security advisories. The structure is identical.
 - **Development cache/queues** use the database (no Redis on XAMPP/Windows). Production uses Redis, Horizon and Reverb (Phases 5 and 8).
 
-## Next: Phase 8 — SaaS billing
+## Next: future work (from the master plan)
 
-Plans, subscriptions and billing for businesses, from the master plan.
+Swiggy / Zomato order sync, Tally export, native mobile apps on the same API, AI menu descriptions and photo enhancement, AI sales insights, more themes via the registry. Before launch: set plan prices and the platform's invoice details, add live Razorpay keys, and deploy with docs/DEPLOYMENT.md.
+
+## Done: Phase 8 — SaaS billing & scale
+
+See the Phase 8 section above.
 
 ## Done: Phase 7 — Hotel module
 

@@ -118,8 +118,10 @@ class TenantController extends Controller
             }
             if (isset($data['plan'])) {
                 $plan = Plan::where('code', $data['plan'])->firstOrFail();
-                $tenant->update(['plan_id' => $plan->id]);
-                $tenant->currentSubscription?->update(['plan_id' => $plan->id]);
+                // A business and its branches always share one plan.
+                $root = $tenant->billingRoot();
+                app(\App\Modules\Subscriptions\Services\TenantAccess::class)->setPlan($root, $plan->id);
+                $root->currentSubscription?->update(['plan_id' => $plan->id]);
             }
             AuditLog::record('platform.tenant.updated', $tenant, ['reason' => $data['reason'], 'before' => $before, 'after' => array_diff_key($data, ['reason' => 1])], $tenant->id);
         });
@@ -180,6 +182,9 @@ class TenantController extends Controller
             'plan' => ['code' => $t->plan->code, 'name' => $t->plan->name],
             'subscription_status' => $subscription?->status,
             'trial_ends_at' => $subscription?->trial_ends_at?->toIso8601String(),
+            'grace_ends_at' => $subscription?->grace_ends_at?->toIso8601String(),
+            'current_period_ends_at' => $subscription?->current_period_ends_at?->toIso8601String(),
+            'branch_of' => $t->parent_tenant_id ? Tenant::whereKey($t->parent_tenant_id)->value('name') : null,
             'mrr' => $this->mrr($t),
             'owner_name' => $t->owner_name ?? null,
             'owner_contact' => $t->owner_email ?? $t->owner_phone ?? null,
@@ -193,7 +198,7 @@ class TenantController extends Controller
     private function mrr(Tenant $t): float
     {
         $s = $t->currentSubscription;
-        if (! $s || $s->status !== 'active') {
+        if (! $s || ! in_array($s->status, ['active', 'past_due', 'halted'], true) || ! $s->provider_subscription_id) {
             return 0.0;
         }
 

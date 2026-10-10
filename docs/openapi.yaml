@@ -2004,6 +2004,213 @@ paths:
       summary: 'Online booking, auto-confirm, times, advance %, cancellation, GST on rooms, room service, events, guest IDs (off by default) and keep days'
       responses:
         '200': { description: Saved }
+  /tenant/subscription:
+    get:
+      tags: [Billing (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Plan, trial / renewal / grace dates, plans with prices (GST shown), usage against limits, invoices. Works while read-only'
+      responses:
+        '200': { description: OK }
+  /tenant/subscription/checkout:
+    post:
+      tags: [Billing (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Start a Razorpay subscription for a plan and cycle; returns what Razorpay Checkout needs'
+      requestBody: { content: { application/json: { schema: { type: object, required: [plan, cycle], properties: { plan: { type: string }, cycle: { type: string, enum: [monthly, yearly] } } } } } }
+      responses:
+        '200': { description: '{ key_id, subscription_id, amount, ... }' }
+        '422': { description: '`already_subscribed` / `not_priced` / `billing_unavailable` / `branch_billing`' }
+  /tenant/subscription/verify:
+    post:
+      tags: [Billing (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Checkout success (signature HMAC(payment_id|subscription_id)) → active; the webhook does the same'
+      responses:
+        '200': { description: OK }
+        '422': { description: '`payment_unverified`' }
+  /tenant/subscription/change:
+    post:
+      tags: [Billing (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Upgrade (now) or downgrade / change cycle (from the next period)'
+      responses:
+        '200': { description: OK }
+  /tenant/subscription/cancel:
+    post:
+      tags: [Billing (owner)]
+      security: [{ bearer: [] }]
+      summary: Stop renewing (the plan stays until the end of the paid period)
+      responses:
+        '200': { description: OK }
+  /tenant/subscription/invoices/{id}:
+    get:
+      tags: [Billing (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Subscription tax invoice PDF (platform GSTIN, CGST+SGST or IGST)'
+      responses:
+        '200': { description: application/pdf }
+  /webhooks/razorpay-platform:
+    post:
+      tags: [Billing (owner)]
+      summary: 'Razorpay → platform account: subscription.activated / charged / pending / halted / cancelled / completed (signature checked)'
+      responses:
+        '200': { description: OK }
+        '400': { description: Invalid signature }
+  /tenant/exports:
+    get:
+      tags: [Billing (owner)]
+      security: [{ bearer: [] }]
+      summary: Recent data exports
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Billing (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Prepare a ZIP of all business data (JSON per table + CSVs; no secrets). Works while read-only'
+      responses:
+        '201': { description: Queued }
+  /tenant/exports/{id}:
+    get:
+      tags: [Billing (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Download the ZIP (kept 7 days; audited)'
+      responses:
+        '200': { description: application/zip }
+  /tenant/branches:
+    get:
+      tags: [Branches (owner)]
+      security: [{ bearer: [] }]
+      summary: 'The main business and its branch outlets'
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Branches (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Add a branch outlet (Pro): own subdomain, owner role, optional menu / theme / settings copy'
+      responses:
+        '201': { description: Created }
+        '403': { description: '`feature_unavailable` / `plan_limit`' }
+  /tenant/branches/{publicId}/switch:
+    post:
+      tags: [Branches (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Work in another outlet where you have a role; returns the new session'
+      responses:
+        '200': { description: OK }
+  /tenant/branches/report:
+    get:
+      tags: [Branches (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Orders, sales and average order per outlet and in total'
+      responses:
+        '200': { description: OK }
+  /tenant/branches/{publicId}/copy-menu:
+    post:
+      tags: [Branches (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Copy this outlet''s menu (with photos) into an outlet whose menu is empty'
+      responses:
+        '200': { description: OK }
+        '422': { description: '`menu_not_empty`' }
+  /tenant/domains:
+    get:
+      tags: [Domains (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Web addresses of the business and DNS instructions'
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Domains (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Connect your own domain (Growth / Pro, up to 3)'
+      responses:
+        '201': { description: OK }
+  /tenant/domains/{id}/verify:
+    post:
+      tags: [Domains (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Check DNS (CNAME to the platform target or A to its IPs)'
+      responses:
+        '200': { description: OK }
+        '422': { description: '`dns_not_ready`' }
+  /tenant/domains/{id}/primary:
+    post:
+      tags: [Domains (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Use this verified domain as the main address (links, messages, canonical)'
+      responses:
+        '200': { description: OK }
+  /tenant/domains/{id}:
+    delete:
+      tags: [Domains (owner)]
+      security: [{ bearer: [] }]
+      summary: 'Disconnect a custom domain (the platform address becomes main again)'
+      responses:
+        '200': { description: OK }
+  /tls/ask:
+    get:
+      tags: [Domains (owner)]
+      summary: 'Caddy on-demand TLS: 200 only for the platform, business subdomains and verified custom domains'
+      parameters:
+        - { name: domain, in: query, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Issue a certificate }
+        '404': { description: Unknown host }
+  /platform/revenue:
+    get:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: 'MRR, ARR, paying / trialing / grace / read-only, trial conversion, churn, MRR by plan, money collected by month, signups (real data, demos excluded)'
+      responses:
+        '200': { description: OK }
+  /platform/settings:
+    get:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: 'Seller details for subscription invoices, GST, SAC, grace days; Razorpay and domain set-up hints'
+      responses:
+        '200': { description: OK }
+    put:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: Save platform settings (audited)
+      responses:
+        '200': { description: Saved }
+  /platform/tenants/{publicId}/support:
+    get:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: Past support sessions with their reasons and number of changes
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: 'Login as business for support: reason (10+ chars), view-only by default, 60-minute token that opens only that business; start, end and every change audited'
+      requestBody: { content: { application/json: { schema: { type: object, required: [reason, read_only], properties: { reason: { type: string }, read_only: { type: boolean } } } } } }
+      responses:
+        '201': { description: '{ token, expires_at }' }
+  /support/end:
+    post:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: End the support session of this token
+      responses:
+        '200': { description: OK }
+  /platform/tenants/{publicId}/export:
+    post:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: 'Export a business''s data for support (reason required, audited)'
+      responses:
+        '201': { description: Queued }
+  /platform/exports/{id}:
+    get:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: Download a business data export
+      responses:
+        '200': { description: application/zip }
   /plans:
     get:
       tags: [Plans]

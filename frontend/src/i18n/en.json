@@ -201,7 +201,10 @@
       "marketing": "Marketing",
       "inventory": "Inventory",
       "reports": "Reports",
-      "hotel": "Hotel"
+      "hotel": "Hotel",
+      "billing": "Billing",
+      "branches": "Branches",
+      "domains": "Domain"
     },
     "welcome": "Namaste, {{name}}",
     "demoBanner": "This is a demo business. Its data is sample content.",
@@ -254,7 +257,9 @@
     "title": "Super admin",
     "nav": {
       "tenants": "Businesses",
-      "plans": "Plans"
+      "plans": "Plans",
+      "revenue": "Revenue",
+      "settings": "Settings"
     },
     "tenants": {
       "title": "Businesses",
@@ -309,6 +314,73 @@
       "unlimitedHint": "Leave empty for unlimited",
       "active": "Offered to new businesses",
       "saved": "Plan saved."
+    },
+    "revenue": {
+      "title": "Revenue",
+      "subtitle": "From real subscriptions and invoices (demo businesses and branches left out).",
+      "unpriced": "These plans have no price yet: {{plans}}.",
+      "mrr": "MRR",
+      "arr": "ARR {{value}}",
+      "paying": "Paying",
+      "ofBusinesses": "of {{count}} businesses",
+      "conversion": "Trial → paid",
+      "conversionHint": "{{count}} trials ended in 90 days",
+      "churn": "Churn (30 days)",
+      "churnHint": "Paid subscriptions that ended",
+      "trialing": "On trial",
+      "grace": "In grace period",
+      "readOnly": "Read-only",
+      "atRisk": "MRR at risk",
+      "atRiskHint": "Payment due or cancelling",
+      "byPlan": "By plan",
+      "plan": "Plan",
+      "collected": "Collected (before GST)",
+      "collectedHint": "From subscription invoices, month by month.",
+      "signups": "New businesses"
+    },
+    "settings": {
+      "title": "Platform settings",
+      "subtitle": "Who issues the subscription invoices, GST and the grace period.",
+      "payments": "Subscription payments",
+      "razorpayOn": "Razorpay keys are set (RAZORPAY_KEY_ID / SECRET in the server .env).",
+      "razorpayOff": "Razorpay keys are not set. Add RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET and RAZORPAY_WEBHOOK_SECRET to the server .env.",
+      "webhook": "Webhook URL:",
+      "webhookEvents": "Events: subscription.activated, subscription.charged, subscription.pending, subscription.halted, subscription.cancelled, subscription.completed.",
+      "domainTarget": "Custom domains point (CNAME) to:",
+      "seller": "Invoice details",
+      "sellerHint": "Shown on every subscription invoice. Leave empty what you don't have; GST is charged only once a GSTIN is set.",
+      "legalName": "Legal name",
+      "gstin": "GSTIN",
+      "address": "Address",
+      "stateCode": "GST state code",
+      "email": "Email",
+      "phone": "Phone",
+      "prefix": "Invoice prefix",
+      "billing": "Billing",
+      "grace": "Grace period (days)",
+      "graceHint": "After a failed payment or the end of a trial, before read-only.",
+      "gstRate": "GST rate",
+      "gstHint": "Applies once the GSTIN is set.",
+      "sacHint": "Check with your CA."
+    },
+    "support": {
+      "title": "Support access",
+      "text": "Open {{name}}'s dashboard in a new tab for one hour. The reason, the session and any change are recorded in their activity log under your name.",
+      "reason": "Reason",
+      "reasonHint": "e.g. Owner called about a wrong price (at least 10 characters).",
+      "allowChanges": "Allow changes (otherwise view only)",
+      "open": "Open as support",
+      "viewOnly": "view only",
+      "changes_one": "{{count}} change",
+      "changes_other": "{{count}} changes",
+      "open_": "open",
+      "ended": "ended",
+      "expired": "expired",
+      "exportTitle": "Data export",
+      "exportReason": "Reason (e.g. owner asked for a copy)",
+      "export": "Export data",
+      "exportStarted": "Export started.",
+      "download": "Download"
     }
   },
   "site": {
@@ -2411,6 +2483,168 @@
       "confirmRoom": "Remove room {{number}}?",
       "qrScan": "Scan to order to your room",
       "qrHint": "Room service is added to your bill."
+    }
+  },
+  "support": {
+    "bar": "Support session in {{name}} · ends {{time}}",
+    "readOnly": "View only",
+    "canChange": "Can make changes",
+    "end": "End session"
+  },
+  "billingBanner": {
+    "open": "Open Billing",
+    "trialEnds_one": "Your free trial ends tomorrow. Choose a plan to keep everything running.",
+    "trialEnds_other": "Your free trial ends in {{count}} days. Choose a plan to keep everything running.",
+    "trialOver": "Your free trial has ended. Choose a plan by {{date}} or the account becomes read-only (your data is kept).",
+    "paymentDue": "We couldn't take the subscription payment. Pay by {{date}} or the account becomes read-only (your data is kept)."
+  },
+  "billing": {
+    "title": "Plan & billing",
+    "subtitle": "Your plan, payments, invoices and your data.",
+    "branch": "This outlet is billed with {{name}}. Switch to it to change the plan.",
+    "current": "{{plan}} plan",
+    "status": {
+      "trialing": "Free trial",
+      "pending": "Waiting for payment",
+      "active": "Active",
+      "past_due": "Payment due",
+      "halted": "Payment failed",
+      "cancelled": "Cancelled",
+      "expired": "Ended"
+    },
+    "cycle": {
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "cycleLabel": "Billing cycle",
+    "per": {
+      "monthly": "month",
+      "yearly": "year"
+    },
+    "trialEnds": "Free trial until {{date}}.",
+    "renewsOn": "Renews on {{date}}.",
+    "endsOn": "Ends on {{date}}; it won't renew.",
+    "scheduled": "Changes to {{plan}} on {{date}}.",
+    "graceUntil": "Pay by {{date}} to keep the account fully working.",
+    "readOnlyNow": "The account is read-only: you can view and export everything. Subscribe to make changes again.",
+    "plans": "Plans",
+    "yourPlan": "Your plan",
+    "notReady": "Online subscription payments aren't switched on yet. Please contact support to subscribe.",
+    "plusGst": "+ {{rate}}% GST = {{total}} charged",
+    "noGst": "No GST charged",
+    "save": "Save {{amount}} a year",
+    "unpriced": "Price coming soon — contact us",
+    "feature": {
+      "online_ordering": "Online ordering",
+      "reservations": "Table bookings",
+      "qr_ordering": "QR table ordering",
+      "pos": "POS billing & GST invoices",
+      "kds": "Kitchen display",
+      "inventory": "Inventory",
+      "loyalty": "Loyalty & gift cards",
+      "coupons": "Coupons & offers",
+      "custom_domain": "Your own domain",
+      "hotel": "Hotel module",
+      "multi_branch": "Multiple branches"
+    },
+    "limit": {
+      "menu_items_one": "Up to {{count}} dish",
+      "menu_items_other": "Up to {{count}} dishes",
+      "menu_items_unlimited": "Unlimited dishes",
+      "staff_accounts_one": "{{count}} staff account",
+      "staff_accounts_other": "{{count}} staff accounts",
+      "staff_accounts_unlimited": "Unlimited staff accounts",
+      "branches_one": "{{count}} outlet",
+      "branches_other": "{{count}} outlets",
+      "branches_unlimited": "Unlimited outlets"
+    },
+    "limitName": {
+      "menu_items": "dishes",
+      "staff_accounts": "staff accounts",
+      "branches": "outlets"
+    },
+    "overLimit": "You have more {{what}} than this plan allows. Nothing is deleted, but you can't add more.",
+    "subscribe": "Choose {{plan}}",
+    "switchTo": "Switch to {{plan}}",
+    "cancel": "Cancel subscription",
+    "cancelConfirm": "Stop renewing? The plan stays until the end of the paid period.",
+    "cancelled": "Your subscription will end with this period.",
+    "thanks": "Thank you! Your subscription is active.",
+    "terms": "Upgrades apply at once; downgrades from the next period. If a payment fails there are {{days}} days to pay before the account becomes read-only. Your data is never deleted.",
+    "invoices": "Invoices",
+    "noInvoices": "No invoices yet",
+    "downloadInvoice": "Download invoice {{number}}",
+    "export": {
+      "title": "Your data",
+      "text": "Download everything your business has here (orders, customers, menu, bookings and more) as a ZIP with Excel files. Works even when the account is read-only.",
+      "button": "Prepare export",
+      "started": "Preparing your export…",
+      "download": "Download",
+      "status": {
+        "queued": "Preparing",
+        "ready": "Ready",
+        "failed": "Failed",
+        "expired": "Expired"
+      }
+    }
+  },
+  "branches": {
+    "title": "Branches",
+    "subtitle": "Your outlets: each has its own website, menu, staff and orders.",
+    "proOnly": "Multiple branches are part of the Pro plan.",
+    "add": "Add branch",
+    "name": "Branch name",
+    "nameHint": "e.g. Spice Route Baner",
+    "city": "City",
+    "copyMenu": "Copy this outlet's menu (dishes, sizes, extras, photos)",
+    "copyTheme": "Use the same website look",
+    "addHint": "The new branch gets its own web address. Switch to it to finish setting it up and go live.",
+    "added": "{{name}} added.",
+    "main": "Main",
+    "here": "You're here",
+    "status": {
+      "onboarding": "Setting up",
+      "read_only": "Read-only",
+      "suspended": "Suspended",
+      "live": "Live"
+    },
+    "staff_one": "{{count}} person",
+    "staff_other": "{{count}} people",
+    "switch": "Switch outlet",
+    "copyHere": "Copy my menu here",
+    "copyConfirm": "Copy this outlet's menu into {{name}}? Only works if {{name}} has no dishes yet.",
+    "copied_one": "{{count}} dish copied to {{name}}.",
+    "copied_other": "{{count}} dishes copied to {{name}}.",
+    "report": "All outlets, last 30 days",
+    "outlet": "Outlet",
+    "total": "Total",
+    "reportHint": "{{from}} to {{to}}, from real orders."
+  },
+  "domains": {
+    "title": "Domain",
+    "subtitle": "Use your own web address, like www.yourrestaurant.in.",
+    "upgrade": "Your own domain is part of the Growth and Pro plans.",
+    "primary": "Main address",
+    "verified": "Connected",
+    "waiting": "Waiting for DNS",
+    "free": "Free address (always works)",
+    "check": "Check DNS",
+    "makePrimary": "Make main address",
+    "remove": "Remove {{domain}}",
+    "removeConfirm": "Disconnect {{domain}}?",
+    "add": "Your domain",
+    "addHint": "Buy it from any registrar (GoDaddy, Hostinger, BigRock…).",
+    "connect": "Connect domain",
+    "howTitle": "How to connect",
+    "step1": "Open DNS settings where you bought the domain.",
+    "step2": "Add a record for www:",
+    "step2a": "For the address without www, add:",
+    "step3": "Wait a few minutes (sometimes a few hours), then press “Check DNS”.",
+    "step4": "The secure https certificate is set up automatically on the first visit.",
+    "done": {
+      "verify": "Domain connected.",
+      "primary": "This is now your main address.",
+      "delete": "Domain removed."
     }
   }
 }

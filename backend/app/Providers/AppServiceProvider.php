@@ -18,7 +18,7 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /** Business modules; each may ship a routes.php mounted under /api/v1. */
-    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports', 'Hotel'];
+    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports', 'Hotel', 'Subscriptions', 'Branches', 'Domains', 'DataExport'];
 
     public function register(): void
     {
@@ -110,6 +110,9 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(20)->by('loyalty-ip|'.$request->ip()),
         ]);
         RateLimiter::for('campaigns', fn (Request $request) => Limit::perHour(10)->by('campaign|'.$request->user()?->id));
+        RateLimiter::for('support', fn (Request $request) => Limit::perHour(20)->by('support|'.$request->user()?->id));
+        RateLimiter::for('exports', fn (Request $request) => Limit::perHour(3)->by('export|'.$request->user()?->id));
+        RateLimiter::for('tls-ask', fn (Request $request) => Limit::perMinute(60)->by('tls|'.$request->ip()));
 
         RateLimiter::for('webhooks', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
 

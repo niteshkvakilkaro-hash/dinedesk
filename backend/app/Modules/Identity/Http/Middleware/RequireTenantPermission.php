@@ -16,9 +16,11 @@ class RequireTenantPermission
     public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
         $user = $request->user();
+        // A super admin in a support session has the owner's view of the business.
+        $support = $user->supportSession() !== null;
 
         foreach ($permissions as $permission) {
-            if ($user->hasPermissionTo($permission)) {
+            if ($support || $user->hasPermissionTo($permission)) {
                 return $next($request);
             }
         }

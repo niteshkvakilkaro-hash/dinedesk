@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, CalendarDays, ChefHat, Contact, Globe, Hotel, Images, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wifi } from 'lucide-react';
+import { Building2, CalendarDays, ChefHat, Contact, CreditCard, Globe, Globe2, Hotel, Images, Network, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wifi } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { disconnectLive, useLive, useLiveStatus } from '@/lib/realtime';
 import { useCan, useFeature, useSession, useSignOut } from '@/hooks/useSession';
@@ -10,6 +10,7 @@ import { LanguageToggle, Logo } from '@/components/Brand';
 import { useOrderAlerts } from '@/features/orders/alerts';
 import { useReservationAlerts } from '@/features/reservations/api';
 import { useTableAlerts } from '@/features/tables/api';
+import { BillingBanner, OutletSwitcher, SupportBar } from './AccountBanners';
 
 export default function DashboardLayout() {
   const { t } = useTranslation();
@@ -45,6 +46,8 @@ export default function DashboardLayout() {
   const canReports = useCan('reports.view');
   const hasHotel = useFeature('hotel');
   const canDesk = useCan('rooms.manage');
+  const canBilling = useCan('billing.manage');
+  const hasBranches = useFeature('multi_branch');
   const canHousekeeping = useCan('housekeeping.update');
   const canRoomSetup = useCan('rooms.setup');
   const canKitchen = canKitchenPerm && hasKds;
@@ -93,6 +96,9 @@ export default function DashboardLayout() {
     { to: '/dashboard/ordering', label: t('dashboard.nav.ordering'), icon: Settings2, show: canBusiness },
     { to: '/dashboard/team', label: t('dashboard.nav.team'), icon: Users, show: canStaff },
     { to: '/dashboard/business', label: t('dashboard.nav.business'), icon: Building2, show: canBusiness },
+    { to: '/dashboard/branches', label: t('dashboard.nav.branches'), icon: Network, show: canBusiness && (hasBranches || (session?.branches.length ?? 0) > 1) },
+    { to: '/dashboard/domains', label: t('dashboard.nav.domains'), icon: Globe2, show: canBusiness },
+    { to: '/dashboard/billing', label: t('dashboard.nav.billing'), icon: CreditCard, show: canBilling || canBusiness },
   ].filter((n) => n.show);
   // Phones: the first four as tabs, the rest under "More".
   const tabs = nav.length > 5 ? nav.slice(0, 4) : nav;
@@ -107,6 +113,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
+      {session && <SupportBar session={session} />}
       <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
@@ -119,6 +126,7 @@ export default function DashboardLayout() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            {session && <OutletSwitcher session={session} />}
             {live && (
               <span className="hidden items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success sm:inline-flex" title={t('dashboard.liveHint')}>
                 <Wifi className="h-3.5 w-3.5" aria-hidden="true" /> {t('kds.live')}
@@ -147,11 +155,7 @@ export default function DashboardLayout() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-        {tenant?.status === 'read_only' && (
-          <div className="mb-5">
-            <Alert tone="warn">{t('dashboard.readOnly')}</Alert>
-          </div>
-        )}
+        {session && <BillingBanner session={session} />}
         {tenant?.is_demo && (
           <div className="mb-5">
             <Alert tone="info">{t('dashboard.demoBanner')}</Alert>

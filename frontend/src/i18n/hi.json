@@ -201,7 +201,10 @@
       "marketing": "मार्केटिंग",
       "inventory": "स्टॉक",
       "reports": "रिपोर्ट",
-      "hotel": "होटल"
+      "hotel": "होटल",
+      "billing": "बिलिंग",
+      "branches": "ब्रांच",
+      "domains": "डोमेन"
     },
     "welcome": "नमस्ते, {{name}}",
     "demoBanner": "यह एक डेमो बिज़नेस है। इसका डेटा नमूना है।",
@@ -254,7 +257,9 @@
     "title": "सुपर एडमिन",
     "nav": {
       "tenants": "बिज़नेस",
-      "plans": "प्लान"
+      "plans": "प्लान",
+      "revenue": "आय",
+      "settings": "सेटिंग"
     },
     "tenants": {
       "title": "बिज़नेस",
@@ -309,6 +314,73 @@
       "unlimitedHint": "असीमित के लिए खाली छोड़ें",
       "active": "नए बिज़नेस को उपलब्ध",
       "saved": "प्लान सेव हो गया।"
+    },
+    "revenue": {
+      "title": "आय",
+      "subtitle": "असली सब्सक्रिप्शन और इनवॉइस से (डेमो बिज़नेस और ब्रांच शामिल नहीं)।",
+      "unpriced": "इन प्लान की कीमत अभी तय नहीं: {{plans}}।",
+      "mrr": "MRR",
+      "arr": "ARR {{value}}",
+      "paying": "भुगतान करने वाले",
+      "ofBusinesses": "{{count}} बिज़नेस में से",
+      "conversion": "ट्रायल → भुगतान",
+      "conversionHint": "90 दिन में {{count}} ट्रायल ख़त्म",
+      "churn": "चर्न (30 दिन)",
+      "churnHint": "ख़त्म हुए पेड सब्सक्रिप्शन",
+      "trialing": "ट्रायल पर",
+      "grace": "ग्रेस अवधि में",
+      "readOnly": "Read-only",
+      "atRisk": "जोखिम वाला MRR",
+      "atRiskHint": "भुगतान देय या रद्द हो रहे",
+      "byPlan": "प्लान अनुसार",
+      "plan": "प्लान",
+      "collected": "प्राप्त (GST से पहले)",
+      "collectedHint": "सब्सक्रिप्शन इनवॉइस से, महीने अनुसार।",
+      "signups": "नए बिज़नेस"
+    },
+    "settings": {
+      "title": "प्लेटफ़ॉर्म सेटिंग",
+      "subtitle": "सब्सक्रिप्शन इनवॉइस कौन जारी करता है, GST और ग्रेस अवधि।",
+      "payments": "सब्सक्रिप्शन भुगतान",
+      "razorpayOn": "Razorpay कुंजियाँ सेट हैं (सर्वर .env में RAZORPAY_KEY_ID / SECRET)।",
+      "razorpayOff": "Razorpay कुंजियाँ सेट नहीं हैं। सर्वर .env में RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET और RAZORPAY_WEBHOOK_SECRET जोड़ें।",
+      "webhook": "वेबहुक URL:",
+      "webhookEvents": "इवेंट: subscription.activated, subscription.charged, subscription.pending, subscription.halted, subscription.cancelled, subscription.completed.",
+      "domainTarget": "कस्टम डोमेन (CNAME) यहाँ जुड़ते हैं:",
+      "seller": "इनवॉइस विवरण",
+      "sellerHint": "हर सब्सक्रिप्शन इनवॉइस पर दिखेगा। जो नहीं है वह ख़ाली छोड़ें; GSTIN सेट होने पर ही GST लगेगा।",
+      "legalName": "क़ानूनी नाम",
+      "gstin": "GSTIN",
+      "address": "पता",
+      "stateCode": "GST राज्य कोड",
+      "email": "ईमेल",
+      "phone": "फ़ोन",
+      "prefix": "इनवॉइस प्रीफ़िक्स",
+      "billing": "बिलिंग",
+      "grace": "ग्रेस अवधि (दिन)",
+      "graceHint": "भुगतान विफल होने या ट्रायल ख़त्म होने के बाद, read-only से पहले।",
+      "gstRate": "GST दर",
+      "gstHint": "GSTIN सेट होने पर लागू।",
+      "sacHint": "अपने CA से पुष्टि करें।"
+    },
+    "support": {
+      "title": "सपोर्ट पहुँच",
+      "text": "{{name}} का डैशबोर्ड नए टैब में एक घंटे के लिए खोलें। कारण, सेशन और हर बदलाव आपके नाम से उनके एक्टिविटी लॉग में दर्ज होता है।",
+      "reason": "कारण",
+      "reasonHint": "जैसे मालिक ने ग़लत कीमत के बारे में कॉल किया (कम से कम 10 अक्षर)।",
+      "allowChanges": "बदलाव की अनुमति (वरना सिर्फ़ देखना)",
+      "open": "सपोर्ट के रूप में खोलें",
+      "viewOnly": "सिर्फ़ देखना",
+      "changes_one": "{{count}} बदलाव",
+      "changes_other": "{{count}} बदलाव",
+      "open_": "चालू",
+      "ended": "ख़त्म",
+      "expired": "समय ख़त्म",
+      "exportTitle": "डेटा एक्सपोर्ट",
+      "exportReason": "कारण (जैसे मालिक ने कॉपी माँगी)",
+      "export": "डेटा एक्सपोर्ट करें",
+      "exportStarted": "एक्सपोर्ट शुरू हुआ।",
+      "download": "डाउनलोड"
     }
   },
   "site": {
@@ -2411,6 +2483,168 @@
       "confirmRoom": "कमरा {{number}} हटाएँ?",
       "qrScan": "अपने कमरे में ऑर्डर के लिए स्कैन करें",
       "qrHint": "रूम सर्विस आपके बिल में जुड़ती है।"
+    }
+  },
+  "support": {
+    "bar": "{{name}} में सपोर्ट सेशन · {{time}} पर ख़त्म",
+    "readOnly": "सिर्फ़ देखना",
+    "canChange": "बदलाव कर सकते हैं",
+    "end": "सेशन ख़त्म करें"
+  },
+  "billingBanner": {
+    "open": "बिलिंग खोलें",
+    "trialEnds_one": "आपका फ़्री ट्रायल कल ख़त्म होगा। सब चालू रखने के लिए प्लान चुनें।",
+    "trialEnds_other": "आपका फ़्री ट्रायल {{count}} दिन में ख़त्म होगा। सब चालू रखने के लिए प्लान चुनें।",
+    "trialOver": "आपका फ़्री ट्रायल ख़त्म हो गया। {{date}} तक प्लान चुनें, वरना अकाउंट सिर्फ़ देखने लायक (read-only) हो जाएगा (डेटा सुरक्षित रहेगा)।",
+    "paymentDue": "सब्सक्रिप्शन का भुगतान नहीं हो पाया। {{date}} तक भुगतान करें, वरना अकाउंट read-only हो जाएगा (डेटा सुरक्षित रहेगा)।"
+  },
+  "billing": {
+    "title": "प्लान और बिलिंग",
+    "subtitle": "आपका प्लान, भुगतान, इनवॉइस और आपका डेटा।",
+    "branch": "इस आउटलेट का बिल {{name}} के साथ है। प्लान बदलने के लिए वहाँ जाएँ।",
+    "current": "{{plan}} प्लान",
+    "status": {
+      "trialing": "फ़्री ट्रायल",
+      "pending": "भुगतान बाकी",
+      "active": "सक्रिय",
+      "past_due": "भुगतान देय",
+      "halted": "भुगतान विफल",
+      "cancelled": "रद्द",
+      "expired": "ख़त्म"
+    },
+    "cycle": {
+      "monthly": "मासिक",
+      "yearly": "सालाना"
+    },
+    "cycleLabel": "बिलिंग अवधि",
+    "per": {
+      "monthly": "महीना",
+      "yearly": "साल"
+    },
+    "trialEnds": "{{date}} तक फ़्री ट्रायल।",
+    "renewsOn": "{{date}} को रिन्यू होगा।",
+    "endsOn": "{{date}} को ख़त्म; रिन्यू नहीं होगा।",
+    "scheduled": "{{date}} से {{plan}} प्लान।",
+    "graceUntil": "अकाउंट पूरा चालू रखने के लिए {{date}} तक भुगतान करें।",
+    "readOnlyNow": "अकाउंट read-only है: आप सब देख और एक्सपोर्ट कर सकते हैं। फिर से बदलाव के लिए सब्सक्राइब करें।",
+    "plans": "प्लान",
+    "yourPlan": "आपका प्लान",
+    "notReady": "ऑनलाइन सब्सक्रिप्शन भुगतान अभी चालू नहीं है। सब्सक्राइब करने के लिए सपोर्ट से संपर्क करें।",
+    "plusGst": "+ {{rate}}% GST = {{total}} कटेगा",
+    "noGst": "कोई GST नहीं",
+    "save": "साल में {{amount}} बचत",
+    "unpriced": "कीमत जल्द — हमसे संपर्क करें",
+    "feature": {
+      "online_ordering": "ऑनलाइन ऑर्डर",
+      "reservations": "टेबल बुकिंग",
+      "qr_ordering": "QR टेबल ऑर्डर",
+      "pos": "POS बिलिंग और GST इनवॉइस",
+      "kds": "किचन डिस्प्ले",
+      "inventory": "स्टॉक",
+      "loyalty": "लॉयल्टी और गिफ्ट कार्ड",
+      "coupons": "कूपन और ऑफ़र",
+      "custom_domain": "अपना डोमेन",
+      "hotel": "होटल मॉड्यूल",
+      "multi_branch": "कई ब्रांच"
+    },
+    "limit": {
+      "menu_items_one": "{{count}} डिश तक",
+      "menu_items_other": "{{count}} डिश तक",
+      "menu_items_unlimited": "असीमित डिश",
+      "staff_accounts_one": "{{count}} स्टाफ़ अकाउंट",
+      "staff_accounts_other": "{{count}} स्टाफ़ अकाउंट",
+      "staff_accounts_unlimited": "असीमित स्टाफ़ अकाउंट",
+      "branches_one": "{{count}} आउटलेट",
+      "branches_other": "{{count}} आउटलेट",
+      "branches_unlimited": "असीमित आउटलेट"
+    },
+    "limitName": {
+      "menu_items": "डिश",
+      "staff_accounts": "स्टाफ़ अकाउंट",
+      "branches": "आउटलेट"
+    },
+    "overLimit": "आपके पास इस प्लान की सीमा से ज़्यादा {{what}} हैं। कुछ नहीं हटेगा, पर और नहीं जोड़ सकेंगे।",
+    "subscribe": "{{plan}} चुनें",
+    "switchTo": "{{plan}} पर जाएँ",
+    "cancel": "सब्सक्रिप्शन रद्द करें",
+    "cancelConfirm": "रिन्यू बंद करें? भुगतान की गई अवधि के अंत तक प्लान रहेगा।",
+    "cancelled": "आपका सब्सक्रिप्शन इस अवधि के साथ ख़त्म होगा।",
+    "thanks": "धन्यवाद! आपका सब्सक्रिप्शन सक्रिय है।",
+    "terms": "अपग्रेड तुरंत लागू; डाउनग्रेड अगली अवधि से। भुगतान विफल होने पर read-only होने से पहले {{days}} दिन मिलते हैं। आपका डेटा कभी नहीं हटता।",
+    "invoices": "इनवॉइस",
+    "noInvoices": "अभी कोई इनवॉइस नहीं",
+    "downloadInvoice": "इनवॉइस {{number}} डाउनलोड करें",
+    "export": {
+      "title": "आपका डेटा",
+      "text": "आपके बिज़नेस का सारा डेटा (ऑर्डर, ग्राहक, मेन्यू, बुकिंग आदि) Excel फ़ाइलों के साथ ZIP में डाउनलोड करें। read-only अकाउंट में भी चलता है।",
+      "button": "एक्सपोर्ट तैयार करें",
+      "started": "एक्सपोर्ट तैयार हो रहा है…",
+      "download": "डाउनलोड",
+      "status": {
+        "queued": "तैयार हो रहा",
+        "ready": "तैयार",
+        "failed": "विफल",
+        "expired": "समय ख़त्म"
+      }
+    }
+  },
+  "branches": {
+    "title": "ब्रांच",
+    "subtitle": "आपके आउटलेट: हर एक की अपनी वेबसाइट, मेन्यू, स्टाफ़ और ऑर्डर।",
+    "proOnly": "कई ब्रांच Pro प्लान में हैं।",
+    "add": "ब्रांच जोड़ें",
+    "name": "ब्रांच का नाम",
+    "nameHint": "जैसे Spice Route Baner",
+    "city": "शहर",
+    "copyMenu": "इस आउटलेट का मेन्यू कॉपी करें (डिश, साइज़, एक्स्ट्रा, फ़ोटो)",
+    "copyTheme": "वेबसाइट का वही लुक",
+    "addHint": "नई ब्रांच को अपना वेब पता मिलेगा। सेटअप पूरा करने और लाइव करने के लिए उस पर जाएँ।",
+    "added": "{{name}} जुड़ गई।",
+    "main": "मुख्य",
+    "here": "आप यहाँ हैं",
+    "status": {
+      "onboarding": "सेटअप जारी",
+      "read_only": "Read-only",
+      "suspended": "निलंबित",
+      "live": "लाइव"
+    },
+    "staff_one": "{{count}} व्यक्ति",
+    "staff_other": "{{count}} लोग",
+    "switch": "आउटलेट बदलें",
+    "copyHere": "मेरा मेन्यू यहाँ कॉपी करें",
+    "copyConfirm": "इस आउटलेट का मेन्यू {{name}} में कॉपी करें? तभी होगा जब {{name}} में अभी कोई डिश न हो।",
+    "copied_one": "{{name}} में {{count}} डिश कॉपी हुई।",
+    "copied_other": "{{name}} में {{count}} डिश कॉपी हुईं।",
+    "report": "सभी आउटलेट, पिछले 30 दिन",
+    "outlet": "आउटलेट",
+    "total": "कुल",
+    "reportHint": "{{from}} से {{to}}, असली ऑर्डर से।"
+  },
+  "domains": {
+    "title": "डोमेन",
+    "subtitle": "अपना वेब पता इस्तेमाल करें, जैसे www.yourrestaurant.in",
+    "upgrade": "अपना डोमेन Growth और Pro प्लान में है।",
+    "primary": "मुख्य पता",
+    "verified": "जुड़ गया",
+    "waiting": "DNS का इंतज़ार",
+    "free": "मुफ़्त पता (हमेशा चलता है)",
+    "check": "DNS जाँचें",
+    "makePrimary": "मुख्य पता बनाएँ",
+    "remove": "{{domain}} हटाएँ",
+    "removeConfirm": "{{domain}} हटाएँ?",
+    "add": "आपका डोमेन",
+    "addHint": "किसी भी रजिस्ट्रार से ख़रीदें (GoDaddy, Hostinger, BigRock…)।",
+    "connect": "डोमेन जोड़ें",
+    "howTitle": "कैसे जोड़ें",
+    "step1": "जहाँ डोमेन ख़रीदा, वहाँ DNS सेटिंग खोलें।",
+    "step2": "www के लिए यह रिकॉर्ड जोड़ें:",
+    "step2a": "बिना www वाले पते के लिए जोड़ें:",
+    "step3": "कुछ मिनट (कभी-कभी कुछ घंटे) रुकें, फिर “DNS जाँचें” दबाएँ।",
+    "step4": "सुरक्षित https सर्टिफ़िकेट पहली विज़िट पर अपने-आप बन जाता है।",
+    "done": {
+      "verify": "डोमेन जुड़ गया।",
+      "primary": "यह अब आपका मुख्य पता है।",
+      "delete": "डोमेन हट गया।"
     }
   }
 }

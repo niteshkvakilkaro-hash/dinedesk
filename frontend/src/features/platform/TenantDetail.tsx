@@ -8,6 +8,7 @@ import { formatDate, formatDateTime, formatINR, formatPhone } from '@/lib/format
 import { tenantSiteUrl } from '@/lib/host';
 import { Alert, Badge, DemoBadge, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
 import type { PlatformTenantDetail, TenantStatus } from '@/types';
+import { SupportPanel } from './SupportPanel';
 
 function ChangeForm({ tenant }: { tenant: PlatformTenantDetail }) {
   const { t } = useTranslation();
@@ -203,6 +204,8 @@ export default function TenantDetail() {
           ))}
         </ul>
       </section>
+
+      <SupportPanel tenantId={tenant.id} name={tenant.name} />
 
       <section className="card p-5" aria-labelledby="activity-title">
         <h2 id="activity-title" className="text-lg font-bold">
