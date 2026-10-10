@@ -85,7 +85,7 @@ function CartLines() {
   );
 }
 
-/** Floating cart button (hidden while empty and on checkout / tracking pages) + the cart sheet. */
+/** Floating cart button on wider screens (phones use the bottom bar), hidden while empty and on checkout / tracking pages, + the cart sheet. */
 export function Cart() {
   const { t } = useTranslation();
   const skin = useSkin();
@@ -121,7 +121,7 @@ export function Cart() {
           ref={button}
           type="button"
           onClick={() => setOpen(true)}
-          className={`fixed bottom-4 left-1/2 z-50 flex min-h-14 -translate-x-1/2 items-center gap-3 px-5 shadow-xl sm:left-auto sm:right-6 sm:translate-x-0 ${skin.primary}`}
+          className={`fixed bottom-6 right-6 z-50 hidden min-h-14 items-center gap-3 px-5 shadow-xl md:flex ${skin.primary}`}
           style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
           aria-label={t('order.viewCart', { count })}
         >

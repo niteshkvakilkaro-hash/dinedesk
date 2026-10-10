@@ -53,6 +53,9 @@
   /* Website themes (values set per site from src/themes/<theme>/tokens.ts). */
   --color-t-bg: var(--t-bg);
   --color-t-surface: var(--t-surface);
+  --color-t-surface-2: var(--t-surface-2);
+  --color-t-link: var(--t-link);
+  --color-t-overlay: var(--t-overlay);
   --color-t-text: var(--t-text);
   --color-t-muted: var(--t-muted);
   --color-t-primary: var(--t-primary);
@@ -64,6 +67,9 @@
   --font-body: var(--t-font-body);
   --font-tmono: var(--t-font-mono);
   --radius-t: var(--t-radius);
+  --radius-t-btn: var(--t-radius-btn);
+  --radius-t-input: var(--t-radius-input);
+  --ease-t: var(--t-ease);
 }
 
 @layer base {

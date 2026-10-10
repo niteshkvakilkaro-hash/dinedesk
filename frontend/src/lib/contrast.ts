@@ -30,7 +30,7 @@ export interface ContrastWarning {
 
 /**
  * Mirrors Themes::contrastWarnings on the server:
- *  - primary carries white button text → 4.5:1
+ *  - primary carries white or ink button text (whichever reads better) → 4.5:1
  *  - accent "fill" (dark text sits on it) → accent vs text 4.5:1
  *  - accent "ink"  (used as text on the page) → accent vs background 4.5:1
  */
@@ -41,7 +41,7 @@ export function contrastWarnings(
 ): ContrastWarning[] {
   const out: ContrastWarning[] = [];
   if (primary && HEX_RE.test(primary)) {
-    const ratio = contrastRatio(primary, '#FFFFFF');
+    const ratio = Math.max(contrastRatio(primary, '#FFFFFF'), contrastRatio(primary, '#141414'));
     if (ratio < 4.5) out.push({ field: 'primary_color', ratio: Math.round(ratio * 100) / 100, required: 4.5 });
   }
   if (accent && HEX_RE.test(accent)) {

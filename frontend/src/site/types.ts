@@ -27,9 +27,10 @@ export interface SiteContent {
   about: string | null;
   about_hi: string | null;
   milestones: Milestone[];
-  contact: { phone: string | null; whatsapp: string | null; email: string | null; address: string | null; map_url: string | null };
+  contact: { phone: string | null; whatsapp: string | null; email: string | null; address: string | null; map_url: string | null; parking?: string | null };
   socials: { instagram: string | null; facebook: string | null; youtube: string | null; google_maps: string | null };
   seo: { description: string | null; description_hi: string | null };
+  legal?: { fssai: string | null; show_gstin: boolean };
 }
 
 export interface SiteTheme {
@@ -49,6 +50,8 @@ export interface SiteData {
   is_live: boolean;
   is_demo: boolean;
   timezone: string;
+  /** Only when the owner chose to show it in the footer. */
+  gstin?: string | null;
   theme: SiteTheme;
   content: SiteContent;
   opening_hours: OpeningHours | null;

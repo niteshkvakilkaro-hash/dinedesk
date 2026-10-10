@@ -34,9 +34,12 @@ class SiteContent
                 'email' => null,
                 'address' => null,
                 'map_url' => null,
+                'parking' => null,
             ],
             'socials' => array_fill_keys(self::SOCIALS, null),
             'seo' => ['description' => null, 'description_hi' => null],
+            // Footer: FSSAI licence number, and whether to show the GSTIN from business details.
+            'legal' => ['fssai' => null, 'show_gstin' => false],
         ];
     }
 
@@ -62,11 +65,15 @@ class SiteContent
             'contact.email' => ['nullable', 'email:rfc', 'max:120'],
             'contact.address' => ['nullable', 'string', 'max:300'],
             'contact.map_url' => $url,
+            'contact.parking' => ['nullable', 'string', 'max:160'],
             'socials' => ['required', 'array'],
             ...collect(self::SOCIALS)->mapWithKeys(fn ($s) => ["socials.{$s}" => $url])->all(),
             'seo' => ['required', 'array'],
             'seo.description' => ['nullable', 'string', 'max:160'],
             'seo.description_hi' => ['nullable', 'string', 'max:160'],
+            'legal' => ['sometimes', 'array'],
+            'legal.fssai' => ['nullable', 'regex:/^\d{14}$/'],
+            'legal.show_gstin' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -77,6 +84,7 @@ class SiteContent
             'contact.whatsapp.regex' => Phone::MESSAGE,
             'contact.map_url.url' => 'Use a full https:// link, e.g. from Google Maps → Share.',
             'socials.*.url' => 'Use a full https:// link.',
+            'legal.fssai.regex' => 'The FSSAI licence number has 14 digits.',
         ];
     }
 
@@ -110,6 +118,7 @@ class SiteContent
             'email' => $text($c['email'] ?? null),
             'address' => $text($c['address'] ?? null),
             'map_url' => $text($c['map_url'] ?? null),
+            'parking' => $text($c['parking'] ?? null),
         ];
         foreach (self::SOCIALS as $s) {
             $clean['socials'][$s] = $text($data['socials'][$s] ?? null);
@@ -117,6 +126,11 @@ class SiteContent
         $clean['seo'] = [
             'description' => $text($data['seo']['description'] ?? null),
             'description_hi' => $text($data['seo']['description_hi'] ?? null),
+        ];
+
+        $clean['legal'] = [
+            'fssai' => $text($data['legal']['fssai'] ?? null),
+            'show_gstin' => (bool) ($data['legal']['show_gstin'] ?? false),
         ];
 
         $this->settings->set(self::KEY, $clean);

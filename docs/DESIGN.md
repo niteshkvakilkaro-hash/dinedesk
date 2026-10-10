@@ -1,0 +1,172 @@
+# DineDesk website design system
+
+How the public restaurant websites look and move, and where each piece lives. Every theme shares one page structure (`frontend/src/site/ui`). Themes differ through design tokens, a few layout switches and small extras.
+
+## Files
+
+| What | Where |
+|---|---|
+| Token types | `frontend/src/themes/types.ts` (`ThemeTokens`, `ThemeStyle`, `ThemeMotion`) |
+| Tokens per theme | `frontend/src/themes/<theme>/tokens.ts`, `motion.ts`, `fonts.ts` |
+| Tokens → CSS variables | `themeVars()` in `frontend/src/themes/registry.ts` writes `--t-*` on `.site-root` |
+| Component styles | `frontend/src/site/ui/site.css` (`.s-*` classes, in `@layer components`) |
+| Components and pages | `frontend/src/site/ui/*.tsx` |
+| Server-side catalogue and contrast check | `backend/app/Modules/Website/Support/Themes.php` |
+| Live style guide | `/style-guide` on any business site. It is not linked anywhere and is never indexed |
+
+## Themes
+
+| Theme | For | Colours (bg · ink · primary · accent) | Display / body (+ mono) | Look |
+|---|---|---|---|---|
+| Haveli Royal | Heritage, fine dining, hotels | `#FFF8E9` · `#2B2118` · `#641E16` · gold `#C9A45C` | Rozha One / Mukta | Split hero with an arched (jharokha) photo, gold double-line dividers, jaali lattice at 4–8 % |
+| Ember | Grills, bars, premium dinners (dark) | `#0C0A09` · `#F3EEE8` · `#E8692C` · `#F0A35E` | Unbounded 600, uppercase / Geist (+ Geist Mono) | Full-bleed hero with a warm radial glow, glass cards, hairlines |
+| Bistro Editorial | Cafés, bakeries, modern restaurants | `#F6F3EE` · `#1E1D1B` · `#B5532D` · olive `#5B6B3A` | Gloock / Hanken Grotesk (+ IBM Plex Mono) | Magazine hero with a huge name, 1px rules, square photos, no rounding |
+| Kulhad Warm | Chai cafés, breakfast, desserts | `#F4EDE4` · `#2E1A10` · clay `#9C4524` · chai `#C58646` | Young Serif / Geist | Split hero, 18px soft cards, warm glow |
+| Modern QSR | Burgers, pizza, cloud kitchens | `#F3F1EC` · `#141414` · `#D2302A` · `#E8A54B` | Archivo at 125 % width, 800, uppercase / Geist | Full-bleed product hero, pill buttons, bold prices |
+| Street Pop | Street food, youth brands | `#FFF9EC` · `#141414` · chilli `#D7261E` · mustard `#FFCB2E` (+ mint `#7ED9B5`) | Archivo Black / Archivo | 2.5px borders, 4px hard shadows, tilted sticker cards, chilli confetti, combo builder |
+
+Each theme uses at most two font families, plus a mono where listed. Latin subsets load with the theme. Devanagari (Mukta) loads only when a visitor switches to Hindi.
+
+### Tokens
+
+Every theme provides the same colour roles: `bg`, `surface`, `surface2`, `text`, `muted`, `primary`, `onPrimary`, `link`, `accent`, `onAccent`, `line` and `overlay`. It also sets radii (`card`, `button`, `input`) and a heading style (case, tracking, weight and width).
+
+Components never hard-code theme colours. They read `var(--t-*)` or the Tailwind aliases (`bg-t-primary`, `text-t-link`, …).
+
+The look switches are data attributes on `.site-root`:
+
+- `data-card`: `flat`, `soft`, `glass`, `sticker` or `rule`
+- `data-mask`: `arch`, `square` or `rounded`
+- `data-hero`: `fullbleed`, `split` or `editorial`
+- `data-dark`
+- `data-playful`
+
+### Contrast (WCAG AA)
+
+- Text, muted text and links reach at least 4.5:1 on `bg`, `surface` and `surface2` in every theme. Button text on `primary` and `accent` also reaches 4.5:1. `themes/registry.test.ts` checks all of this.
+- Some colours fail as small text, so they are only used as fills or for large type:
+  - Haveli gold
+  - Kulhad chai
+  - QSR and Bistro primary on the page background (4.4:1)
+
+  Small text uses each theme's darker `link` colour instead.
+- If the owner picks a primary colour, the button text becomes white or ink, whichever reads better. The link colour is derived from the owner's colour (`textSafe`). The dashboard warns only when neither white nor ink text reaches 4.5:1 on that colour (frontend `lib/contrast.ts` and backend `Themes::contrastWarnings`).
+- Veg/non-veg marks are graphics (≥ 3:1) and also carry text labels. The open/closed status shows text as well as a dot.
+
+## Layout
+
+- **Grid:** 12 columns on tablets and desktops, 4 on phones. Content is at most 1240px wide, with 16, 24 or 32px side margins (`.s-wrap`, `.s-grid`).
+- **Spacing scale:** 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 · 120 px. Sections use 64–120px vertical padding (`.s-section`).
+- **Type scale:**
+  - display: 44–96px
+  - h1: 40–72px
+  - h2: 32–52px
+  - h3: 20–24px
+  - lead: 17–20px
+  - body: 16px with line height 1.7
+  - eyebrow: 13px, uppercase, tracked
+- **Touch targets:** at least 44px. Buttons are 48px.
+
+## Page structure
+
+**Home**
+
+1. **Header:** sticky. It is transparent over a full-bleed photo and turns into a blurred bar once you scroll.
+2. **Hero:**
+   - the business name as the headline
+   - the tagline
+   - CTAs: Order online or View menu, then Call to book, WhatsApp or Directions
+   - live Open/Closed badge
+   - info card: today's hours, address with directions, phone
+3. **Quick actions:** only the ones the business really offers.
+4. **Owner-ordered sections:**
+   - Signature dishes
+   - Story (split layout)
+   - Menu preview with tabs
+   - Ambience gallery (interior photos first)
+   - Book a table (by phone or WhatsApp, until online reservations arrive in Phase 4)
+   - Visit us (address, parking, the week's hours with today highlighted, and a map that loads only when asked)
+5. **Footer:**
+   - the business name, tagline and today's hours
+   - pages, contact and socials
+   - FSSAI licence number and GSTIN (only if the owner filled them in)
+   - language switch and "Reduce motion" switch
+
+**Other pages**
+
+- **Menu:** sticky section chips that follow your scroll, search, a veg-only switch, dish rows with veg/non-veg/egg marks, spice (icons, not emoji), badges, "from ₹…" for dishes with sizes, and an Add button.
+- **About:** the story and milestones.
+- **Gallery:** filters and an accessible lightbox.
+- **Contact:** contact cards, parking, hours and the map.
+- **Cart, checkout and order tracking:** the Phase 3 screens, restyled through the shared `.s-*` classes.
+
+**Phones**
+
+A bottom bar shows Call · WhatsApp (or Directions) · Order. While the cart has items, the third button opens the cart. The floating cart and WhatsApp buttons appear only on wider screens.
+
+**India specifics**
+
+- Prices in ₹ with Indian digit grouping (`en-IN` / `hi-IN`)
+- 12-hour times in the business's timezone (IST by default)
+- `tel:` links with +91 and `wa.me` WhatsApp links
+- English and Hindi everywhere
+
+## Motion
+
+All motion is subtle and uses one ease, `cubic-bezier(0.16, 1, 0.3, 1)`. Only `transform` and `opacity` animate. There is no animation library: CSS transitions run from `site/ui/motion.ts`.
+
+| Effect | Rule |
+|---|---|
+| Reveal on scroll | Fade in and rise 24px over 0.6s, 60ms stagger (`.s-reveal` + `useRevealAll`) |
+| Photos | Settle from 1.06 to 1 on reveal; 1.03 zoom on hover |
+| Buttons | Lift 2px on hover and settle on press. Street presses like rubber |
+| Cards | Lift 4px on hover. On desktop, tilt toward the pointer (6°, never more than 8°) |
+| Hero | 0.3× parallax on desktop only, and only near the top of the page |
+| Street | Playful extras: tilted stickers, chilli confetti (drawn shapes) and the combo builder |
+
+`prefers-reduced-motion` and the footer "Reduce motion" switch both turn every effect off, and content then shows immediately. The hero photo (the LCP element) never fades.
+
+## Accessibility and performance
+
+- Every page has a skip link, landmarks and one `h1`. Section headings are linked to their sections (`aria-labelledby`).
+- The keyboard works everywhere:
+  - menu tabs use arrow keys
+  - dialogs trap focus and return it when they close
+  - the lightbox supports Esc and the arrow keys
+- Focus shows a 3px outline in the theme's link colour.
+- Images are responsive WebP (480/960/1600) with a blurred placeholder and their size reserved, so nothing shifts as they load. Theme fonts load before first paint.
+- No third-party scripts load with the page. Google Maps loads only when a visitor asks for the map.
+- Lighthouse targets:
+  - Accessibility: target ≥ 95. All themes score 100 in the checks so far.
+  - CLS: target < 0.05. Measured 0.
+  - Performance: target ≥ 90. Not yet met: it needs pre-rendered HTML for public pages and `/storage` served by Nginx or a CDN (see the README).
+
+## Placeholders to replace
+
+All of these are demo or sample content, labelled "Demo" on the sites:
+
+- **Demo businesses:** the six demo businesses (`*-demo`), with their names, taglines, about text, milestones, prices and menus. Sample menus come from `backend/app/Modules/Menu/Support/SampleMenu.php`.
+- **Demo photos:** `backend/database/seeders/demo-photos/`, credits in `credits.json`.
+  - These are freely licensed pictures from Wikimedia Commons and from Flickr (found through Openverse), credited on every page.
+  - They do not show the demo businesses.
+  - A real business uploads its own cover, dish and gallery photos.
+- **Drawn illustrations instead of photos:** these dishes show a drawing because no correct licensed photo was found:
+  - Malai Paneer Tikka
+  - Amritsari Fish
+  - Kulhad Masala Chai
+  - Kashmiri Kahwa
+  - Bun Maska
+  - Paneer Tikka Burger
+  - Paneer Kathi Roll
+  - Egg Roll
+
+  The QSR demo also has no interior photo.
+- **Contact details:** the demos have no phone, WhatsApp, email, parking, FSSAI or GSTIN, because none were invented. So on the demos:
+  - the bottom bar shows only Directions and Order
+  - the "Book a table" block is hidden
+
+  Fill these in under Dashboard → Website → Content to see them.
+- **Reviews:** there is no reviews section, and none will be shown until real reviews exist.
+- **Privacy policy and terms pages:** not built yet.
+- **Online table reservations:** Phase 4. Until then, booking is by phone or WhatsApp.
+- **Theme preview images:** `frontend/src/themes/*/preview.png` are screenshots of the demo sites. Regenerate them after changing a theme.

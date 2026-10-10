@@ -18,7 +18,7 @@ class SiteSetupTest extends TestCase
         $this->putJson('/api/v1/onboarding/theme', ['theme' => 'disco'])->assertStatus(422);
         $this->putJson('/api/v1/onboarding/theme', ['theme' => 'street'])->assertOk()->assertJsonPath('data.tenant.onboarding_step', 5);
 
-        $this->putJson('/api/v1/onboarding/branding', ['primary_color' => '#FFFF00', 'tagline' => 'Chaat, done right'])
+        $this->putJson('/api/v1/onboarding/branding', ['primary_color' => '#7A7A7A', 'tagline' => 'Chaat, done right'])
             ->assertOk()
             ->assertJsonPath('data.tenant.onboarding_step', 6)
             ->assertJsonPath('meta.warnings.0.field', 'primary_color');

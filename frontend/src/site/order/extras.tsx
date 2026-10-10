@@ -4,18 +4,18 @@ import { useLocation } from 'react-router';
 import { useSiteGallery, useSiteMenu, whatsappHref } from '../data';
 import type { SiteData, SiteImage } from '../types';
 
-/** Floating WhatsApp button — only when the owner has confirmed the number is on WhatsApp. */
+/** Floating WhatsApp button on wider screens (phones have it in the bottom bar) — only when the owner has confirmed the number is on WhatsApp. */
 export function WhatsAppButton({ site }: { site: SiteData }) {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const number = site.content.contact.whatsapp; // the API only sends it once confirmed
-  if (!number || pathname.startsWith('/checkout')) return null;
+  if (!number || pathname.startsWith('/checkout') || pathname.startsWith('/style-guide')) return null;
   return (
     <a
       href={whatsappHref(number, t('site.whatsappHello', { name: site.name }))}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-[#073b1d] shadow-lg sm:bottom-6 sm:left-6 sm:right-auto"
+      className="fixed bottom-6 left-6 z-40 hidden h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-[#073b1d] shadow-lg transition-transform duration-300 ease-t hover:-translate-y-0.5 md:flex"
       aria-label={t('order.whatsapp', { name: site.name })}
     >
       <MessageCircle className="h-7 w-7" aria-hidden="true" />

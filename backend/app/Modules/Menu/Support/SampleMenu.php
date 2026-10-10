@@ -76,6 +76,66 @@ final class SampleMenu
                 ['Kala Khatta Gola', 'काला खट्टा गोला', 'Shaved ice with kala khatta syrup.', 80, 'veg', 0, false, false],
             ]],
         ],
+        // Used by the demo businesses for the Ember, Kulhad and Modern QSR themes.
+        'grill' => [
+            ['From the Tandoor', 'तंदूर से', [
+                ['Tandoori Chicken', 'तंदूरी चिकन', 'Half bird, yoghurt and Kashmiri chilli marinade, charred over coal.', 420, 'non_veg', 2, true, false],
+                ['Malai Paneer Tikka', 'मलाई पनीर टिक्का', 'Paneer in a cream and cardamom marinade.', 340, 'veg', 1, false, false],
+                ['Seekh Kebab', 'सीख कबाब', 'Minced lamb with ginger and green chilli on skewers.', 460, 'non_veg', 2, false, true],
+                ['Tandoori Prawns', 'तंदूरी झींगे', 'Prawns with ajwain and garlic, finished with lime.', 560, 'non_veg', 2, false, false],
+            ]],
+            ['Small Plates', 'स्मॉल प्लेट्स', [
+                ['Amritsari Fish', 'अमृतसरी मछली', 'Gram-flour battered fish with chaat masala.', 440, 'non_veg', 2, false, false],
+                ['Dahi Ke Kebab', 'दही के कबाब', 'Hung-curd kebabs with a crisp crust.', 300, 'veg', 1, false, false],
+            ]],
+            ['Mains', 'मेन', [
+                ['Mutton Rogan Josh', 'मटन रोगन जोश', 'Lamb braised with Kashmiri chillies and fennel.', 580, 'non_veg', 2, true, false],
+                ['Chicken Biryani', 'चिकन बिरयानी', 'Dum-cooked basmati and chicken with saffron.', 420, 'non_veg', 2, false, false],
+                ['Dal Makhani', 'दाल मखनी', 'Black lentils slow-cooked overnight.', 320, 'veg', 1, false, false],
+            ]],
+            ['Coolers', 'ठंडा', [
+                ['Mango Lassi', 'मैंगो लस्सी', null, 180, 'veg', 0, false, false],
+                ['Fresh Lime Soda', 'फ़्रेश लाइम सोडा', null, 140, 'veg', 0, false, false],
+            ]],
+        ],
+        'chai' => [
+            ['Chai', 'चाय', [
+                ['Kulhad Masala Chai', 'कुल्हड़ मसाला चाय', 'Ginger, cardamom and clove, served in a clay cup.', 60, 'veg', 0, true, false],
+                ['Elaichi Chai', 'इलायची चाय', 'Milky chai with green cardamom.', 50, 'veg', 0, false, false],
+                ['Kashmiri Kahwa', 'कश्मीरी कहवा', 'Green tea with saffron and almonds.', 120, 'veg', 0, false, true],
+            ]],
+            ['Snacks', 'नाश्ता', [
+                ['Bun Maska', 'बन मस्का', 'Soft bun with plenty of butter.', 70, 'veg', 0, true, false],
+                ['Samosa', 'समोसा', 'Two samosas with mint and tamarind chutney.', 60, 'veg', 1, false, false],
+                ['Vada Pav', 'वड़ा पाव', null, 50, 'veg', 2, false, false],
+                ['Poha', 'पोहा', 'Flattened rice with peanuts, curry leaves and lemon.', 90, 'veg', 1, false, false],
+            ]],
+            ['Sweets', 'मिठाई', [
+                ['Gulab Jamun', 'गुलाब जामुन', null, 80, 'veg', 0, false, false],
+                ['Jalebi', 'जलेबी', 'Crisp, syrupy and served warm.', 90, 'veg', 0, false, false],
+                ['Rasmalai', 'रसमलाई', null, 120, 'veg', 0, false, false],
+            ]],
+        ],
+        'qsr' => [
+            ['Burgers', 'बर्गर', [
+                ['Classic Veg Burger', 'क्लासिक वेज बर्गर', 'Crisp veg patty, lettuce, tomato, house sauce.', 149, 'veg', 0, true, false],
+                ['Paneer Tikka Burger', 'पनीर टिक्का बर्गर', 'Tandoori paneer, mint mayo, onions.', 189, 'veg', 1, false, false],
+                ['Crispy Chicken Burger', 'क्रिस्पी चिकन बर्गर', 'Fried chicken, slaw, pickles.', 199, 'non_veg', 1, true, false],
+            ]],
+            ['Pizza', 'पिज़्ज़ा', [
+                ['Margherita', 'मार्गेरिटा', 'Tomato, mozzarella, basil.', 249, 'veg', 0, false, false],
+                ['Tandoori Paneer Pizza', 'तंदूरी पनीर पिज़्ज़ा', 'Paneer tikka, peppers, onion.', 329, 'veg', 1, false, true],
+                ['Pepperoni Pizza', 'पेपरोनी पिज़्ज़ा', null, 379, 'non_veg', 1, false, false],
+            ]],
+            ['Sides', 'साइड्स', [
+                ['French Fries', 'फ़्रेंच फ़्राइज़', null, 99, 'veg', 0, false, false],
+                ['Garlic Bread', 'गार्लिक ब्रेड', null, 129, 'veg', 0, false, false],
+            ]],
+            ['Drinks', 'ड्रिंक्स', [
+                ['Cold Coffee', 'कोल्ड कॉफ़ी', null, 129, 'veg', 0, false, false],
+                ['Chocolate Shake', 'चॉकलेट शेक', null, 149, 'veg', 0, false, false],
+            ]],
+        ],
     ];
 
     public static function keyFor(string $businessType): string
@@ -95,6 +155,12 @@ final class SampleMenu
         'Cappuccino' => [['Regular', 'रेगुलर', 180], ['Large', 'लार्ज', 220]],
         'Cold Brew' => [['Regular', 'रेगुलर', 220], ['Large', 'लार्ज', 260]],
         'Pani Puri' => [['6 pcs', '6 पीस', 80], ['12 pcs', '12 पीस', 150]],
+        'Tandoori Chicken' => [['Half', 'हाफ़', 420], ['Full', 'फ़ुल', 760]],
+        'Chicken Biryani' => [['Regular', 'रेगुलर', 420], ['Family', 'फ़ैमिली', 790]],
+        'Kulhad Masala Chai' => [['Small', 'छोटा', 60], ['Large', 'बड़ा', 90]],
+        'Margherita' => [['Regular', 'रेगुलर', 249], ['Medium', 'मीडियम', 399]],
+        'Tandoori Paneer Pizza' => [['Regular', 'रेगुलर', 329], ['Medium', 'मीडियम', 499]],
+        'Pepperoni Pizza' => [['Regular', 'रेगुलर', 379], ['Medium', 'मीडियम', 549]],
     ];
 
     // Menu key => [[group, group_hi, min, max, [[addon, addon_hi, price, food_type]], [dishes]]]
@@ -110,6 +176,19 @@ final class SampleMenu
         'street' => [
             ['Make it loaded', 'और मज़ेदार बनाएँ', 0, 3, [['Extra cheese', 'एक्स्ट्रा चीज़', 25, 'veg'], ['Extra butter', 'एक्स्ट्रा बटर', 15, 'veg'], ['Extra sev', 'एक्स्ट्रा सेव', 10, 'veg']],
                 ['Vada Pav', 'Pav Bhaji', 'Paneer Kathi Roll', 'Masala Fries']],
+        ],
+        'grill' => [
+            ['Sides', 'साइड्स', 0, 2, [['Butter naan', 'बटर नान', 70, 'veg'], ['Laccha paratha', 'लच्छा पराठा', 80, 'veg'], ['Mint chutney (extra)', 'पुदीना चटनी', 20, 'veg']],
+                ['Tandoori Chicken', 'Malai Paneer Tikka', 'Seekh Kebab', 'Mutton Rogan Josh']],
+        ],
+        'chai' => [
+            ['Add-ons', 'ऐड-ऑन', 0, 2, [['Extra ginger', 'एक्स्ट्रा अदरक', 10, 'veg'], ['Less sugar', 'कम चीनी', 0, 'veg']], ['Kulhad Masala Chai', 'Elaichi Chai']],
+        ],
+        'qsr' => [
+            ['Make it a meal', 'मील बनाएँ', 0, 1, [['Fries + soft drink', 'फ़्राइज़ + सॉफ़्ट ड्रिंक', 99, 'veg'], ['Fries + Cold coffee', 'फ़्राइज़ + कोल्ड कॉफ़ी', 129, 'veg']],
+                ['Classic Veg Burger', 'Paneer Tikka Burger', 'Crispy Chicken Burger']],
+            ['Extra toppings', 'एक्स्ट्रा टॉपिंग', 0, 3, [['Extra cheese', 'एक्स्ट्रा चीज़', 49, 'veg'], ['Jalapeños', 'हालापेन्यो', 39, 'veg'], ['Olives', 'ऑलिव्स', 39, 'veg']],
+                ['Margherita', 'Tandoori Paneer Pizza', 'Pepperoni Pizza']],
         ],
     ];
 

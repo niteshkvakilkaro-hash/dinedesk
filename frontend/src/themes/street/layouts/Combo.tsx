@@ -8,7 +8,8 @@ import { useMoney } from '@/site/ordering';
 import { FoodTypeMark } from '@/site/components/bits';
 import { artFor, FoodArt } from '@/site/components/FoodArt';
 import type { MenuItem } from '@/site/types';
-import { SPRING } from '../motion';
+
+const SPRING = { type: 'spring', stiffness: 500, damping: 22 } as const;
 import { chilliConfetti } from './confetti';
 
 const priceOf = (i: MenuItem) => Number((i.variants.find((v) => v.is_default) ?? i.variants[0])?.price ?? i.price);
@@ -47,15 +48,15 @@ export function ComboBuilder() {
   };
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-14" aria-labelledby="combo-title">
-      <h2 id="combo-title" className="street-box inline-block rotate-1 bg-[#7ED9B5] px-4 py-2 text-4xl text-[#141414] sm:text-5xl">
+    <section className="s-wrap s-section-tight" aria-labelledby="combo-title">
+      <h2 id="combo-title" className="s-h2 inline-block rotate-1 rounded-[14px] border-[2.5px] border-t-text bg-[var(--t-x-mint)] px-4 py-2 text-[#141414] shadow-[4px_4px_0_var(--t-text)]">
         {t('order.comboTitle')}
       </h2>
       <p className="mt-4 max-w-xl font-bold">{t('order.comboHint')}</p>
       <div className="mt-8 space-y-8">
         {sections.map((c, si) => (
           <fieldset key={c.id}>
-            <legend className="font-display text-2xl uppercase">
+            <legend className="s-h3">
               {si + 1}. {l(c, 'name')}
             </legend>
             <div className="mt-3 flex gap-3 overflow-x-auto pb-3">
@@ -64,7 +65,7 @@ export function ComboBuilder() {
                 return (
                   <motion.label
                     key={i.id}
-                    className={`street-box-sm relative flex w-36 shrink-0 cursor-pointer flex-col items-center gap-2 p-3 text-center ${on ? 'bg-[#FFCB2E]' : 'bg-white'}`}
+                    className={`relative flex w-36 shrink-0 cursor-pointer flex-col items-center gap-2 rounded-[14px] border-[2.5px] border-[#141414] p-3 text-center text-[#141414] shadow-[3px_3px_0_#141414] has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 ${on ? 'bg-[#FFCB2E]' : 'bg-white'}`}
                     style={{ rotate: ii % 2 ? 2 : -2 }}
                     whileTap={{ scaleX: 1.08, scaleY: 0.92 }}
                     transition={SPRING}
@@ -91,11 +92,11 @@ export function ComboBuilder() {
           </fieldset>
         ))}
       </div>
-      <div className="street-box mt-6 flex flex-wrap items-center justify-between gap-4 bg-[#141414] p-4 text-white">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-[18px] bg-[#141414] p-4 text-white">
         <p className="font-bold" aria-live="polite">
           {chosen.length ? t('order.comboPicked', { count: chosen.length, total: money(total) }) : t('order.comboEmpty')}
         </p>
-        <button type="button" disabled={!chosen.length} onClick={addCombo} className="street-box-sm min-h-12 bg-[#FFCB2E] px-5 font-bold uppercase text-[#141414] disabled:opacity-50">
+        <button type="button" disabled={!chosen.length} onClick={addCombo} className="s-btn s-btn-accent">
           {t('order.comboAdd')}
         </button>
       </div>

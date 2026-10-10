@@ -19,7 +19,6 @@ const OrdersPage = lazy(() => import('@/features/orders/OrdersPage'));
 const MenuPage = lazy(() => import('@/features/menu/MenuPage'));
 const OrderingSettingsPage = lazy(() => import('@/features/ordering/OrderingSettingsPage'));
 // Dev-only motion playground; the import is dropped from production builds.
-const MotionLab = import.meta.env.DEV ? lazy(() => import('@/features/dev/MotionLab')) : null;
 const PlatformLayout = lazy(() => import('@/features/platform/PlatformLayout'));
 const Tenants = lazy(() => import('@/features/platform/Tenants'));
 const TenantDetail = lazy(() => import('@/features/platform/TenantDetail'));
@@ -78,7 +77,6 @@ export default function PlatformApp() {
         <Route path="tenants/:id" element={<TenantDetail />} />
         <Route path="plans" element={<Plans />} />
       </Route>
-      {MotionLab && <Route path="motion-lab" element={<MotionLab />} />}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
       </Suspense>

@@ -1,7 +1,7 @@
 import { useEffect, useState, type RefObject } from 'react';
 import { PREVIEW } from './preview';
 
-// Motion helpers that don't need GSAP (so the Street theme can use them without loading it).
+// Small motion helpers shared by the site (see also site/ui/motion.ts).
 
 /** True while the element is on screen and the tab is visible: loops run only then. */
 export function useLoopActive(ref: RefObject<Element | null>): boolean {

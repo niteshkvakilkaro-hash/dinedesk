@@ -19,9 +19,10 @@ describe('contrast', () => {
   const haveli = { background: '#FFF8E9', text: '#2B2118', accentRole: 'fill' as const };
   const bistro = { background: '#F6F3EE', text: '#1E1D1B', accentRole: 'ink' as const };
 
-  it('warns when white button text on the primary colour falls below AA', () => {
-    expect(contrastWarnings(haveli, '#FFEE88', null)).toEqual([{ field: 'primary_color', ratio: expect.any(Number), required: 4.5 }]);
+  it('warns only when neither white nor ink button text reads on the primary colour', () => {
+    expect(contrastWarnings(haveli, '#7A7A7A', null)).toEqual([{ field: 'primary_color', ratio: expect.any(Number), required: 4.5 }]);
     expect(contrastWarnings(haveli, '#641E16', null)).toEqual([]);
+    expect(contrastWarnings(haveli, '#FFEE88', null)).toEqual([]); // ink text reads on it
   });
 
   it('checks the accent the way the theme uses it', () => {

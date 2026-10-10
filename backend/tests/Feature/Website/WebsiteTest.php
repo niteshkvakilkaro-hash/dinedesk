@@ -35,11 +35,11 @@ class WebsiteTest extends TestCase
         $this->putJson('/api/v1/tenant/website/theme', ['primary_color' => 'red'])->assertStatus(422)->assertJsonValidationErrors('primary_color');
         $this->putJson('/api/v1/tenant/website/theme', ['sections' => [['key' => 'hacker', 'visible' => true]]])->assertStatus(422);
 
-        // Pale yellow primary under white text → warning, but still saved (owner decides).
-        $this->putJson('/api/v1/tenant/website/theme', ['theme' => 'bistro', 'primary_color' => '#ffee88'])
+        // Mid grey: neither white nor dark button text reaches 4.5:1 → warning, but still saved (owner decides).
+        $this->putJson('/api/v1/tenant/website/theme', ['theme' => 'bistro', 'primary_color' => '#7a7a7a'])
             ->assertOk()
             ->assertJsonPath('data.theme.key', 'bistro')
-            ->assertJsonPath('data.theme.primary_color', '#FFEE88')
+            ->assertJsonPath('data.theme.primary_color', '#7A7A7A')
             ->assertJsonPath('meta.warnings.0.field', 'primary_color');
 
         $this->putJson('/api/v1/tenant/website/theme', ['primary_color' => '#641E16', 'sections' => [['key' => 'gallery', 'visible' => false]]])

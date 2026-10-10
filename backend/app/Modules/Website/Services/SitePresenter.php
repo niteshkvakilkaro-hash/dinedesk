@@ -44,6 +44,8 @@ class SitePresenter
             'status' => $tenant->status,
             'is_live' => $tenant->status === 'live',
             'is_demo' => $tenant->is_demo,
+            // Shown in the footer only when the owner opts in.
+            'gstin' => ($content['legal']['show_gstin'] ?? false) ? $tenant->gstin : null,
             'timezone' => $tenant->timezone,
             'theme' => $this->theme($theme),
             'content' => $content,

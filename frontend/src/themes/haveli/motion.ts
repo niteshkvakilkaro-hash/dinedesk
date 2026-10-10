@@ -1,16 +1,13 @@
 import type { ThemeMotion } from '../types';
 
+// Subtle and premium: transform / opacity only, cubic-bezier(0.16, 1, 0.3, 1).
 export const motion: ThemeMotion = {
-  ease: [0.22, 1, 0.36, 1],
-  duration: { fast: 0.6, base: 0.9, slow: 1.2, intro: 1.2 },
-  stagger: 0.08,
+  ease: [0.16, 1, 0.3, 1],
+  duration: { fast: 0.3, base: 0.6, slow: 0.9 },
+  stagger: 0.06,
   personality: [
-    'Carved doors swing open (rotateY ±105°, 1.2s) onto golden light; hero settles from 1.15× — once per visit, skippable',
-    'Headings rise word by word (0.08s stagger); gold lotus dividers draw out from the centre',
-    'A diya flickers by the hours (paused when off screen)',
-    'Photos are revealed by a cream curtain lifting',
-    'Our story scrolls sideways as a pinned timeline on desktop',
+    "Gold double-line dividers draw in; arched (jharokha) photos",
+    "Headlines rise line by line; content fades up as you scroll",
+    "Soft photo zoom on reveal and on hover",
   ],
 };
-
-export const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';

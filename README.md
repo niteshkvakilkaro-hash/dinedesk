@@ -6,10 +6,24 @@ Multi-tenant platform for Indian restaurants, cafes, cloud kitchens and hotels. 
 dinedesk/
 ├── backend/    Laravel 12 API (/api/v1), modular monolith in app/Modules/*
 ├── frontend/   React 18 + TypeScript + Vite — one app, three surfaces
-└── docs/       openapi.yaml (API reference)
+└── docs/       openapi.yaml (API reference), DESIGN.md (website design system)
 ```
 
-## Status: Phase 3 (Menu, ordering & payments) complete
+## Status: Phase 3 (Menu, ordering & payments) complete, websites redesigned
+
+### Website redesign (before Phase 4)
+
+The public websites were rebuilt on one shared, modern page structure with six themes. Details, tokens, motion rules and the list of placeholders: [docs/DESIGN.md](docs/DESIGN.md).
+
+| Area | What changed |
+|---|---|
+| Themes | **Haveli Royal**, **Bistro Editorial** and **Street Pop** redesigned. New: **Ember** (dark grill/bar), **Kulhad Warm** (chai café) and **Modern QSR** (burgers/pizza). Each has its own demo business, sample menu, delivery zones and freely licensed photos |
+| Design tokens | Colours (incl. surface-2, link, overlay), radii, heading style and motion as CSS variables from `themes/<theme>/tokens.ts`; look switches (card, photo mask, hero layout, dark, playful) as data attributes. WCAG AA checked in tests for every theme; owner colours get white or ink text, whichever reads better |
+| Home page | Sticky header (transparent over the photo, blurred on scroll), hero with live Open badge and an info card (today's hours, address, phone), quick actions, signature dishes, story, menu preview tabs, ambience gallery, book-a-table by phone/WhatsApp, visit us (parking, hours with today highlighted, map on request), footer with FSSAI licence and GSTIN (owner's choice) |
+| Phones | Bottom bar: Call · WhatsApp (or Directions) · Order/cart |
+| Motion | Subtle and the same everywhere: reveal (fade + 24px, 60ms stagger), photo settle and hover zoom, button lift, desktop card tilt and hero parallax, all off with reduced motion. The heavy intros, GSAP and Lenis are gone (smaller pages); Street keeps confetti and the combo builder |
+| Style guide | `/style-guide` on any business site: the live tokens, type, buttons/forms/cards with their states, and motion (never indexed). It replaces the old `/motion-lab` |
+| Dashboard | Website → Content gains parking, FSSAI licence number and "show GSTIN in the footer" |
 
 ### Phase 3
 
@@ -95,15 +109,18 @@ npm run dev                   # http://localhost:5173
 |---|---|
 | http://localhost:5173 | Platform: landing, sign up, sign in |
 | http://localhost:5173/platform | Super admin (`SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD`) |
-| http://haveli-demo.localhost:5173 | **Demo** site, Haveli theme (Chrome/Firefox resolve `*.localhost` automatically) |
-| http://bistro-demo.localhost:5173 | **Demo** site, Bistro theme |
-| http://street-demo.localhost:5173 | **Demo** site, Street theme |
-| http://localhost:5173/motion-lab | Motion lab: every theme's motion tokens and primitives with replay (dev server only) |
-| demo-owner@example.com, demo-bistro@example.com, demo-street@example.com / DemoOwner2026 | Demo business owners (development seed only; never created when APP_ENV=production) |
+| http://haveli-demo.localhost:5173 | **Demo** site, Haveli Royal theme (Chrome/Firefox resolve `*.localhost` automatically) |
+| http://ember-demo.localhost:5173 | **Demo** site, Ember theme |
+| http://bistro-demo.localhost:5173 | **Demo** site, Bistro Editorial theme |
+| http://kulhad-demo.localhost:5173 | **Demo** site, Kulhad Warm theme |
+| http://qsr-demo.localhost:5173 | **Demo** site, Modern QSR theme |
+| http://street-demo.localhost:5173 | **Demo** site, Street Pop theme |
+| http://haveli-demo.localhost:5173/style-guide | Style guide of that site's theme (works on every business site) |
+| demo-owner@example.com (Haveli), demo-ember@, demo-bistro@, demo-kulhad@, demo-qsr@, demo-street@example.com / DemoOwner2026 | Demo business owners (development seed only; never created when APP_ENV=production) |
 
 Add `?preview=1&preview_theme=street` to a business site inside the dashboard's iframe to see the live preview mode; outside an iframe the flag is ignored.
 
-**Try an order:** open a demo site during its hours (Haveli 11:00–23:00, Bistro 08:00–22:00, Street 12:00–01:00 IST — otherwise schedule it for later), add dishes, check out with delivery to pincode `302001` (Haveli), `560034` (Bistro) or `400050` (Street), then sign in as that demo's owner and open **Orders**. Customer messages are written to `backend/storage/logs/laravel.log` in development. To try Razorpay, paste your own **test** keys in Dashboard → Ordering.
+**Try an order:** open a demo site during its hours (Haveli 11:00–23:00, Ember 12:00–23:30, Bistro 08:00–22:00, Kulhad 07:00–22:00, QSR 11:00–01:00, Street 12:00–01:00 IST — otherwise schedule it for later), add dishes, check out with delivery to pincode `302001` (Haveli), `122002` (Ember), `560034` (Bistro), `226001` (Kulhad), `411001` (QSR) or `400050` (Street), then sign in as that demo's owner and open **Orders**. Customer messages are written to `backend/storage/logs/laravel.log` in development. To try Razorpay, paste your own **test** keys in Dashboard → Ordering.
 
 Mobile OTP in development: codes are written to `backend/storage/logs/laravel.log`, and shown on screen when `APP_ENV=local` and `OTP_DEV_ECHO=true`. No SMS provider is connected yet.
 

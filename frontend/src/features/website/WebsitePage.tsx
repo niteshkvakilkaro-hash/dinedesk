@@ -114,11 +114,13 @@ function ContentTab() {
   const contact = (key: keyof EditableContent['contact'], value: string | boolean) => setForm({ ...form, contact: { ...form.contact, [key]: value === '' ? null : value } });
   const social = (key: keyof EditableContent['socials'], value: string) => setForm({ ...form, socials: { ...form.socials, [key]: value || null } });
   const text = (v: string) => (v === '' ? null : v);
+  const legal = form.legal ?? { fssai: null, show_gstin: false };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (form.contact.whatsapp && !isIndianMobile(form.contact.whatsapp)) errs['contact.whatsapp'] = t('website.content.whatsappInvalid');
+    if (legal.fssai && !/^\d{14}$/.test(legal.fssai)) errs['legal.fssai'] = t('website.content.fssaiInvalid');
     const urls: [string, string | null][] = [['contact.map_url', form.contact.map_url], ...Object.entries(form.socials).map(([k, v]) => [`socials.${k}`, v] as [string, string | null])];
     for (const [k, v] of urls) if (v && !/^https:\/\/\S+$/.test(v)) errs[k] = t('website.content.httpsOnly');
     form.milestones.forEach((m, i) => {
@@ -227,6 +229,11 @@ function ContentTab() {
               {(a) => <textarea {...a} rows={2} maxLength={300} className="field-input" value={form.contact.address ?? ''} onChange={(e) => contact('address', e.target.value)} />}
             </Field>
           </div>
+          <div className="sm:col-span-2">
+            <Field label={t('website.content.parking')} optional hint={t('website.content.parkingHint')} error={errors['contact.parking']}>
+              {(a) => <input {...a} maxLength={160} className="field-input" value={form.contact.parking ?? ''} onChange={(e) => contact('parking', e.target.value)} />}
+            </Field>
+          </div>
         </div>
       </section>
 
@@ -240,6 +247,25 @@ function ContentTab() {
               {(a) => <input {...a} type="url" placeholder="https://" className="field-input" value={form.socials[k] ?? ''} onChange={(e) => social(k, e.target.value)} />}
             </Field>
           ))}
+        </div>
+      </section>
+
+      <section className="card space-y-5 p-5" aria-labelledby="c-legal">
+        <h2 id="c-legal" className="text-lg font-bold">
+          {t('website.content.legalTitle')}
+        </h2>
+        <p className="text-sm text-muted">{t('website.content.legalHint')}</p>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label={t('website.content.fssai')} optional hint={t('website.content.fssaiHint')} error={errors['legal.fssai']}>
+            {(a) => <input {...a} inputMode="numeric" maxLength={14} className="field-input tabular-nums" value={legal.fssai ?? ''} onChange={(e) => set('legal', { ...legal, fssai: text(e.target.value.replace(/\D/g, '')) })} />}
+          </Field>
+          <label className="flex items-start gap-3 self-center text-sm">
+            <input type="checkbox" className="mt-0.5 h-4 w-4" checked={legal.show_gstin} onChange={(e) => set('legal', { ...legal, show_gstin: e.target.checked })} />
+            <span>
+              <span className="block font-semibold">{t('website.content.showGstin')}</span>
+              <span className="text-muted">{t('website.content.showGstinHint')}</span>
+            </span>
+          </label>
         </div>
       </section>
 

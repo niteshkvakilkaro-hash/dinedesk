@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router';
 import { HelmetProvider } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
@@ -119,6 +119,9 @@ function DemoStrip() {
   );
 }
 
+// The style guide is a tool for owners and developers: loaded on demand, never indexed.
+const StyleGuide = lazy(() => import('./ui/StyleGuide'));
+
 const PAGES: { path: string; key: PageKey }[] = [
   { path: '/', key: 'home' },
   { path: '/menu', key: 'menu' },
@@ -134,7 +137,7 @@ function SiteLayout({ site, module, themeColor }: { site: SiteData; module: Them
   const { Shell } = module;
   const page = PAGES.find((p) => p.path === pathname)?.key ?? 'home';
   // Checkout and order pages are private: never indexed.
-  const privateTitle = pathname.startsWith('/checkout') ? t('order.checkoutTitle') : pathname.startsWith('/order/') ? t('order.trackTitle') : null;
+  const privateTitle = pathname.startsWith('/checkout') ? t('order.checkoutTitle') : pathname.startsWith('/order/') ? t('order.trackTitle') : pathname.startsWith('/style-guide') ? t('site.sg.title') : null;
   return (
     <SkinContext.Provider value={module.skin}>
       <Seo site={site} page={page} themeColor={themeColor} title={privateTitle} />
@@ -217,9 +220,20 @@ export default function SiteApp() {
   }
 
   const { pages } = module;
+  const look = def.style;
   return (
     <HelmetProvider>
-      <div style={style} className={`site-root theme-${def.key} min-h-screen bg-t-bg font-body text-t-text`} data-reduce-motion={reduce || undefined}>
+      <div
+        style={style}
+        className={`site-root theme-${def.key} min-h-screen bg-t-bg font-body text-t-text`}
+        data-reduce-motion={reduce || undefined}
+        data-card={look.card}
+        data-mask={look.imageMask}
+        data-hero={look.hero}
+        data-dark={look.dark || undefined}
+        data-playful={look.playful || undefined}
+        data-glow={def.key === 'ember' || undefined}
+      >
         {site.is_demo && <DemoStrip />}
         <ScrollToTop />
         <Routes>
@@ -231,6 +245,14 @@ export default function SiteApp() {
             })}
             <Route path="/checkout" element={<CheckoutPage site={site} />} />
             <Route path="/order/:id" element={<TrackPage site={site} />} />
+            <Route
+              path="/style-guide"
+              element={
+                <Suspense fallback={<Centered><Spinner className="h-8 w-8" /></Centered>}>
+                  <StyleGuide site={site} />
+                </Suspense>
+              }
+            />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

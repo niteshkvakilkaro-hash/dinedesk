@@ -13,7 +13,10 @@ final class Themes
 {
     public const CATALOGUE = [
         'haveli' => ['primary' => '#641E16', 'accent' => '#C9A45C', 'background' => '#FFF8E9', 'text' => '#2B2118', 'accent_role' => 'fill'],
+        'ember' => ['primary' => '#E8692C', 'accent' => '#F0A35E', 'background' => '#0C0A09', 'text' => '#F3EEE8', 'accent_role' => 'ink'],
         'bistro' => ['primary' => '#B5532D', 'accent' => '#5B6B3A', 'background' => '#F6F3EE', 'text' => '#1E1D1B', 'accent_role' => 'ink'],
+        'kulhad' => ['primary' => '#9C4524', 'accent' => '#C58646', 'background' => '#F4EDE4', 'text' => '#2E1A10', 'accent_role' => 'fill'],
+        'qsr' => ['primary' => '#D2302A', 'accent' => '#E8A54B', 'background' => '#F3F1EC', 'text' => '#141414', 'accent_role' => 'fill'],
         'street' => ['primary' => '#D7261E', 'accent' => '#FFCB2E', 'background' => '#FFF9EC', 'text' => '#141414', 'accent_role' => 'fill'],
     ];
 
@@ -57,7 +60,7 @@ final class Themes
 
     /**
      * Contrast warnings (not errors: the owner decides, we tell them).
-     * Primary carries white button text → needs 4.5:1 (AA normal text).
+     * Primary carries button text in whichever of white / near-black reads better → that needs 4.5:1.
      * Accent depends on how the theme uses it:
      *  - "fill": a highlight with the theme's dark text on top → accent vs text ≥ 4.5
      *  - "ink":  small text/marks on the page background     → accent vs background ≥ 4.5
@@ -69,10 +72,10 @@ final class Themes
         $t = self::CATALOGUE[$theme];
         $warnings = [];
         if ($primary) {
-            $ratio = Contrast::ratio($primary, '#FFFFFF');
+            $ratio = max(Contrast::ratio($primary, '#FFFFFF'), Contrast::ratio($primary, '#141414'));
             if ($ratio < 4.5) {
                 $warnings[] = ['field' => 'primary_color', 'ratio' => round($ratio, 2), 'required' => 4.5,
-                    'message' => 'White text on this primary colour is hard to read (below WCAG AA 4.5:1). Try a darker shade.'];
+                    'message' => 'Button text on this primary colour is hard to read (below WCAG AA 4.5:1). Try a darker or lighter shade.'];
             }
         }
         if ($accent) {

@@ -222,5 +222,301 @@
     "license": "CC BY-SA 2.0",
     "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
     "source": "https://commons.wikimedia.org/wiki/File:Foaming_filter_coffee.jpg"
+  },
+  "tandoori-chicken": {
+    "title": "tandoori chicken",
+    "author": "stu_spivack",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source": "https://www.flickr.com/photos/35034346243@N01/14636456528",
+    "alt": "Tandoori chicken with onion and lime"
+  },
+  "seekh-kebab": {
+    "title": "Seekh Kebab - Pakistani Style",
+    "author": "*Siddiqi*",
+    "license": "Public domain 1.0",
+    "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+    "source": "https://www.flickr.com/photos/68319403@N00/24995573542",
+    "alt": "Seekh kebab with salad"
+  },
+  "tandoori-prawns": {
+    "title": "Tandoori prawns and nan bread",
+    "author": "Annie Mole",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/21309047@N00/5923196784",
+    "alt": "Spiced prawns"
+  },
+  "dahi-ke-kebab": {
+    "title": "Dahi Ke Kabab (Curd/Yogurt Kebabs)",
+    "author": "ravimadhuscooking",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/153337965@N04/29109798807",
+    "alt": "Dahi ke kebab with chutneys"
+  },
+  "mutton-rogan-josh": {
+    "title": "rogan josh",
+    "author": "stu_spivack",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source": "https://www.flickr.com/photos/35034346243@N01/14270067215",
+    "alt": "Rogan josh in a bowl"
+  },
+  "chicken-biryani": {
+    "title": "Masala Zone Chicken Biryani",
+    "author": "Ambernectar 13",
+    "license": "CC BY-ND 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-nd/2.0/",
+    "source": "https://www.flickr.com/photos/16036153@N04/3999670069",
+    "alt": "Chicken biryani with raita"
+  },
+  "mango-lassi": {
+    "title": "Mango lassi",
+    "author": "Martin_Jordan",
+    "license": "CC BY-ND 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-nd/2.0/",
+    "source": "https://www.flickr.com/photos/79163893@N00/15440120354",
+    "alt": "Mango lassi"
+  },
+  "fresh-lime-soda": {
+    "title": "fresh tropical green juice for breakfast!",
+    "author": "The Sean & Lauren Spectacular",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/50230758@N03/6157459184",
+    "alt": "Fresh lime soda"
+  },
+  "elaichi-chai": {
+    "title": "",
+    "author": "thevelvetbird",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/48887460@N08/5040698116",
+    "alt": "Cup of milky chai"
+  },
+  "samosa": {
+    "title": "Sukhi's Samosas & Chutney",
+    "author": "Shoshanah",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/68737200@N00/3596261061",
+    "alt": "Samosas with green chutney"
+  },
+  "poha": {
+    "title": "Poha (Fried flattened rice)",
+    "author": "rovingI",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/70522326@N00/305698269",
+    "alt": "Poha with lemon"
+  },
+  "jalebi": {
+    "title": "Jalebis!!!",
+    "author": "MASRURAASHRAF",
+    "license": "CC BY-ND 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-nd/2.0/",
+    "source": "https://www.flickr.com/photos/24783003@N02/6378688309",
+    "alt": "Jalebi"
+  },
+  "rasmalai": {
+    "title": "Mela Rasmalai",
+    "author": "snowpea&bokchoi",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/28531775@N06/4688397958",
+    "alt": "Rasmalai"
+  },
+  "classic-veg-burger": {
+    "title": "Veggie Burger KCI_1517",
+    "author": "kurmanstaff",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/62558987@N07/11740453525",
+    "alt": "Veg burger"
+  },
+  "crispy-chicken-burger": {
+    "title": "Fried chicken burger at The Beer and Burger Bar in Richmond",
+    "author": "ultrakml",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/34948727@N00/24498199259",
+    "alt": "Burger with fries"
+  },
+  "margherita": {
+    "title": "Doppio Margherita Pizza @ Baby Point QMP",
+    "author": "sylartinitaly",
+    "license": "CC BY-ND 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-nd/2.0/",
+    "source": "https://www.flickr.com/photos/7147910@N05/8560044957",
+    "alt": "Margherita pizza"
+  },
+  "tandoori-paneer-pizza": {
+    "title": "Okra, spinach and paneer pizza with homemade chicken mulligatawny soup. The best #soupandasandwich I have had in a long time #instafood",
+    "author": "nigeljohnwade",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source": "https://www.flickr.com/photos/19471305@N00/29998782650",
+    "alt": "Pizza slices"
+  },
+  "pepperoni-pizza": {
+    "title": "Pepperoni Pizza",
+    "author": "TheHungryDudes",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/47854142@N04/4899671067",
+    "alt": "Pepperoni pizza"
+  },
+  "french-fries": {
+    "title": "French fries",
+    "author": "Martin_Jordan",
+    "license": "CC BY-ND 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-nd/2.0/",
+    "source": "https://www.flickr.com/photos/79163893@N00/16062414245",
+    "alt": "French fries"
+  },
+  "garlic-bread": {
+    "title": "Christina's Garlic Bread",
+    "author": "avlxyz",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source": "https://www.flickr.com/photos/10559879@N00/815661431",
+    "alt": "Garlic bread"
+  },
+  "cold-coffee": {
+    "title": "5 Epic Shakes KCI_1968",
+    "author": "kurmanstaff",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/62558987@N07/28704116727",
+    "alt": "Cold coffee and shakes"
+  },
+  "chocolate-shake": {
+    "title": "chocolate milkshake",
+    "author": "noii's",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source": "https://www.flickr.com/photos/17306001@N00/7905495226",
+    "alt": "Milkshake"
+  },
+  "cover-ember": {
+    "title": "Mr. Shimoni's table",
+    "author": "Dennis Wong",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/97247234@N00/3516216396",
+    "alt": "Candle-lit dining room"
+  },
+  "cover-kulhad": {
+    "title": "Masala Chai",
+    "author": "h0lydevil",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/45516485@N00/5451020865",
+    "alt": "Tea served in warm light"
+  },
+  "cover-qsr": {
+    "title": "Charcoal Burger Fries",
+    "author": "Infrogmation",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/29350288@N06/10215201066",
+    "alt": "Basket of fries"
+  },
+  "ambience-haveli-1": {
+    "title": "Sea Breeze Cafe",
+    "author": "nattu",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/33345813@N00/2828488127",
+    "alt": "Warmly lit dining room"
+  },
+  "ambience-haveli-2": {
+    "title": "BikanerEnggCollege.SakshamaGN09.Niyam - 053",
+    "author": "niyam bhushan",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/40299872@N00/4733209014",
+    "alt": "Haveli courtyard at night"
+  },
+  "ambience-haveli-3": {
+    "title": "a Thali, famous South Indian meal served on a banana leaf",
+    "author": "Melanie-m",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/84295554@N00/2679028731",
+    "alt": "Thali on a banana leaf"
+  },
+  "ambience-ember-1": {
+    "title": "Dinner @ The Village Pub",
+    "author": "Swami Stream",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/21063397@N00/1328979437",
+    "alt": "Table set by candlelight"
+  },
+  "ambience-ember-2": {
+    "title": "Tandoor oven",
+    "author": "stu_spivack",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source": "https://www.flickr.com/photos/35034346243@N01/8037773",
+    "alt": "Clay tandoor"
+  },
+  "ambience-ember-3": {
+    "title": "Christmas Placesettings on Dinner Table",
+    "author": "CarbonNYC [in SF!]",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/15923063@N00/3191752970",
+    "alt": "Dinner table"
+  },
+  "ambience-bistro-1": {
+    "title": "Charmers Cafe patrons",
+    "author": "renee_mcgurk",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/51018933@N08/5355038646",
+    "alt": "Café interior in afternoon light"
+  },
+  "ambience-bistro-2": {
+    "title": "Espresso",
+    "author": "cahadikin",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/58869751@N08/8459301889",
+    "alt": "Espresso machine"
+  },
+  "ambience-kulhad-1": {
+    "title": "Ning's Masala Chai poured by Meng Hui - close-up",
+    "author": "avlxyz",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source": "https://www.flickr.com/photos/10559879@N00/4906822909",
+    "alt": "Chai simmering"
+  },
+  "ambience-kulhad-2": {
+    "title": "Mumbai street food",
+    "author": "surtr",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source": "https://www.flickr.com/photos/29297680@N00/10006904386",
+    "alt": "Chai with snacks"
+  },
+  "ambience-street-1": {
+    "title": "Bhim Singh Pani Puri",
+    "author": "pburka",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source": "https://www.flickr.com/photos/30047235@N03/46885897924",
+    "alt": "Street food vendor at work"
+  },
+  "ambience-street-2": {
+    "title": "2016-mumbai-street-food-9438.jpg",
+    "author": "naeemcoza",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/111831288@N06/26618754485",
+    "alt": "Peanuts roasting on a street cart"
   }
 }

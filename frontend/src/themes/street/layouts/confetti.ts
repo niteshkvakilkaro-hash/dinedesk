@@ -1,5 +1,5 @@
 /**
- * Street's add-to-cart celebration: a burst of tiny chillies from where the
+ * Street's add-to-cart celebration: a burst of chilli-coloured paper bits from where the
  * button was pressed (Web Animations, transform/opacity only, ~700 ms, then
  * removed). Nothing happens with reduced motion.
  */
@@ -9,14 +9,14 @@ export function chilliConfetti(origin: { x: number; y: number }) {
   layer.setAttribute('aria-hidden', 'true');
   layer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:95;overflow:hidden';
   document.body.appendChild(layer);
-  const glyphs = ['🌶️', '🌶️', '✦', '🌶️', '●'];
+  // Drawn shapes, not emoji: chilli pod (long pill), dot and square.
+  const shapes = ['width:6px;height:16px;border-radius:6px', 'width:9px;height:9px;border-radius:50%', 'width:8px;height:8px;border-radius:1px'];
   const colours = ['#D7261E', '#FFCB2E', '#7ED9B5', '#141414'];
   const n = 16;
   let done = 0;
   for (let i = 0; i < n; i++) {
     const p = document.createElement('span');
-    p.textContent = glyphs[i % glyphs.length];
-    p.style.cssText = `position:absolute;left:${origin.x}px;top:${origin.y}px;font-size:${12 + (i % 3) * 4}px;color:${colours[i % colours.length]};will-change:transform,opacity`;
+    p.style.cssText = `position:absolute;left:${origin.x}px;top:${origin.y}px;${shapes[i % shapes.length]};background:${colours[i % colours.length]};will-change:transform,opacity`;
     layer.appendChild(p);
     const angle = (Math.PI * 2 * i) / n + Math.random() * 0.4;
     const dist = 60 + Math.random() * 70;
