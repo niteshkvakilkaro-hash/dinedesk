@@ -15,6 +15,8 @@ import { SkinContext } from './order/skin';
 import { Cart } from './order/Cart';
 import { PhotoCredits, WhatsAppButton } from './order/extras';
 import CheckoutPage from './order/CheckoutPage';
+import { ReservationLookupPage, ReservePage } from './ui/ReservePage';
+import { TableLanding, TablePage } from './ui/TablePages';
 import TrackPage from './order/TrackPage';
 import { useOpenLabel } from './components/bits';
 import type { SectionKey, SiteData } from './types';
@@ -137,10 +139,22 @@ function SiteLayout({ site, module, themeColor }: { site: SiteData; module: Them
   const { Shell } = module;
   const page = PAGES.find((p) => p.path === pathname)?.key ?? 'home';
   // Checkout and order pages are private: never indexed.
-  const privateTitle = pathname.startsWith('/checkout') ? t('order.checkoutTitle') : pathname.startsWith('/order/') ? t('order.trackTitle') : pathname.startsWith('/style-guide') ? t('site.sg.title') : null;
+  // Checkout, order, table and booking-lookup pages are private: never indexed. The booking page is public.
+  const privateTitle = pathname.startsWith('/checkout')
+    ? t('order.checkoutTitle')
+    : pathname.startsWith('/order/')
+      ? t('order.trackTitle')
+      : pathname.startsWith('/style-guide')
+        ? t('site.sg.title')
+        : pathname.startsWith('/t/') || pathname === '/table'
+          ? t('site.table.pageTitle')
+          : pathname === '/reservation'
+            ? t('site.res.lookupTitle')
+            : null;
+  const publicTitle = pathname === '/reserve' ? { title: t('site.reserveTitle'), path: '/reserve' } : null;
   return (
     <SkinContext.Provider value={module.skin}>
-      <Seo site={site} page={page} themeColor={themeColor} title={privateTitle} />
+      <Seo site={site} page={page} themeColor={themeColor} title={privateTitle ?? publicTitle?.title ?? null} path={publicTitle?.path} />
       <Shell site={site} page={page}>
         <Outlet />
       </Shell>
@@ -245,6 +259,10 @@ export default function SiteApp() {
             })}
             <Route path="/checkout" element={<CheckoutPage site={site} />} />
             <Route path="/order/:id" element={<TrackPage site={site} />} />
+            <Route path="/reserve" element={<ReservePage site={site} />} />
+            <Route path="/reservation" element={<ReservationLookupPage site={site} />} />
+            <Route path="/t/:token" element={<TableLanding site={site} />} />
+            <Route path="/table" element={<TablePage site={site} />} />
             <Route
               path="/style-guide"
               element={

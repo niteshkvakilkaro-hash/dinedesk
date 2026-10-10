@@ -57,7 +57,7 @@ class CustomerNotifier
             $channels[] = 'mail';
         }
         foreach (['whatsapp', 'sms'] as $c) {
-            if ($prefs[$c]) {
+            if ($prefs[$c] && $order->customer_phone) {
                 $route->route($c, $order->customer_phone);
                 $channels[] = $c;
             }

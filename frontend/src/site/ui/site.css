@@ -787,3 +787,28 @@
     box-shadow: inset 0 0 0 2.5px var(--t-text);
   }
 }
+
+/* Ordering at a table: the table bar shows on every screen size. */
+@layer components {
+  @media (min-width: 768px) {
+    .s-bar.s-table-bar {
+      display: grid;
+      left: 50%;
+      right: auto;
+      bottom: 16px;
+      width: min(640px, calc(100% - 32px));
+      translate: -50% 0;
+      padding: 8px;
+      border-radius: calc(var(--t-radius-btn) + 8px);
+      box-shadow:
+        0 0 0 1px var(--t-line),
+        0 18px 40px -16px rgb(0 0 0 / 0.35);
+    }
+    .s-table-mode.s-has-bar {
+      padding-bottom: 96px;
+    }
+  }
+  .s-bar a[aria-current='page'] {
+    box-shadow: inset 0 0 0 2px var(--t-text);
+  }
+}

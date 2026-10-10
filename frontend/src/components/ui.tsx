@@ -148,6 +148,23 @@ export function DemoBadge() {
   );
 }
 
+// ---------- Switch with label and hint ----------
+
+export function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
+  return (
+    <label className="flex cursor-pointer items-start justify-between gap-4 py-2">
+      <span>
+        <span className="block font-semibold">{label}</span>
+        {hint && <span className="block text-sm text-muted">{hint}</span>}
+      </span>
+      <input type="checkbox" role="switch" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <span aria-hidden="true" className={`relative mt-1 h-7 w-12 shrink-0 rounded-full transition-colors peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-brand ${checked ? 'bg-success' : 'bg-ink/25'}`}>
+        <span className={`absolute left-0 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
+      </span>
+    </label>
+  );
+}
+
 // ---------- Dialog (focus trap, Escape, scroll lock, focus restore) ----------
 
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';

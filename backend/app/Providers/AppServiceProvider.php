@@ -18,7 +18,7 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /** Business modules; each may ship a routes.php mounted under /api/v1. */
-    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering'];
+    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations'];
 
     public function register(): void
     {
@@ -84,6 +84,18 @@ class AppServiceProvider extends ServiceProvider
                 ->response($tooMany('Too many orders from this network. Please wait a minute.')),
             Limit::perHour(20)->by('orders-phone|'.preg_replace('/\D+/', '', (string) $request->input('customer.phone'))),
         ]);
+
+        // Table bookings: a few per minute per visitor, and per phone number.
+        RateLimiter::for('reservations', fn (Request $request) => [
+            Limit::perMinute(5)->by('res-ip|'.$request->ip())
+                ->response($tooMany('Too many booking attempts. Please wait a minute.')),
+            Limit::perHour(10)->by('res-phone|'.preg_replace('/\D+/', '', (string) $request->input('phone'))),
+        ]);
+        // Looking up a booking by ID + phone: slow enough that guessing IDs is pointless.
+        RateLimiter::for('booking-lookup', fn (Request $request) => Limit::perMinute(10)->by('lookup|'.$request->ip())
+            ->response($tooMany('Too many tries. Please wait a minute.')));
+        RateLimiter::for('table-requests', fn (Request $request) => Limit::perMinute(6)->by('table-req|'.$request->ip().'|'.$request->route('token'))
+            ->response($tooMany('Please wait a moment before asking again.')));
 
         RateLimiter::for('webhooks', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
 

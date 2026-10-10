@@ -71,7 +71,8 @@ class PublicOrderController extends Controller
             'scheduled_for' => ['nullable', 'date'],
             'customer' => ['required', 'array'],
             'customer.name' => ['required', 'string', 'min:2', 'max:120'],
-            'customer.phone' => ['required', Phone::RULE],
+            // Diners ordering from a table QR may leave their number out.
+            'customer.phone' => ['required_without:table_token', 'nullable', Phone::RULE],
             'customer.email' => ['nullable', 'email:rfc', 'max:160'],
             'address' => ['required_if:type,delivery', 'nullable', 'array'],
             'address.line1' => ['required_if:type,delivery', 'nullable', 'string', 'max:200'],
@@ -81,10 +82,12 @@ class PublicOrderController extends Controller
             'address.lat' => ['nullable', 'numeric', 'between:-90,90'],
             'address.lng' => ['nullable', 'numeric', 'between:-180,180'],
             'table_label' => ['nullable', 'string', 'max:40'],
+            'table_token' => ['nullable', 'string', 'max:40'],
             'notes' => ['nullable', 'string', 'max:500'],
             ...Pricing::lineRules(),
         ], [
             'customer.phone.regex' => Phone::MESSAGE,
+            'customer.phone.required_without' => 'Enter your mobile number.',
             'address.pincode.regex' => 'Enter a valid 6-digit pincode.',
             'address.line1.required_if' => 'Enter your delivery address.',
             'address.pincode.required_if' => 'Enter your pincode.',

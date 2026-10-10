@@ -58,7 +58,9 @@ class SitePresenter
             'features' => [
                 'online_ordering' => $this->features->enabled($tenant, 'online_ordering'),
                 'reservations' => $this->features->enabled($tenant, 'reservations'),
+                'qr_ordering' => $this->features->enabled($tenant, 'qr_ordering'),
             ],
+            'reservations' => $this->reservations($tenant),
             'seo' => [
                 'title' => $tenant->city ? "{$tenant->name}, {$tenant->city}" : $tenant->name,
                 'description' => $content['seo']['description'] ?? $content['tagline'] ?? $this->factualDescription($tenant),
@@ -119,6 +121,23 @@ class SitePresenter
             'prices_include_tax' => $s['prices_include_tax'],
             'default_tax_rate' => $s['default_tax_rate'],
             'has_delivery_zones' => DeliveryZone::where('is_active', true)->exists(),
+        ];
+    }
+
+    /** What the booking form needs (only when online booking is on). */
+    public function reservations(Tenant $tenant): array
+    {
+        $s = app(\App\Modules\Reservations\Services\ReservationSettings::class)->get();
+        $enabled = $s['enabled'] && $this->features->enabled($tenant, 'reservations');
+
+        return [
+            'enabled' => $enabled,
+            'auto_confirm' => $s['auto_confirm'],
+            'min_party' => $s['min_party'],
+            'max_party' => $s['max_party'],
+            'max_days' => $s['max_days'],
+            'duration_minutes' => $s['duration_minutes'],
+            'blackout_dates' => $enabled ? OpeningHours::upcomingHolidays($s['blackout_dates'], $tenant->timezone, null, 30) : [],
         ];
     }
 

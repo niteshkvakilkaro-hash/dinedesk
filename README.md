@@ -9,7 +9,25 @@ dinedesk/
 └── docs/       openapi.yaml (API reference), DESIGN.md (website design system)
 ```
 
-## Status: Phase 3 (Menu, ordering & payments) complete, websites redesigned
+## Status: Phase 4 (Reservations & QR table ordering) complete
+
+### Phase 4
+
+| Area | What works |
+|---|---|
+| Table booking (website) | "Book a table" page on every sit-down business's site: guests, day chips (blackout days greyed out), free times only, name/phone/email/notes. Each booking gets a 6-character **booking ID**; guests check or cancel it at `/reservation` with ID + phone (same answer for a wrong ID or phone, rate limited). Bookings made on the device are remembered. Online booking adds to the nav, hero, quick actions, mobile bar and the "Book a table" block; when it's off, the site falls back to Call / WhatsApp |
+| Capacity rules | Weekly **slots with a capacity in guests** (from opening hours until the owner sets their own), table time, lead time, booking window, min/max party online, **blackout dates**, holiday closures. **Table-size matching**: the smallest free table that seats the party for the whole stay is held for the booking. Bookings are taken one at a time per business (row lock), so two guests can't take the last place together |
+| Bookings (dashboard) | Day view with prev/next/today, Upcoming, status filters, search by name / phone / booking ID across dates. Confirm, decline or cancel (reason sent to the guest), seated, done, **no-show** (only after the time); auto-confirm option; move to another table (size and clash checked); phone / walk-in bookings with live capacity per time and an "allow over capacity" override. New website bookings ring, toast and badge the nav |
+| Guest messages | Request received / confirmed / declined / cancelled and a **reminder** N hours before (`reservations:send-reminders`, scheduled every 5 min), in English or Hindi, on the business's email / WhatsApp / SMS channels |
+| Tables & QR codes | Add tables one by one or in bulk (T1–T10), seats and area, switch a table's QR off, **regenerate** a QR (the old sticker stops working), download a QR as PNG, and **print an A4 sheet** of QR cards. Each QR has a secret token (`/t/{token}`) |
+| QR dine-in | Scanning opens the menu for that table: a table bar (Table T4 · Waiter · cart / My table) replaces the usual bar, the cart and checkout are locked to dine-in for that table, phone is optional. Every guest at the table adds to the same **running bill**; the table page shows all orders with live status, the bill so far, **Call waiter** and **Request bill** (repeats are merged) |
+| Live tables (dashboard) | Board of every table: free / occupied / bill asked, running total, orders in the kitchen, waiter and bill calls (chime + toast + nav badge, marked done in one tap), upcoming booking. **Bill** per table (every order, GST, paid online, to collect) and **Settle & free the table** with cash / UPI / card / online / no charge: orders are completed, pay-later ones marked paid, unpaid online ones released, audited |
+| Roles & plans | Front desk and managers run bookings; waiters and cashiers run the table board; owners and managers set up tables (`tables.setup`). Bookings on every plan, QR ordering from Growth up. Kitchen staff see neither |
+| Tests | Backend 81 tests / 739 assertions (+ slot capacity, party limits, lead time, blackout/holiday, table matching and moving, weekly slots, staff bookings with override, no-show timing, reminders once, guest lookup/cancel, isolation and roles; QR: running bill across guests, merged waiter calls, bill before ordering, settle closes and frees, fresh bill after, QR off / regenerated, table in use, plan gating, cross-business QR). Frontend 32 unit tests. End-to-end browser run: guest books → owner confirms → guest sees Confirmed; QR scan → order → table page → waiter call on the board → bill settled by UPI → table free |
+
+**Try it:** on http://haveli-demo.localhost:5173/reserve (also Ember, Bistro, Kulhad) book a table, then confirm it as the demo owner under **Bookings**. For QR ordering, open **Tables → Set up & QR codes** as the owner, open a table's link (or scan its QR from a phone on the same network), order, call a waiter, then settle the bill on the **Live** tab.
+
+### Website redesign (before Phase 4)
 
 ### Website redesign (before Phase 4)
 
@@ -132,11 +150,11 @@ cd frontend && npm test            # vitest
 cd frontend && npm run typecheck
 ```
 
-Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identity/*` (auth, OTP, roles), `Onboarding/*` (incl. `SiteSetupTest`: steps 4–7, slug rules), `Website/WebsiteTest` (themes, content, uploads, isolation, holidays, robots/sitemap), `Plans/FeatureGatingTest`, `Platform/SuperAdminTest`.
+Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identity/*` (auth, OTP, roles), `Onboarding/*` (incl. `SiteSetupTest`: steps 4–7, slug rules), `Website/WebsiteTest` (themes, content, uploads, isolation, holidays, robots/sitemap), `Plans/FeatureGatingTest`, `Platform/SuperAdminTest`, `Ordering/*` (pricing, lifecycle, payments), `Reservations/ReservationTest`, `Tables/QrOrderingTest`.
 
 ## Architecture notes
 
-- **Modules** (`backend/app/Modules`): Tenancy, Identity, Onboarding, Settings, Plans, Platform, Audit, Website (themes, content, gallery, public site, SEO files), Menu (menu management, CSV import, sample menus), Ordering (pricing, delivery zones, orders, Razorpay, notifications). Each has its own routes, models and controllers; business logic lives in Actions/Services.
+- **Modules** (`backend/app/Modules`): Tenancy, Identity, Onboarding, Settings, Plans, Platform, Audit, Website (themes, content, gallery, public site, SEO files), Menu (menu management, CSV import, sample menus), Ordering (pricing, delivery zones, orders, Razorpay, notifications), Tables (tables, QR tokens, running table sessions, waiter/bill requests), Reservations (slots, availability, bookings, reminders). Each has its own routes, models and controllers; business logic lives in Actions/Services.
 - **Tenant isolation**: tenant-owned models use `BelongsToTenant` → `TenantScope`. No tenant in context ⇒ queries return nothing. Cross-tenant reads only via explicit `Model::withoutTenancy()` in super admin code.
 - **Feature gating**: `FeatureService` merges plan features with super-admin overrides; the same map is returned by `/auth/me` for the UI.
 - **Time**: stored in UTC, shown in the business's timezone (default Asia/Kolkata).
@@ -144,6 +162,10 @@ Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identi
 - **Laravel 12** is used instead of 11: Composer blocks every Laravel 11 release over published security advisories. The structure is identical.
 - **Development cache/queues** use the database (no Redis on XAMPP/Windows). Production uses Redis, Horizon and Reverb (Phases 5 and 8).
 
-## Next: Phase 4 — Reservations & QR table ordering
+## Next: Phase 5 — Operations
 
-Table reservations with slot capacity, tables and QR codes, QR dine-in ordering with running table orders, call waiter / request bill.
+Live orders board over WebSockets, Kitchen Display System, POS billing with GST invoices and day-end report, visual floor plan (drag tables), waiter PWA.
+
+## Done: Phase 4 — Reservations & QR table ordering
+
+See the Phase 4 section above.

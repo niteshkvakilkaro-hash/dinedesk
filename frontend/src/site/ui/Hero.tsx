@@ -22,8 +22,9 @@ function useCtas(site: SiteData) {
   const { t } = useTranslation();
   const c = site.content.contact;
   const primary = site.ordering.enabled ? { to: '/menu', label: t('site.hero.order') } : site.has_menu ? { to: '/menu', label: t('site.viewMenu') } : null;
-  let secondary: { href: string; label: string; external?: boolean } | null = null;
-  if (site.business_type !== 'cloud_kitchen' && c.phone) secondary = { href: telHref(c.phone), label: t('site.hero.book') };
+  let secondary: { href: string; label: string; external?: boolean; internal?: boolean } | null = null;
+  if (site.reservations?.enabled) secondary = { href: '/reserve', label: t('site.reserveTitle'), internal: true };
+  else if (site.business_type !== 'cloud_kitchen' && c.phone) secondary = { href: telHref(c.phone), label: t('site.hero.book') };
   else if (c.whatsapp) secondary = { href: whatsappHref(c.whatsapp, t('site.whatsappHello', { name: site.name })), label: t('site.hero.whatsapp'), external: true };
   else secondary = { href: mapHref(site), label: t('site.directions'), external: true };
   return { primary, secondary };
@@ -40,7 +41,12 @@ function Ctas({ site, onPhoto = false }: { site: SiteData; onPhoto?: boolean }) 
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       )}
-      {secondary && (
+      {secondary?.internal && (
+        <Link to={secondary.href} className={`s-btn ${onPhoto ? 's-btn-glass' : 's-btn-secondary'}`}>
+          {secondary.label}
+        </Link>
+      )}
+      {secondary && !secondary.internal && (
         <a href={secondary.href} className={`s-btn ${onPhoto ? 's-btn-glass' : 's-btn-secondary'}`} {...(secondary.external ? ext : {})}>
           {secondary.label}
           {secondary.external && <span className="sr-only"> ({t('common.opensInNewTab')})</span>}

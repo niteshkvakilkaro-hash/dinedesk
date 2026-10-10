@@ -52,6 +52,22 @@ class OrderPresenter
         ];
     }
 
+    /** One order on a table's running bill, as guests at that table see it (no names or phones). */
+    public function forTable(Order $o): array
+    {
+        return [
+            'number' => $o->number,
+            'status' => $o->status,
+            'placed_at' => $o->placed_at->toIso8601String(),
+            'items' => $o->items->map(fn ($i) => $this->line($i))->values(),
+            'subtotal' => $o->subtotal,
+            'tax_total' => $o->tax_total,
+            'total' => $o->total,
+            'payment_method' => $o->payment_method,
+            'payment_status' => $o->payment_status,
+        ];
+    }
+
     public function row(Order $o): array
     {
         return [

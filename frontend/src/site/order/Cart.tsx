@@ -8,6 +8,7 @@ import { FoodTypeMark } from '../components/bits';
 import { useMoney, useQuote } from '../ordering';
 import type { OrderType, Quote, SiteData } from '../types';
 import { SiteDialog, useSkin } from './skin';
+import { useActiveTable } from '../table';
 
 export function OrderTypePicker({ site, value, onChange }: { site: SiteData; value: OrderType | null; onChange: (t: OrderType) => void }) {
   const { t } = useTranslation();
@@ -101,7 +102,9 @@ export function Cart() {
   const tick = useCart((s) => s.addedTick);
   const status = useOpenStatus(site!);
   const button = useRef<HTMLButtonElement>(null);
-  const effectiveType = type && site?.ordering.types.includes(type) ? type : (site?.ordering.types[0] ?? null);
+  const table = useActiveTable(site);
+  // At a table, orders are always dine-in for that table.
+  const effectiveType = table && site?.ordering.types.includes('dine_in') ? 'dine_in' : type && site?.ordering.types.includes(type) ? type : (site?.ordering.types[0] ?? null);
   const quote = useQuote(open ? effectiveType : null);
 
   // A little nudge whenever something is added (no motion when reduced).
@@ -112,7 +115,7 @@ export function Cart() {
 
   if (!site?.ordering.enabled) return null;
   const count = cartCount(lines);
-  const hidden = pathname.startsWith('/checkout') || pathname.startsWith('/order/');
+  const hidden = pathname.startsWith('/checkout') || pathname.startsWith('/order/') || !!table;
 
   return (
     <>
@@ -172,7 +175,7 @@ export function Cart() {
           </div>
         ) : (
           <div className="space-y-4">
-            <OrderTypePicker site={site} value={effectiveType} onChange={setType} />
+            {table ? <p className="font-semibold">{t('site.table.orderingFor', { label: table.label })}</p> : <OrderTypePicker site={site} value={effectiveType} onChange={setType} />}
             {status && !status.is_open && (
               <p className={`px-3 py-2 text-sm ${skin.card}`}>{site.ordering.scheduling.enabled ? t('order.closedSchedule') : t('order.closedNoSchedule')}</p>
             )}

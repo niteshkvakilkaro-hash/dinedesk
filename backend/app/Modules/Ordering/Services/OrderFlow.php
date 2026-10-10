@@ -11,6 +11,8 @@ use App\Modules\Ordering\Models\Payment;
 use App\Modules\Ordering\Notifications\CustomerNotifier;
 use App\Modules\Ordering\Notifications\NewOrderForStaff;
 use App\Modules\Ordering\Support\Money;
+use App\Modules\Plans\Services\FeatureService;
+use App\Modules\Tables\Services\DineIn;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
@@ -48,6 +50,8 @@ class OrderFlow
         private readonly DeliveryZones $zones,
         private readonly Razorpay $razorpay,
         private readonly CustomerNotifier $notifier,
+        private readonly DineIn $dineIn,
+        private readonly FeatureService $features,
     ) {}
 
     /**
@@ -68,6 +72,16 @@ class OrderFlow
             throw new ApiException('That payment method is not available for this order.', 422, 'payment_method_unavailable', ['field' => 'payment_method']);
         }
 
+        // Ordering from a table's QR code: the order joins that table's running bill.
+        $table = null;
+        if ($type === 'dine_in' && ! empty($data['table_token'])) {
+            if (! $this->features->enabled($tenant, 'qr_ordering')) {
+                throw new ApiException('Ordering from the table is not available. Please ask the staff.', 422, 'qr_unavailable');
+            }
+            $table = $this->dineIn->resolve($data['table_token']);
+            $data['scheduled_for'] = null;
+        }
+
         $scheduled = $this->checkTiming($tenant, $s, $data['scheduled_for'] ?? null);
 
         $zone = null;
@@ -76,16 +90,21 @@ class OrderFlow
         }
         $quote = $this->pricing->quote($type, $data['items'], $zone);
 
-        $phone = Phone::normalize($data['customer']['phone']);
+        // Diners at a table may skip their phone number.
+        $phone = ! empty($data['customer']['phone']) ? Phone::normalize($data['customer']['phone']) : null;
 
-        $order = DB::transaction(function () use ($tenant, $data, $type, $scheduled, $zone, $quote, $phone, $locale) {
-            $customer = Customer::firstOrNew(['phone' => $phone]);
-            $customer->fill([
-                'name' => strip_tags($data['customer']['name']),
-                'email' => $data['customer']['email'] ?? $customer->email,
-                'orders_count' => $customer->orders_count + 1,
-                'last_order_at' => now(),
-            ])->save();
+        $order = DB::transaction(function () use ($tenant, $data, $type, $scheduled, $zone, $quote, $phone, $locale, $table) {
+            $customer = null;
+            if ($phone) {
+                $customer = Customer::firstOrNew(['phone' => $phone]);
+                $customer->fill([
+                    'name' => strip_tags($data['customer']['name']),
+                    'email' => $data['customer']['email'] ?? $customer->email,
+                    'orders_count' => $customer->orders_count + 1,
+                    'last_order_at' => now(),
+                ])->save();
+            }
+            $session = $table ? $this->dineIn->sessionFor($table) : null;
 
             // Per-business order numbers, #1001 upwards (row lock keeps them unique under load).
             $last = Order::lockForUpdate()->max('number');
@@ -93,7 +112,7 @@ class OrderFlow
             $order = Order::create([
                 'tracking_token' => Str::random(40),
                 'number' => max(1000, (int) $last) + 1,
-                'customer_id' => $customer->id,
+                'customer_id' => $customer?->id,
                 'type' => $type,
                 'status' => 'pending',
                 'scheduled_for' => $scheduled,
@@ -102,7 +121,9 @@ class OrderFlow
                 'customer_email' => $data['customer']['email'] ?? null,
                 'address' => $type === 'delivery' ? $this->cleanAddress($data['address']) : null,
                 'delivery_zone_id' => $zone?->id,
-                'table_label' => $type === 'dine_in' && ! empty($data['table_label']) ? strip_tags($data['table_label']) : null,
+                'table_label' => $table ? $table->label : ($type === 'dine_in' && ! empty($data['table_label']) ? strip_tags($data['table_label']) : null),
+                'dining_table_id' => $table?->id,
+                'table_session_id' => $session?->id,
                 'notes' => isset($data['notes']) ? strip_tags($data['notes']) : null,
                 'subtotal' => $quote['subtotal'],
                 'tax_total' => $quote['tax_total'],

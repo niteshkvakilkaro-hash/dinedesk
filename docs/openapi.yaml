@@ -39,6 +39,10 @@ tags:
   - name: Ordering (public)
   - name: Orders (dashboard)
   - name: Menu (dashboard)
+  - name: Reservations (public)
+  - name: Reservations (dashboard)
+  - name: Table ordering (public)
+  - name: Tables (dashboard)
   - name: Plans
   - name: Platform (super admin)
 components:
@@ -680,7 +684,8 @@ paths:
                 type: { type: string, enum: [delivery, takeaway, dine_in] }
                 payment_method: { type: string, enum: [online, cod, counter] }
                 scheduled_for: { type: [string, 'null'], format: date-time }
-                customer: { type: object, properties: { name: { type: string }, phone: { type: string, example: '9876543210' }, email: { type: [string, 'null'] } } }
+                customer: { type: object, properties: { name: { type: string }, phone: { type: [string, 'null'], example: '9876543210', description: 'Optional with table_token' }, email: { type: [string, 'null'] } } }
+                table_token: { type: [string, 'null'], description: 'From the table QR (/t/{token}): dine-in on the running bill of that table' }
                 address: { type: [object, 'null'], properties: { line1: { type: string }, line2: { type: string }, landmark: { type: string }, pincode: { type: string }, lat: { type: number }, lng: { type: number } } }
                 notes: { type: [string, 'null'] }
                 items: { type: array, items: { $ref: '#/components/schemas/CartLine' } }
@@ -946,6 +951,217 @@ paths:
       summary: Remove the sample (Demo) menu
       responses:
         '200': { description: Removed }
+  /site/reservations/availability:
+    get:
+      tags: [Reservations (public)]
+      summary: Free booking times on a date for a party (only free / not free, never how full)
+      parameters:
+        - { $ref: '#/components/parameters/TenantHost' }
+        - { name: date, in: query, required: true, schema: { type: string, format: date } }
+        - { name: party_size, in: query, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: '{ date, problem: null | { code: past|too_far|blackout|holiday, message }, slots: [{ time: "19:30", available }] }' }
+        '422': { description: '`not_accepting` (online booking off) or party size outside the limits' }
+  /site/reservations:
+    post:
+      tags: [Reservations (public)]
+      summary: Book a table (pending until staff confirm, or confirmed straight away with auto-confirm)
+      description: Rate limited per visitor and per phone. The smallest free table that fits is held when the business has tables.
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, time, party_size, name, phone]
+              properties:
+                date: { type: string, format: date }
+                time: { type: string, example: '19:30' }
+                party_size: { type: integer, example: 4 }
+                name: { type: string }
+                phone: { type: string, example: '9876543210' }
+                email: { type: [string, 'null'] }
+                notes: { type: [string, 'null'] }
+      responses:
+        '201': { description: '{ code, status, date, time, party_size, starts_at, cancellable }' }
+        '422': { description: '`full` / `no_table` / `too_soon` / `invalid_time` / `party_size` / date problems' }
+  /site/reservations/lookup:
+    post:
+      tags: [Reservations (public)]
+      summary: Check a booking with its ID and the phone number used
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [code, phone], properties: { code: { type: string, example: 'K7M2QP' }, phone: { type: string } } } } } }
+      responses:
+        '200': { description: Booking }
+        '404': { description: 'Same answer for a wrong ID or a wrong phone' }
+  /site/reservations/cancel:
+    post:
+      tags: [Reservations (public)]
+      summary: Guest cancels (pending or confirmed, before the time)
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [code, phone], properties: { code: { type: string }, phone: { type: string } } } } } }
+      responses:
+        '200': { description: Cancelled booking }
+        '422': { description: '`not_cancellable`' }
+  /site/tables/{token}:
+    get:
+      tags: [Table ordering (public)]
+      summary: A table from its QR code, with the running order (no other guests' names or phones)
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }, { name: token, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: '{ label, area, seats, session: null | { opened_at, bill_requested, orders[], totals }, open_requests[] }' }
+        '403': { description: 'QR ordering is not in the plan (Growth and up)' }
+        '404': { description: '`table_not_found` (unknown, switched off or replaced QR)' }
+  /site/tables/{token}/requests:
+    post:
+      tags: [Table ordering (public)]
+      summary: Call a waiter or ask for the bill (a repeat within 10 minutes returns the open request)
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }, { name: token, in: path, required: true, schema: { type: string } }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [type], properties: { type: { type: string, enum: [waiter, bill] } } } } } }
+      responses:
+        '200': { description: The table view }
+        '422': { description: '`no_session` (bill before any order)' }
+  /tenant/reservations:
+    get:
+      tags: [Reservations (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Bookings for a day (or `status=upcoming`, or search `q` across dates)
+      parameters:
+        - { name: date, in: query, schema: { type: string, format: date } }
+        - { name: status, in: query, schema: { type: string, enum: [upcoming, pending, confirmed, seated, completed, rejected, cancelled, no_show] } }
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        '200': { description: '{ date, reservations[], tables[], summary: { bookings, guests, pending } }' }
+    post:
+      tags: [Reservations (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Phone / walk-in booking (confirmed; `force` may go over capacity)
+      responses:
+        '201': { description: Booking }
+  /tenant/reservations/availability:
+    get:
+      tags: [Reservations (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Times on a date with capacity, booked guests, reason and the table that would be held
+      responses:
+        '200': { description: OK }
+  /tenant/reservations/feed:
+    get:
+      tags: [Reservations (dashboard)]
+      security: [{ bearer: [] }]
+      summary: New website bookings since `after` (alert sound) and the pending count
+      responses:
+        '200': { description: '{ latest_id, new[], pending }' }
+  /tenant/reservations/{id}/status:
+    post:
+      tags: [Reservations (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'pending → confirmed / rejected / cancelled; confirmed → seated / cancelled / no_show (after the time); seated → completed'
+      requestBody: { content: { application/json: { schema: { type: object, required: [status], properties: { status: { type: string }, note: { type: [string, 'null'], description: 'Reason sent to the guest (reject / cancel)' } } } } } }
+      responses:
+        '200': { description: Booking }
+        '422': { description: '`invalid_transition` / `too_early` / `over_capacity`' }
+  /tenant/reservations/{id}/table:
+    put:
+      tags: [Reservations (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Move a booking to another table (or none)
+      responses:
+        '200': { description: Booking }
+        '422': { description: '`table_too_small` / `table_taken`' }
+  /tenant/reservations/settings:
+    get:
+      tags: [Reservations (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Booking settings, weekly slots (custom or from opening hours) and opening hours
+      responses:
+        '200': { description: '{ settings, slots[], custom_slots, opening_hours }' }
+    put:
+      tags: [Reservations (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'enabled, auto_confirm, slot_minutes, duration_minutes, default_capacity, min/max_party, lead_minutes, max_days, reminder_hours, match_tables, blackout_dates'
+      responses:
+        '200': { description: Saved }
+  /tenant/reservations/slots:
+    put:
+      tags: [Reservations (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Replace the weekly slots ([] goes back to slots from opening hours)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { slots: { type: array, items: { type: object, properties: { day: { type: string, enum: [mon, tue, wed, thu, fri, sat, sun] }, time: { type: string }, capacity: { type: integer }, is_active: { type: boolean } } } } } } } } }
+      responses:
+        '200': { description: Saved }
+  /tenant/tables:
+    get:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Tables with their QR links (needs tables.setup)
+      responses:
+        '200': { description: '{ tables: [{ id, label, seats, area, is_active, qr_url }], business }' }
+    post:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Add a table
+      requestBody: { content: { application/json: { schema: { type: object, required: [label, seats], properties: { label: { type: string, example: T4 }, seats: { type: integer }, area: { type: [string, 'null'] }, is_active: { type: boolean } } } } } }
+      responses:
+        '201': { description: Table }
+  /tenant/tables/{id}:
+    put:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Edit a table (is_active false switches its QR off)
+      responses:
+        '200': { description: Table }
+    delete:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Remove a table (not while its bill is open)
+      responses:
+        '200': { description: Removed }
+        '422': { description: '`table_in_use`' }
+  /tenant/tables/{id}/qr:
+    post:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: New QR code (the old printed one stops working)
+      responses:
+        '200': { description: Table }
+  /tenant/tables/live:
+    get:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Live board: state (free / occupied / bill_requested / inactive), running total, open requests, upcoming booking'
+      responses:
+        '200': { description: OK }
+  /tenant/tables/feed:
+    get:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: New waiter / bill requests since `after` (alert sound) and the open count
+      responses:
+        '200': { description: '{ latest_id, new[], open }' }
+  /tenant/tables/sessions/{sessionId}:
+    get:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: A table's bill (every order, totals, paid online, to collect)
+      responses:
+        '200': { description: OK }
+  /tenant/tables/sessions/{sessionId}/close:
+    post:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Settle and free the table (orders completed, pay-later ones marked paid)
+      requestBody: { content: { application/json: { schema: { type: object, required: [payment_mode], properties: { payment_mode: { type: string, enum: [cash, upi, card, online, none] } } } } } }
+      responses:
+        '200': { description: Closed }
+        '422': { description: '`already_closed`' }
+  /tenant/tables/requests/{id}/done:
+    post:
+      tags: [Tables (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Mark a waiter / bill request handled
+      responses:
+        '200': { description: OK }
   /plans:
     get:
       tags: [Plans]

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type ComponentType, type KeyboardEvent } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Car, MapPin, MessageCircle, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-react';
+import { ArrowRight, CalendarCheck, Car, MapPin, MessageCircle, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-react';
 import { formatPhone } from '@/lib/format';
 import { featuredItems, mapHref, telHref, useLocalized, useSiteGallery, useSiteMenu, whatsappHref } from '../data';
 import { FoodTypeMark, SiteImg } from '../components/bits';
@@ -28,6 +28,7 @@ export function QuickActions({ site }: { site: SiteData }) {
   const c = site.content.contact;
   const actions = [
     site.has_menu && { key: 'menu', icon: site.ordering.enabled ? ShoppingBag : UtensilsCrossed, label: site.ordering.enabled ? t('site.quick.order') : t('site.quick.menu'), hint: site.ordering.enabled ? t('site.quick.orderHint') : t('site.quick.menuHint'), to: '/menu' },
+    site.reservations?.enabled && { key: 'reserve', icon: CalendarCheck, label: t('site.reserveTitle'), hint: t('site.quick.reserveHint'), to: '/reserve' },
     c.phone && { key: 'call', icon: Phone, label: t('site.quick.call'), hint: formatPhone(c.phone), href: telHref(c.phone) },
     c.whatsapp && { key: 'wa', icon: MessageCircle, label: 'WhatsApp', hint: t('site.quick.whatsappHint'), href: whatsappHref(c.whatsapp, t('site.whatsappHello', { name: site.name })), external: true },
     { key: 'map', icon: MapPin, label: t('site.quick.directions'), hint: site.city ?? t('site.quick.directionsHint'), href: mapHref(site), external: true },
@@ -231,11 +232,12 @@ export function Ambience({ site }: { site: SiteData }) {
   );
 }
 
-/** Book a table by phone or WhatsApp (online booking arrives with reservations). */
+/** Book a table online (when switched on), by phone or on WhatsApp. */
 export function Reserve({ site }: { site: SiteData }) {
   const { t } = useTranslation();
   const c = site.content.contact;
-  if (site.business_type === 'cloud_kitchen' || (!c.phone && !c.whatsapp)) return null;
+  const online = !!site.reservations?.enabled;
+  if (!online && (site.business_type === 'cloud_kitchen' || (!c.phone && !c.whatsapp))) return null;
   return (
     <section className="s-section-tight" aria-labelledby="reserve-title">
       <div className="s-wrap">
@@ -246,11 +248,17 @@ export function Reserve({ site }: { site: SiteData }) {
               <h2 id="reserve-title" className="s-h2 mt-3">
                 {t('site.reserveTitle')}
               </h2>
-              <p className="mt-4 max-w-lg text-lg opacity-90">{t('site.reserveText')}</p>
+              <p className="mt-4 max-w-lg text-lg opacity-90">{online ? t('site.reserveTextOnline') : t('site.reserveText')}</p>
             </div>
             <div className="col-span-4 flex flex-wrap gap-3 md:col-span-5 md:justify-end">
+              {online && (
+                <Link to="/reserve" className="s-btn bg-t-on-primary text-t-primary">
+                  <CalendarCheck className="h-4 w-4" aria-hidden="true" />
+                  {t('site.reserveOnline')}
+                </Link>
+              )}
               {c.phone && (
-                <a href={telHref(c.phone)} className="s-btn bg-t-on-primary text-t-primary">
+                <a href={telHref(c.phone)} className={`s-btn ${online ? 's-btn-secondary' : 'bg-t-on-primary text-t-primary'}`}>
                   <Phone className="h-4 w-4" aria-hidden="true" />
                   {t('site.reserveCall')}
                 </a>

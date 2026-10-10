@@ -13,7 +13,7 @@ import { HomeSections, QuickActions, Reserve } from './sections';
 
 const delay = (i: number) => ({ ['--i' as string]: i });
 
-function PageHeader({ site, eyebrow, title, lead }: { site: SiteData; eyebrow?: string | null; title: string; lead?: React.ReactNode }) {
+export function PageHeader({ site, eyebrow, title, lead }: { site: SiteData; eyebrow?: string | null; title: string; lead?: React.ReactNode }) {
   return (
     <header className={`pb-10 pt-12 md:pb-14 md:pt-20 ${site.theme.key === 'haveli' ? 's-jaali' : ''}`}>
       <div className="s-wrap">

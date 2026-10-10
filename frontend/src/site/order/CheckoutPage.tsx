@@ -12,6 +12,7 @@ import { FoodTypeMark } from '../components/bits';
 import { BillSummary, OrderTypePicker } from './Cart';
 import { scheduleSlots } from './schedule';
 import { useSkin } from './skin';
+import { useActiveTable } from '../table';
 
 const CONTACT_KEY = 'dd_checkout_contact';
 
@@ -52,13 +53,16 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
   const setStoredType = useCart((s) => s.setType);
   const status = useOpenStatus(site);
   const ordering = site.ordering;
+  // Scanned a table's QR: the order goes to that table's running bill.
+  const activeTable = useActiveTable(site);
+  const table = activeTable && ordering.types.includes('dine_in') ? activeTable : null;
 
-  const type: OrderType = storedType && ordering.types.includes(storedType) ? storedType : ordering.types[0];
+  const type: OrderType = table ? 'dine_in' : storedType && ordering.types.includes(storedType) ? storedType : ordering.types[0];
   const [contact, setContact] = useState<Contact>(loadContact);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [notes, setNotes] = useState('');
-  const [when, setWhen] = useState<'now' | 'later'>(status && !status.is_open ? 'later' : 'now');
+  const [when, setWhen] = useState<'now' | 'later'>(status && !status.is_open && !table ? 'later' : 'now');
   const [slotDay, setSlotDay] = useState('');
   const [slot, setSlot] = useState('');
   const methods = ordering.payment_methods[type] ?? [];
@@ -115,7 +119,8 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
   const validate = () => {
     const e: Record<string, string> = {};
     if (contact.name.trim().length < 2) e['customer.name'] = t('order.err.name');
-    if (!isIndianMobile(contact.phone)) e['customer.phone'] = t('order.err.phone');
+    // At a table the phone number is optional (only for "your order is ready" messages).
+    if ((!table || contact.phone) && !isIndianMobile(contact.phone)) e['customer.phone'] = t('order.err.phone');
     if (contact.email && !/^\S+@\S+\.\S+$/.test(contact.email)) e['customer.email'] = t('order.err.email');
     if (type === 'delivery') {
       if (contact.line1.trim().length < 3) e['address.line1'] = t('order.err.address');
@@ -144,7 +149,7 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
         await pay(order, token, razorpay);
       } else {
         clear();
-        navigate(`/order/${order.id}?t=${token}&placed=1`, { replace: true });
+        navigate(table ? '/table?placed=1' : `/order/${order.id}?t=${token}&placed=1`, { replace: true });
       }
     } catch (e) {
       const err = e as ApiError;
@@ -160,8 +165,9 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
       await api.post<{ order: CustomerOrder; token: string; razorpay: Record<string, unknown> | null }>('/site/orders', {
         type,
         payment_method: method,
-        scheduled_for: when === 'later' ? slot || day?.slots[0]?.value : null,
-        customer: { name: contact.name, phone: contact.phone, email: contact.email || null },
+        scheduled_for: when === 'later' && !table ? slot || day?.slots[0]?.value : null,
+        customer: { name: contact.name, phone: contact.phone || null, email: contact.email || null },
+        table_token: table?.token ?? null,
         address: type === 'delivery' ? { line1: contact.line1, line2: contact.line2 || null, landmark: contact.landmark || null, pincode: contact.pincode, lat: geo?.lat ?? null, lng: geo?.lng ?? null } : null,
         notes: notes || null,
         items: apiLines(lines),
@@ -187,7 +193,7 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
             /* the webhook will still confirm it; the tracking page shows the current state */
           }
           clear();
-          navigate(`/order/${order.id}?t=${token}&placed=1`, { replace: true });
+          navigate(table ? '/table?placed=1' : `/order/${order.id}?t=${token}&placed=1`, { replace: true });
           resolve();
         },
         modal: {
@@ -229,7 +235,7 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
 
   return (
     <Wrapper>
-      <Link to="/menu" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
+      <Link to={table ? '/table' : '/menu'} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
         <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t('order.backToMenu')}
       </Link>
       <h1 className={`mt-2 text-4xl sm:text-5xl ${skin.heading}`}>{t('order.checkoutTitle')}</h1>
@@ -241,9 +247,18 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
               {t('order.howTitle')}
             </h2>
             <div className="mt-3">
-              <OrderTypePicker site={site} value={type} onChange={setStoredType} />
-              {ordering.types.length === 1 && <p className="font-semibold">{t(`order.type.${type}`)}</p>}
+              {table ? (
+                <p className="font-semibold">{t('site.table.orderingFor', { label: table.label })}</p>
+              ) : (
+                <>
+                  <OrderTypePicker site={site} value={type} onChange={setStoredType} />
+                  {ordering.types.length === 1 && <p className="font-semibold">{t(`order.type.${type}`)}</p>}
+                </>
+              )}
             </div>
+            {table ? (
+              <p className="mt-3 text-sm text-t-muted">{t('site.table.servedHere')}</p>
+            ) : (
             <fieldset className="mt-5">
               <legend className="text-sm font-semibold">{t('order.whenTitle')}</legend>
               <div className="mt-2 grid grid-cols-2 gap-2">
@@ -284,6 +299,7 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
                 </p>
               )}
             </fieldset>
+            )}
           </section>
 
           <section className={`space-y-4 p-5 ${skin.card}`} aria-labelledby="contact-h">
@@ -292,7 +308,7 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
             </h2>
             {field('name', 'customer.name', t('order.name'), { autoComplete: 'name' })}
             <div className="grid gap-4 sm:grid-cols-2">
-              {field('phone', 'customer.phone', t('order.phone'), { type: 'tel', inputMode: 'tel', autoComplete: 'tel' })}
+              {field('phone', 'customer.phone', t('order.phone'), { type: 'tel', inputMode: 'tel', autoComplete: 'tel' }, !!table)}
               {field('email', 'customer.email', t('order.email'), { type: 'email', autoComplete: 'email' }, true)}
             </div>
             <p className="text-xs text-t-muted">{t('order.contactUse')}</p>

@@ -26,3 +26,18 @@ Artisan::command('orders:expire-unpaid', function (TenantContext $context) {
 })->purpose('Cancel online orders that were never paid');
 
 Schedule::command('orders:expire-unpaid')->everyFiveMinutes()->withoutOverlapping();
+
+// Reminder messages for confirmed table bookings (each business sets how many hours before).
+Artisan::command('reservations:send-reminders', function (TenantContext $context) {
+    $tenantIds = \App\Modules\Reservations\Models\Reservation::withoutTenancy()
+        ->where('status', 'confirmed')->whereNull('reminder_sent_at')
+        ->whereBetween('starts_at', [now(), now()->addHours(48)])
+        ->distinct()->pluck('tenant_id');
+    $total = 0;
+    foreach (Tenant::whereIn('id', $tenantIds)->get() as $tenant) {
+        $total += $context->run($tenant, fn () => app(\App\Modules\Reservations\Services\Bookings::class)->sendReminders());
+    }
+    $this->info("Sent {$total} booking reminder(s).");
+})->purpose('Remind guests of confirmed table bookings');
+
+Schedule::command('reservations:send-reminders')->everyFiveMinutes()->withoutOverlapping();

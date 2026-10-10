@@ -7,6 +7,8 @@ use App\Modules\Menu\Support\SampleMenu;
 use App\Modules\Onboarding\Actions\CreateBusiness;
 use App\Modules\Ordering\Models\DeliveryZone;
 use App\Modules\Ordering\Services\OrderingSettings;
+use App\Modules\Reservations\Services\ReservationSettings;
+use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Support\TenantContext;
@@ -120,8 +122,8 @@ class DemoTenantSeeder extends Seeder
             $content['about_hi'] = "यह DineDesk पर {$theme} थीम दिखाने के लिए बनाया गया डेमो बिज़नेस है। मेनू, दाम और टेक्स्ट नमूना सामग्री हैं, कोई असली रेस्टोरेंट नहीं। फ़ोटो Wikimedia Commons और Flickr (Openverse के ज़रिए) से मुक्त लाइसेंस वाली तस्वीरें हैं, जिनका श्रेय हर पेज के नीचे दिया गया है; ये इस बिज़नेस की नहीं हैं।";
             $content['milestones'] = [
                 ['year' => 'Step 1', 'title' => 'Sign up', 'title_hi' => 'साइन अप', 'text' => 'Create an account with your phone or email.', 'text_hi' => 'फ़ोन या ईमेल से अकाउंट बनाएँ।'],
-                ['year' => 'Step 2', 'title' => 'Pick a theme', 'title_hi' => 'थीम चुनें', 'text' => 'Haveli, Bistro or Street, with your colours and logo.', 'text_hi' => 'हवेली, बिस्ट्रो या स्ट्रीट, अपने रंग और लोगो के साथ।'],
-                ['year' => 'Step 3', 'title' => 'Take orders', 'title_hi' => 'ऑर्डर लें', 'text' => 'Delivery and takeaway orders with live tracking.', 'text_hi' => 'लाइव ट्रैकिंग के साथ डिलीवरी और टेकअवे ऑर्डर।'],
+                ['year' => 'Step 2', 'title' => 'Pick a theme', 'title_hi' => 'थीम चुनें', 'text' => 'Six website designs, with your colours and logo.', 'text_hi' => 'छह वेबसाइट डिज़ाइन, अपने रंग और लोगो के साथ।'],
+                ['year' => 'Step 3', 'title' => 'Take orders', 'title_hi' => 'ऑर्डर लें', 'text' => 'Delivery, takeaway, table bookings and QR ordering at the table.', 'text_hi' => 'डिलीवरी, टेकअवे, टेबल बुकिंग और टेबल पर QR से ऑर्डर।'],
             ];
             app(SiteContent::class)->save($content);
 
@@ -139,7 +141,8 @@ class DemoTenantSeeder extends Seeder
             // Ordering switched on: delivery (by pincode or distance) and takeaway, pay on delivery / at the counter.
             $ordering = OrderingSettings::defaults();
             $ordering['accepting_orders'] = true;
-            $ordering['types'] = ['delivery' => true, 'takeaway' => true, 'dine_in' => false];
+            $dineIn = $tenant->business_type !== 'cloud_kitchen';
+            $ordering['types'] = ['delivery' => true, 'takeaway' => true, 'dine_in' => $dineIn];
             $ordering['packaging_fee'] = $demo['packaging'];
             $ordering['location'] = ['lat' => $demo['location'][0], 'lng' => $demo['location'][1]];
             app(OrderingSettings::class)->save($ordering);
@@ -157,6 +160,14 @@ class DemoTenantSeeder extends Seeder
                     'sort_order' => $zi + 1,
                     'is_demo' => true,
                 ]);
+            }
+
+            // Sit-down demos: tables with QR codes and online table booking (no invented bookings).
+            if ($dineIn) {
+                foreach ([['T1', 2], ['T2', 2], ['T3', 4], ['T4', 4], ['T5', 4], ['T6', 6], ['T7', 6], ['T8', 8]] as $ti => [$label, $seats]) {
+                    DiningTable::create(['label' => $label, 'seats' => $seats, 'sort_order' => $ti + 1]);
+                }
+                app(ReservationSettings::class)->save(array_replace(ReservationSettings::defaults(), ['enabled' => true, 'default_capacity' => 20, 'max_party' => 8]));
             }
         });
 

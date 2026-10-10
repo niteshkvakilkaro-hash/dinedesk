@@ -36,7 +36,8 @@ final class Roles
         'orders.manage',       // change status, refunds (with audit)
         'orders.create',       // waiter/POS order entry
         'reservations.manage',
-        'tables.manage',
+        'tables.manage',     // live table board, waiter/bill requests, settle bills
+        'tables.setup',      // add/edit tables and print their QR codes
         'kot.update',          // kitchen display
         'pos.use',
         'reports.view',
@@ -45,8 +46,8 @@ final class Roles
 
     public const MATRIX = [
         self::OWNER => '*',
-        self::MANAGER => ['staff.schedule', 'theme.manage', 'menu.manage', 'orders.view', 'orders.manage', 'orders.create', 'reservations.manage', 'tables.manage', 'reports.view', 'rooms.manage'],
-        self::CASHIER => ['pos.use', 'orders.view', 'orders.manage', 'orders.create'],
+        self::MANAGER => ['staff.schedule', 'theme.manage', 'menu.manage', 'orders.view', 'orders.manage', 'orders.create', 'reservations.manage', 'tables.manage', 'tables.setup', 'reports.view', 'rooms.manage'],
+        self::CASHIER => ['pos.use', 'orders.view', 'orders.manage', 'orders.create', 'tables.manage'],
         self::WAITER => ['orders.view', 'orders.create', 'tables.manage'],
         self::KITCHEN => ['kot.update', 'orders.view'],
         self::FRONT_DESK => ['rooms.manage', 'reservations.manage', 'orders.view', 'orders.create'],

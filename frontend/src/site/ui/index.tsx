@@ -4,20 +4,24 @@ import { Footer, MobileBar } from './Footer';
 import { Header } from './Header';
 import { useRevealAll } from './motion';
 import { makePages } from './pages';
+import { TableBar } from './TablePages';
+import { useActiveTable } from '../table';
 import './site.css';
 
 /** Header, page, footer and the mobile action bar; reveals content as it scrolls in. */
 function Shell({ site, children }: ShellProps) {
   const root = useRef<HTMLDivElement>(null);
+  const table = useActiveTable(site);
   useRevealAll(root);
   return (
-    <div ref={root} className="s-has-bar flex min-h-screen flex-col">
+    <div ref={root} className={`s-has-bar flex min-h-screen flex-col ${table ? 's-table-mode' : ''}`}>
       <Header site={site} />
       <main id="main" tabIndex={-1} className="flex-1 outline-none">
         {children}
       </main>
       <Footer site={site} />
-      <MobileBar site={site} />
+      {/* At a table (scanned its QR): the table bar replaces Call / WhatsApp / Order. */}
+      {table ? <TableBar site={site} /> : <MobileBar site={site} />}
     </div>
   );
 }

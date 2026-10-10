@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { MessageCircle, Phone, ShoppingBag, MapPin, UtensilsCrossed } from 'lucide-react';
+import { CalendarCheck, MessageCircle, Phone, ShoppingBag, MapPin, UtensilsCrossed } from 'lucide-react';
 import { formatPhone } from '@/lib/format';
 import { cartCount, cartEstimate, useCart } from '../cart';
 import { mapHref, telHref, useLocalized, whatsappHref } from '../data';
@@ -155,6 +155,11 @@ export function MobileBar({ site }: { site: SiteData }) {
             {count} · {money(cartEstimate(lines))}
           </span>
         </button>
+      ) : !site.ordering.enabled && site.reservations?.enabled ? (
+        <Link to="/reserve" className="is-main">
+          <CalendarCheck className={icon} aria-hidden="true" />
+          {t('site.bar.book')}
+        </Link>
       ) : (
         site.has_menu && (
           <Link to="/menu" className="is-main">

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, Globe, Images, LayoutDashboard, LogOut, MoreHorizontal, ReceiptText, Settings2, UtensilsCrossed, Users } from 'lucide-react';
-import { useCan, useSession, useSignOut } from '@/hooks/useSession';
+import { Building2, CalendarDays, Globe, Images, LayoutDashboard, LogOut, MoreHorizontal, QrCode, ReceiptText, Settings2, UtensilsCrossed, Users } from 'lucide-react';
+import { useCan, useFeature, useSession, useSignOut } from '@/hooks/useSession';
 import { Alert, Dialog, DemoBadge, toast } from '@/components/ui';
 import { LanguageToggle, Logo } from '@/components/Brand';
 import { useOrderAlerts } from '@/features/orders/alerts';
+import { useReservationAlerts } from '@/features/reservations/api';
+import { useTableAlerts } from '@/features/tables/api';
 
 export default function DashboardLayout() {
   const { t } = useTranslation();
@@ -18,6 +20,14 @@ export default function DashboardLayout() {
   const canTheme = useCan('theme.manage');
   const canMenu = useCan('menu.manage');
   const canOrders = useCan('orders.view');
+  // Every hook runs on every render (no short-circuits), then the flags combine.
+  const hasReservations = useFeature('reservations');
+  const hasQr = useFeature('qr_ordering');
+  const canManageReservations = useCan('reservations.manage');
+  const canRunTables = useCan('tables.manage');
+  const canSetupTables = useCan('tables.setup');
+  const canReservations = canManageReservations && hasReservations;
+  const canTables = (canRunTables || canSetupTables) && hasQr;
   const [more, setMore] = useState(false);
   const tenant = session?.tenant;
 
@@ -26,11 +36,20 @@ export default function DashboardLayout() {
     for (const o of f.new) toast.success(t('orders.newToast', { number: o.number, name: o.customer_name }));
   });
   const pending = feed?.counts.pending ?? 0;
+  // New website bookings and waiter / bill calls ring too.
+  const bookings = useReservationAlerts(canReservations, (items) => {
+    for (const r of items) toast.success(t('reservationsAdmin.newToast', { name: r.name, count: r.party_size, time: r.time }));
+  });
+  const tableFeed = useTableAlerts(canRunTables && hasQr, (items) => {
+    for (const r of items) toast.success(t(`tablesAdmin.toast.${r.type}`, { table: r.table ?? '' }));
+  });
   useEffect(() => setMore(false), [pathname]);
 
   const nav = [
     { to: '/dashboard', label: t('dashboard.nav.overview'), icon: LayoutDashboard, end: true, show: true },
     { to: '/dashboard/orders', label: t('dashboard.nav.orders'), icon: ReceiptText, show: canOrders, badge: pending },
+    { to: '/dashboard/reservations', label: t('dashboard.nav.reservations'), icon: CalendarDays, show: canReservations, badge: bookings?.pending ?? 0 },
+    { to: '/dashboard/tables', label: t('dashboard.nav.tables'), icon: QrCode, show: canTables, badge: tableFeed?.open ?? 0 },
     { to: '/dashboard/menu', label: t('dashboard.nav.menu'), icon: UtensilsCrossed, show: canMenu },
     { to: '/dashboard/website', label: t('dashboard.nav.website'), icon: Globe, show: canTheme },
     { to: '/dashboard/gallery', label: t('dashboard.nav.gallery'), icon: Images, show: canTheme },

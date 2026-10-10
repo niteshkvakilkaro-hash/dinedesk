@@ -59,7 +59,8 @@ export interface SiteData {
   open_status: (OpenStatus & { timezone: string }) | null;
   has_menu: boolean;
   has_gallery: boolean;
-  features: { online_ordering: boolean; reservations: boolean };
+  features: { online_ordering: boolean; reservations: boolean; qr_ordering: boolean };
+  reservations: ReservationInfo;
   ordering: OrderingInfo;
   seo: { title: string; description: string; description_hi: string | null; canonical: string; image: string | null; indexable: boolean };
 }
@@ -132,6 +133,16 @@ export interface GalleryItem {
 export type OrderType = 'delivery' | 'takeaway' | 'dine_in';
 export type PaymentMethod = 'online' | 'cod' | 'counter';
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out_for_delivery' | 'completed' | 'cancelled';
+
+export interface ReservationInfo {
+  enabled: boolean;
+  auto_confirm: boolean;
+  min_party: number;
+  max_party: number;
+  max_days: number;
+  duration_minutes: number;
+  blackout_dates: { date: string; label: string | null }[];
+}
 
 export interface OrderingInfo {
   enabled: boolean;

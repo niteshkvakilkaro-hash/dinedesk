@@ -40,7 +40,7 @@ export function Header({ site }: { site: SiteData }) {
   const scrolled = useScrolled();
   const over = pathname === '/' && themeStyle(site).hero === 'fullbleed' && !!site.theme.cover && !scrolled && !open;
   const phone = site.content.contact.phone;
-  const cta = site.ordering.enabled ? { to: '/menu', label: t('site.hero.order') } : site.has_menu ? { to: '/menu', label: t('site.viewMenu') } : null;
+  const cta = site.ordering.enabled ? { to: '/menu', label: t('site.hero.order') } : site.reservations?.enabled ? { to: '/reserve', label: t('site.reserveTitle') } : site.has_menu ? { to: '/menu', label: t('site.viewMenu') } : null;
 
   return (
     <>

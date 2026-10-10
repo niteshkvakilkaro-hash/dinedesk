@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Copy, Crosshair, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatINR } from '@/lib/format';
-import { Alert, Badge, DemoBadge, Dialog, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
+import { Alert, Badge, DemoBadge, Dialog, ErrorState, Field, SkeletonRows, Spinner, toast, Toggle } from '@/components/ui';
 
 interface OrderingSettings {
   accepting_orders: boolean;
@@ -38,21 +38,6 @@ interface Payload {
   razorpay: { key_id: string | null; has_key_secret: boolean; has_webhook_secret: boolean; mode: 'test' | 'live' | null; webhook_url: string };
   zones: Zone[];
   site_host: string;
-}
-
-function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
-  return (
-    <label className="flex cursor-pointer items-start justify-between gap-4 py-2">
-      <span>
-        <span className="block font-semibold">{label}</span>
-        {hint && <span className="block text-sm text-muted">{hint}</span>}
-      </span>
-      <input type="checkbox" role="switch" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span aria-hidden="true" className={`relative mt-1 h-7 w-12 shrink-0 rounded-full transition-colors peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-brand ${checked ? 'bg-success' : 'bg-ink/25'}`}>
-        <span className={`absolute left-0 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
-      </span>
-    </label>
-  );
 }
 
 function ZoneEditor({ zone, onClose }: { zone: Zone | 'new'; onClose: () => void }) {

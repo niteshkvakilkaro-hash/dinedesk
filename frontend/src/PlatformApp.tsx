@@ -18,7 +18,8 @@ const GalleryPage = lazy(() => import('@/features/website/GalleryPage'));
 const OrdersPage = lazy(() => import('@/features/orders/OrdersPage'));
 const MenuPage = lazy(() => import('@/features/menu/MenuPage'));
 const OrderingSettingsPage = lazy(() => import('@/features/ordering/OrderingSettingsPage'));
-// Dev-only motion playground; the import is dropped from production builds.
+const ReservationsPage = lazy(() => import('@/features/reservations/ReservationsPage'));
+const TablesPage = lazy(() => import('@/features/tables/TablesPage'));
 const PlatformLayout = lazy(() => import('@/features/platform/PlatformLayout'));
 const Tenants = lazy(() => import('@/features/platform/Tenants'));
 const TenantDetail = lazy(() => import('@/features/platform/TenantDetail'));
@@ -71,6 +72,8 @@ export default function PlatformApp() {
         <Route path="orders" element={<OrdersPage />} />
         <Route path="menu" element={<MenuPage />} />
         <Route path="ordering" element={<OrderingSettingsPage />} />
+        <Route path="reservations" element={<ReservationsPage />} />
+        <Route path="tables" element={<TablesPage />} />
       </Route>
       <Route path="platform" element={<Guard need="platform"><PlatformLayout /></Guard>}>
         <Route index element={<Tenants />} />
