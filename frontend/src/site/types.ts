@@ -61,6 +61,7 @@ export interface SiteData {
   has_gallery: boolean;
   features: { online_ordering: boolean; reservations: boolean; qr_ordering: boolean };
   reservations: ReservationInfo;
+  growth: GrowthInfo;
   ordering: OrderingInfo;
   seo: { title: string; description: string; description_hi: string | null; canonical: string; image: string | null; indexable: boolean };
 }
@@ -134,6 +135,27 @@ export type OrderType = 'delivery' | 'takeaway' | 'dine_in';
 export type PaymentMethod = 'online' | 'cod' | 'counter';
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out_for_delivery' | 'completed' | 'cancelled';
 
+export interface SiteBanner {
+  id: number;
+  placement: 'bar' | 'popup' | 'offer';
+  title: string;
+  title_hi: string | null;
+  text: string | null;
+  text_hi: string | null;
+  cta_label: string | null;
+  cta_link: string | null;
+  coupon_code: string | null;
+  ends_at: string | null;
+}
+
+export interface GrowthInfo {
+  banners: SiteBanner[];
+  has_offers: boolean;
+  coupons: boolean;
+  loyalty: { enabled: boolean; earn_per_100?: number; point_value?: number; min_redeem?: number; max_redeem_percent?: number };
+  reviews: { count: number; average: number | null; items: { name: string | null; rating: number; comment: string | null; reply: string | null; date: string }[] };
+}
+
 export interface ReservationInfo {
   enabled: boolean;
   auto_confirm: boolean;
@@ -186,6 +208,11 @@ export interface Quote {
   prices_include_tax: boolean;
   zone: { id: number; name: string; fee: string; min_order: string; free_above: string | null } | null;
   zone_error: { message: string; code: string; min_order?: string } | null;
+  discount_total?: string | null;
+  discount_label?: string | null;
+  coupon?: { code: string; discount: string } | null;
+  loyalty?: { points: number; discount: string } | null;
+  offer_error?: { message: string; code: string; field: string | null } | null;
 }
 
 export interface CustomerOrder {
@@ -205,6 +232,7 @@ export interface CustomerOrder {
   delivery_fee: string;
   packaging_fee: string;
   discount_total: string;
+  discount_label?: string | null;
   total: string;
   prices_include_tax: boolean;
   payment_method: PaymentMethod;

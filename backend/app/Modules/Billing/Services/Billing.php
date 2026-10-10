@@ -19,6 +19,11 @@ use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Website\Services\SiteContent;
 use App\Support\ApiException;
 use App\Support\Realtime\Live;
+use App\Modules\Crm\Services\CustomerActivity;
+use App\Modules\Loyalty\Services\GiftCards;
+use App\Modules\Loyalty\Services\Loyalty;
+use App\Modules\Marketing\Services\Coupons;
+use App\Modules\Ordering\Models\Customer;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +52,10 @@ class Billing
      * @param  array{type: 'percent'|'amount', value: float|string, reason: ?string}|null  $discount
      * @param  array{name?: ?string, phone?: ?string, gstin?: ?string}|null  $buyer
      */
-    public function bill(Tenant $tenant, Collection $orders, ?TableSession $session, ?array $discount, ?array $buyer, ?User $by): Invoice
+    /**
+     * @param  array{coupon_code?: ?string, customer_phone?: ?string, points?: int}  $offers  coupon and loyalty points at the counter
+     */
+    public function bill(Tenant $tenant, Collection $orders, ?TableSession $session, ?array $discount, ?array $buyer, ?User $by, array $offers = []): Invoice
     {
         $orders = $orders->filter(fn (Order $o) => $o->status !== 'cancelled' && ! ($o->payment_method === 'online' && $o->payment_status !== 'paid'))->values();
         if ($orders->isEmpty()) {
@@ -59,7 +67,7 @@ class Billing
             throw new ApiException("Already billed on {$billed->first()}. Cancel that bill first to bill again.", 422, 'already_billed');
         }
 
-        return DB::transaction(function () use ($tenant, $orders, $session, $discount, $buyer, $by) {
+        return DB::transaction(function () use ($tenant, $orders, $session, $discount, $buyer, $by, $offers) {
             $orders->each->loadMissing('items');
             $lines = [];
             foreach ($orders as $order) {
@@ -83,6 +91,35 @@ class Billing
             $off = $this->discountPaise($discount, $itemsTotal);
             if ($off > 0 && trim((string) ($discount['reason'] ?? '')) === '') {
                 throw new ApiException('Please give a reason for the discount.', 422, 'reason_required', ['field' => 'discount.reason']);
+            }
+            $reasons = $off > 0 ? [strip_tags((string) $discount['reason'])] : [];
+
+            // Guest at the counter: coupon and / or loyalty points (staff see the guest in person).
+            $guest = ! empty($offers['customer_phone']) ? Customer::where('phone', \App\Support\Phone::normalize($offers['customer_phone']))->first() : null;
+            if (! empty($offers['customer_phone']) && ! $guest && ! empty($offers['points'])) {
+                throw new ApiException('No customer with that mobile number.', 422, 'customer_not_found', ['field' => 'customer_phone']);
+            }
+            $coupon = null;
+            $couponOff = 0;
+            if (! empty($offers['coupon_code'])) {
+                $coupon = app(Coupons::class)->find($offers['coupon_code'], 'pos');
+                $couponOff = app(Coupons::class)->discount($coupon, $itemsTotal - $off, $guest?->id);
+                $reasons[] = "Coupon {$coupon->code}";
+            }
+            $points = 0;
+            $pointsOff = 0;
+            if ($guest && ! empty($offers['points'])) {
+                $r = app(Loyalty::class)->redeemable($guest, (int) $offers['points'], $itemsTotal - $off - $couponOff);
+                [$points, $pointsOff] = [$r['points'], $r['paise']];
+                if ($points > 0) {
+                    $reasons[] = "{$points} loyalty points";
+                }
+            }
+            $off += $couponOff + $pointsOff;
+            if ($guest) {
+                // The orders now belong to this guest (for points earned, spend and visits).
+                Order::whereIn('id', $orders->pluck('id'))->whereNull('customer_id')->update(['customer_id' => $guest->id]);
+                $orders->each(fn (Order $o) => $o->customer_id ??= $guest->id);
             }
             $shares = $this->share($off, array_column($lines, 'taxable'));
 
@@ -144,7 +181,7 @@ class Billing
                 'buyer' => $this->buyer($buyer, $orders),
                 'items_total' => Money::toRupees($itemsTotal),
                 'discount' => Money::toRupees($off),
-                'discount_reason' => $off > 0 ? strip_tags((string) $discount['reason']) : null,
+                'discount_reason' => $off > 0 ? mb_substr(implode(' · ', $reasons), 0, 200) : null,
                 'taxable_value' => Money::toRupees($taxable),
                 'cgst' => Money::toRupees($cgst),
                 'sgst' => Money::toRupees($sgst),
@@ -161,6 +198,12 @@ class Billing
                 InvoiceLine::create(['invoice_id' => $invoice->id] + $row);
             }
             $invoice->orders()->attach($orders->pluck('id'));
+            if ($coupon) {
+                app(Coupons::class)->redeem($coupon, $couponOff, null, $invoice->id, $guest?->id);
+            }
+            if ($points > 0) {
+                app(Loyalty::class)->redeem($guest, $points, null, $invoice->id, $by?->id);
+            }
             foreach ($paidOnline as $o) {
                 $this->record($invoice, 'online', Money::toPaise($o->total), $o->public_id, null, $o->placed_at);
             }
@@ -208,6 +251,12 @@ class Billing
                     $amount -= $back;
                     $excess -= $back;
                 }
+                if ($amount > 0 && $r['mode'] === 'gift_card') {
+                    if (! $r['reference']) {
+                        throw new ApiException('Enter the gift card code.', 422, 'gift_card_invalid');
+                    }
+                    $r['reference'] = app(GiftCards::class)->redeem($r['reference'], $amount, $invoice->id, $by?->id)->code;
+                }
                 if ($amount > 0) {
                     $this->record($invoice, $r['mode'], $amount, $r['reference'] ? strip_tags($r['reference']) : null, $by);
                 }
@@ -226,6 +275,8 @@ class Billing
             throw new ApiException('Only an unpaid bill can be cancelled.', 422, 'not_voidable');
         }
         $invoice->update(['status' => 'void', 'void_reason' => strip_tags($reason)]);
+        app(Coupons::class)->reverse(null, $invoice->id);
+        app(Loyalty::class)->reverseInvoice($invoice->id);
         AuditLog::record('bill.void', $invoice, ['number' => $invoice->number, 'reason' => $reason]);
         $this->emit($invoice);
 
@@ -252,6 +303,9 @@ class Billing
                     OrderEvent::create(['order_id' => $order->id, 'status' => 'completed', 'note' => "Billed {$invoice->number}", 'user_id' => $by?->id, 'created_at' => now()]);
                 }
                 $this->kitchen->syncFromOrder($order);
+                if (isset($changes['status'])) {
+                    app(CustomerActivity::class)->orderCompleted($order->fresh());
+                }
             }
         }
         if ($invoice->table_session_id) {
@@ -263,6 +317,7 @@ class Billing
                         $o->update(['status' => 'cancelled', 'cancel_reason' => 'Table closed before payment']);
                         OrderEvent::create(['order_id' => $o->id, 'status' => 'cancelled', 'note' => 'Table closed before payment', 'user_id' => $by?->id, 'created_at' => now()]);
                         $this->kitchen->syncFromOrder($o);
+                        app(CustomerActivity::class)->orderCancelled($o);
                     });
                 $modes = $invoice->payments()->pluck('mode')->unique();
                 $session->update([

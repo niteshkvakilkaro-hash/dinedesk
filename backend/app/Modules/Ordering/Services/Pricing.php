@@ -64,7 +64,7 @@ class Pricing
                 $this->fail($i, "{$item->name} is not available right now.", 'item_unavailable');
             }
 
-            [$base, $variantName] = $this->basePrice($item, $line['variant_id'] ?? null, $i);
+            [$base, $variantName, $variantId] = $this->basePrice($item, $line['variant_id'] ?? null, $i);
             $addons = $this->addons($item, $line['addon_ids'] ?? [], $i);
             $unit = $base + array_sum(array_column($addons, 'paise'));
             $qty = (int) $line['quantity'];
@@ -91,6 +91,7 @@ class Pricing
                 'menu_item_id' => $item->id,
                 'name' => $item->name,
                 'name_hi' => $item->name_hi,
+                'item_variant_id' => $variantId,
                 'variant_name' => $variantName,
                 'addons' => array_map(fn ($a) => ['id' => $a['id'], 'name' => $a['name'], 'price' => Money::toRupees($a['paise'])], $addons),
                 'food_type' => $item->food_type,
@@ -142,7 +143,7 @@ class Pricing
         ];
     }
 
-    /** @return array{0: int, 1: ?string} */
+    /** @return array{0: int, 1: ?string, 2: ?int} */
     private function basePrice(MenuItem $item, ?int $variantId, int $i): array
     {
         /** @var Collection $variants */
@@ -152,7 +153,7 @@ class Pricing
                 $this->fail($i, "Please choose the options for {$item->name} again.", 'invalid_variant');
             }
 
-            return [Money::toPaise($item->price), null];
+            return [Money::toPaise($item->price), null, null];
         }
         $variant = $variants->firstWhere('id', $variantId);
         if (! $variant) {
@@ -162,7 +163,7 @@ class Pricing
             $this->fail($i, "{$item->name} ({$variant->name}) is not available right now.", 'item_unavailable');
         }
 
-        return [Money::toPaise($variant->price), $variant->name];
+        return [Money::toPaise($variant->price), $variant->name, $variant->id];
     }
 
     /** @return list<array{id: int, name: string, paise: int}> */
@@ -192,6 +193,45 @@ class Pricing
         }
 
         return $chosen;
+    }
+
+    /**
+     * Takes a discount (coupon, loyalty points) off a quote before GST: shared across the lines
+     * in proportion to their taxable value, GST worked out again per line, totals rebuilt.
+     */
+    public function applyDiscount(array $quote, int $offPaise, ?string $label): array
+    {
+        $taxable = array_map(fn ($l) => Money::toPaise($l['line_subtotal']), $quote['lines']);
+        $offPaise = min($offPaise, array_sum($taxable));
+        if ($offPaise <= 0) {
+            return $quote + ['discount_total' => '0.00', 'discount_label' => null];
+        }
+        $shares = \App\Modules\Billing\Services\Billing::share($offPaise, $taxable);
+        $subtotal = $tax = $gross = 0;
+        foreach ($quote['lines'] as $i => &$l) {
+            $lineTaxable = $taxable[$i] - $shares[$i];
+            $lineTax = $shares[$i] === 0 ? Money::toPaise($l['line_tax']) : Money::taxOnTop($lineTaxable, Money::rateBp($l['tax_rate']));
+            $l['line_discount'] = Money::toRupees($shares[$i]);
+            $l['line_subtotal'] = Money::toRupees($lineTaxable);
+            $l['line_tax'] = Money::toRupees($lineTax);
+            $l['line_total'] = Money::toRupees($lineTaxable + $lineTax);
+            $subtotal += $lineTaxable;
+            $tax += $lineTax;
+            $gross += $lineTaxable + $lineTax;
+        }
+        unset($l);
+        $fees = Money::toPaise($quote['packaging_fee']) + Money::toPaise($quote['delivery_fee']);
+
+        return array_merge($quote, [
+            'subtotal' => Money::toRupees($subtotal),
+            'tax_total' => Money::toRupees($tax),
+            'cgst' => Money::toRupees(intdiv($tax, 2) + $tax % 2),
+            'sgst' => Money::toRupees(intdiv($tax, 2)),
+            'items_total' => Money::toRupees($gross),
+            'total' => Money::toRupees($gross + $fees),
+            'discount_total' => Money::toRupees($offPaise),
+            'discount_label' => $label,
+        ]);
     }
 
     private function fail(int $line, string $message, string $code): never

@@ -61,6 +61,7 @@ class SitePresenter
                 'qr_ordering' => $this->features->enabled($tenant, 'qr_ordering'),
             ],
             'reservations' => $this->reservations($tenant),
+            'growth' => $this->growth($tenant),
             'seo' => [
                 'title' => $tenant->city ? "{$tenant->name}, {$tenant->city}" : $tenant->name,
                 'description' => $content['seo']['description'] ?? $content['tagline'] ?? $this->factualDescription($tenant),
@@ -121,6 +122,30 @@ class SitePresenter
             'prices_include_tax' => $s['prices_include_tax'],
             'default_tax_rate' => $s['default_tax_rate'],
             'has_delivery_zones' => DeliveryZone::where('is_active', true)->exists(),
+        ];
+    }
+
+    /**
+     * Offers, banners, loyalty and real published reviews for the website.
+     * Reviews are only guests' own feedback they agreed to show and the owner published.
+     */
+    public function growth(Tenant $tenant): array
+    {
+        $marketing = $this->features->enabled($tenant, 'coupons');
+        $banners = $marketing ? \App\Modules\Marketing\Models\Banner::where('is_active', true)
+            ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
+            ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
+            ->orderBy('sort_order')->orderByDesc('id')->get()
+            ->map(fn ($b) => $b->only(['id', 'placement', 'title', 'title_hi', 'text', 'text_hi', 'cta_label', 'cta_link', 'coupon_code']) + ['ends_at' => $b->ends_at?->toIso8601String()])->values()->all() : [];
+        $loyalty = app(\App\Modules\Loyalty\Services\Loyalty::class)->get();
+        $loyaltyOn = $loyalty['enabled'] && $this->features->enabled($tenant, 'loyalty');
+
+        return [
+            'banners' => $banners,
+            'has_offers' => $marketing && (count($banners) > 0 || \App\Modules\Marketing\Models\Coupon::where('is_public', true)->where('is_active', true)->where('online', true)->exists()),
+            'coupons' => $marketing,
+            'loyalty' => $loyaltyOn ? ['enabled' => true, 'earn_per_100' => $loyalty['earn_per_100'], 'point_value' => $loyalty['point_value'], 'min_redeem' => $loyalty['min_redeem'], 'max_redeem_percent' => $loyalty['max_redeem_percent']] : ['enabled' => false],
+            'reviews' => app(\App\Modules\Crm\Services\FeedbackService::class)->published(),
         ];
     }
 

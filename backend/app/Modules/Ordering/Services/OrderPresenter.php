@@ -26,6 +26,7 @@ class OrderPresenter
             'delivery_fee' => $o->delivery_fee,
             'packaging_fee' => $o->packaging_fee,
             'discount_total' => $o->discount_total,
+            'discount_label' => $o->discount_label,
             'total' => $o->total,
             'prices_include_tax' => $o->prices_include_tax,
             'payment_method' => $o->payment_method,

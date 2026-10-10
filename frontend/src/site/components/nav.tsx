@@ -7,12 +7,13 @@ import type { SiteData } from '../types';
 export const NAV_PATHS: Record<PageKey, string> = { home: '/', menu: '/menu', about: '/about', gallery: '/gallery', contact: '/contact' };
 
 /** Pages to show in navigation (gallery only once there are photos, menu only with dishes, booking when it's on). */
-export function useNavItems(site: SiteData): { key: PageKey | 'reserve'; to: string; label: string }[] {
+export function useNavItems(site: SiteData): { key: PageKey | 'reserve' | 'offers'; to: string; label: string }[] {
   const { t } = useTranslation();
-  const items: { key: PageKey | 'reserve'; to: string; label: string }[] = (['home', 'menu', 'about', 'gallery', 'contact'] as PageKey[])
+  const items: { key: PageKey | 'reserve' | 'offers'; to: string; label: string }[] = (['home', 'menu', 'about', 'gallery', 'contact'] as PageKey[])
     .filter((k) => (k === 'gallery' ? site.has_gallery : k === 'menu' ? site.has_menu : true))
     .map((k) => ({ key: k, to: NAV_PATHS[k], label: t(`site.nav.${k}`) }));
   if (site.reservations?.enabled) items.splice(items.length - 1, 0, { key: 'reserve', to: '/reserve', label: t('site.nav.reserve') });
+  if (site.growth?.has_offers) items.splice(items.length - 1, 0, { key: 'offers', to: '/offers', label: t('site.nav.offers') });
   return items;
 }
 

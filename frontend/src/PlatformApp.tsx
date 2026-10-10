@@ -23,6 +23,10 @@ const TablesPage = lazy(() => import('@/features/tables/TablesPage'));
 const PosPage = lazy(() => import('@/features/pos/PosPage'));
 const DayEndPage = lazy(() => import('@/features/pos/DayEndPage'));
 const KitchenDisplay = lazy(() => import('@/features/kitchen/KitchenDisplay'));
+const CustomersPage = lazy(() => import('@/features/customers/CustomersPage'));
+const MarketingPage = lazy(() => import('@/features/marketing/MarketingPage'));
+const InventoryPage = lazy(() => import('@/features/inventory/InventoryPage'));
+const ReportsPage = lazy(() => import('@/features/reports/ReportsPage'));
 const WaiterApp = lazy(() => import('@/features/waiter/WaiterApp'));
 const PlatformLayout = lazy(() => import('@/features/platform/PlatformLayout'));
 const Tenants = lazy(() => import('@/features/platform/Tenants'));
@@ -80,6 +84,10 @@ export default function PlatformApp() {
         <Route path="tables" element={<TablesPage />} />
         <Route path="pos" element={<PosPage />} />
         <Route path="day-end" element={<DayEndPage />} />
+        <Route path="customers" element={<CustomersPage />} />
+        <Route path="marketing" element={<MarketingPage />} />
+        <Route path="inventory" element={<InventoryPage />} />
+        <Route path="reports" element={<ReportsPage />} />
       </Route>
       {/* Full-screen staff apps: kitchen display and the waiter phone app (PWA). */}
       <Route path="kitchen" element={<Guard need="tenant"><KitchenDisplay /></Guard>} />

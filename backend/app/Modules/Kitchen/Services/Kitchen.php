@@ -57,6 +57,8 @@ class Kitchen
             return $kot;
         });
         $this->emit($kot, 'kot.created');
+        // Raw materials leave the store when the kitchen gets the order.
+        app(\App\Modules\Inventory\Services\Stock::class)->consume($order);
 
         return $kot;
     }

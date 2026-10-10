@@ -33,6 +33,8 @@ class PublicOrderController extends Controller
             'pincode' => ['nullable', 'regex:/^[1-9]\d{5}$/'],
             'lat' => ['nullable', 'numeric', 'between:-90,90'],
             'lng' => ['nullable', 'numeric', 'between:-180,180'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            ...self::offerRules(),
             ...Pricing::lineRules(),
         ], ['pincode.regex' => 'Enter a valid 6-digit pincode.']);
 
@@ -57,7 +59,27 @@ class PublicOrderController extends Controller
             $quote['zone'] = ['id' => $zone->id, 'name' => $zone->name, 'fee' => $zone->fee, 'min_order' => $zone->min_order, 'free_above' => $zone->free_above];
         }
 
-        return $this->ok($quote + ['zone_error' => $zoneError]);
+        // Coupon / points: shown in the breakdown; a problem with them doesn't hide the price.
+        $offerError = null;
+        if (! empty($data['coupon_code']) || ! empty($data['loyalty']['token'])) {
+            try {
+                [$quote] = $this->flow->discounts($this->context->require(), $quote, $data, ! empty($data['phone']) ? Phone::normalize($data['phone']) : null);
+            } catch (ApiException $e) {
+                $offerError = ['message' => $e->getMessage(), 'code' => $e->errorCode, 'field' => $e->meta['field'] ?? null];
+            }
+        }
+
+        return $this->ok($quote + ['zone_error' => $zoneError, 'offer_error' => $offerError]);
+    }
+
+    private static function offerRules(): array
+    {
+        return [
+            'coupon_code' => ['nullable', 'string', 'max:30'],
+            'loyalty' => ['nullable', 'array'],
+            'loyalty.token' => ['nullable', 'string', 'max:1000'],
+            'loyalty.points' => ['nullable', 'integer', 'min:0', 'max:10000000'],
+        ];
     }
 
     public function store(Request $request): JsonResponse
@@ -83,6 +105,8 @@ class PublicOrderController extends Controller
             'address.lng' => ['nullable', 'numeric', 'between:-180,180'],
             'table_label' => ['nullable', 'string', 'max:40'],
             'table_token' => ['nullable', 'string', 'max:40'],
+            'marketing_opt_in' => ['boolean'],
+            ...self::offerRules(),
             'notes' => ['nullable', 'string', 'max:500'],
             ...Pricing::lineRules(),
         ], [

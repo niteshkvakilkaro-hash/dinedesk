@@ -9,7 +9,7 @@ class BillPayment extends Model
 {
     use BelongsToTenant;
 
-    public const MODES = ['cash', 'upi', 'card', 'online', 'other'];
+    public const MODES = ['cash', 'upi', 'card', 'gift_card', 'online', 'other'];
 
     public $timestamps = false;
 

@@ -18,7 +18,7 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /** Business modules; each may ship a routes.php mounted under /api/v1. */
-    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing'];
+    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports'];
 
     public function register(): void
     {
@@ -96,6 +96,14 @@ class AppServiceProvider extends ServiceProvider
             ->response($tooMany('Too many tries. Please wait a minute.')));
         RateLimiter::for('table-requests', fn (Request $request) => Limit::perMinute(6)->by('table-req|'.$request->ip().'|'.$request->route('token'))
             ->response($tooMany('Please wait a moment before asking again.')));
+
+        // Loyalty codes by text: a few per phone and per visitor.
+        RateLimiter::for('loyalty-code', fn (Request $request) => [
+            Limit::perHour(5)->by('loyalty-phone|'.preg_replace('/\D+/', '', (string) $request->input('phone')))
+                ->response($tooMany('Too many codes for this number. Please try later.')),
+            Limit::perHour(20)->by('loyalty-ip|'.$request->ip()),
+        ]);
+        RateLimiter::for('campaigns', fn (Request $request) => Limit::perHour(10)->by('campaign|'.$request->user()?->id));
 
         RateLimiter::for('webhooks', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
 

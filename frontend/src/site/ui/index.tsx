@@ -5,6 +5,7 @@ import { Header } from './Header';
 import { useRevealAll } from './motion';
 import { makePages } from './pages';
 import { TableBar } from './TablePages';
+import { BannerBar, OfferPopup } from './Growth';
 import { useActiveTable } from '../table';
 import './site.css';
 
@@ -15,6 +16,7 @@ function Shell({ site, children }: ShellProps) {
   useRevealAll(root);
   return (
     <div ref={root} className={`s-has-bar flex min-h-screen flex-col ${table ? 's-table-mode' : ''}`}>
+      <BannerBar site={site} />
       <Header site={site} />
       <main id="main" tabIndex={-1} className="flex-1 outline-none">
         {children}
@@ -22,6 +24,7 @@ function Shell({ site, children }: ShellProps) {
       <Footer site={site} />
       {/* At a table (scanned its QR): the table bar replaces Call / WhatsApp / Order. */}
       {table ? <TableBar site={site} /> : <MobileBar site={site} />}
+      <OfferPopup site={site} />
     </div>
   );
 }

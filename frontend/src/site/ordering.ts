@@ -7,10 +7,23 @@ import { apiLines, useCart } from './cart';
 import type { CustomerOrder, OrderStatus, OrderType, Quote } from './types';
 
 /** Live server price for the cart (debounced), with delivery zone info when a pincode is known. */
-export function useQuote(type: OrderType | null, area: { pincode?: string; lat?: number | null; lng?: number | null } = {}) {
+export function useQuote(
+  type: OrderType | null,
+  area: { pincode?: string; lat?: number | null; lng?: number | null } = {},
+  offers: { coupon_code?: string | null; phone?: string | null; loyalty?: { token: string; points: number } | null } = {},
+) {
   const lines = useCart((s) => s.lines);
   const body = useDebounced(
-    JSON.stringify({ type, items: apiLines(lines), pincode: /^[1-9]\d{5}$/.test(area.pincode ?? '') ? area.pincode : undefined, lat: area.lat ?? undefined, lng: area.lng ?? undefined }),
+    JSON.stringify({
+      type,
+      items: apiLines(lines),
+      pincode: /^[1-9]\d{5}$/.test(area.pincode ?? '') ? area.pincode : undefined,
+      lat: area.lat ?? undefined,
+      lng: area.lng ?? undefined,
+      coupon_code: offers.coupon_code || undefined,
+      phone: offers.phone || undefined,
+      loyalty: offers.loyalty?.points ? offers.loyalty : undefined,
+    }),
     300,
   );
   // Decide from the debounced payload itself, so a stale body (e.g. no type yet) is never sent.

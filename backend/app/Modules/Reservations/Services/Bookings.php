@@ -136,6 +136,9 @@ class Bookings
             $changes['staff_note'] = strip_tags($note);
         }
         $r->update($changes);
+        if ($to === 'completed') {
+            app(\App\Modules\Crm\Services\CustomerActivity::class)->bookingVisited($r->customer_id);
+        }
         if (in_array($to, ['rejected', 'cancelled', 'no_show'], true)) {
             AuditLog::record("reservation.{$to}", $r, ['code' => $r->code, 'note' => $note]);
         }

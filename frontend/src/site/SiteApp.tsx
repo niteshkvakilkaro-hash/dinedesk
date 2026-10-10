@@ -16,6 +16,7 @@ import { Cart } from './order/Cart';
 import { PhotoCredits, WhatsAppButton } from './order/extras';
 import CheckoutPage from './order/CheckoutPage';
 import { ReservationLookupPage, ReservePage } from './ui/ReservePage';
+import { OffersPage, UnsubscribePage } from './ui/Growth';
 import { TableLanding, TablePage } from './ui/TablePages';
 import TrackPage from './order/TrackPage';
 import { useOpenLabel } from './components/bits';
@@ -148,10 +149,10 @@ function SiteLayout({ site, module, themeColor }: { site: SiteData; module: Them
         ? t('site.sg.title')
         : pathname.startsWith('/t/') || pathname === '/table'
           ? t('site.table.pageTitle')
-          : pathname === '/reservation'
+          : pathname === '/reservation' || pathname === '/unsubscribe'
             ? t('site.res.lookupTitle')
             : null;
-  const publicTitle = pathname === '/reserve' ? { title: t('site.reserveTitle'), path: '/reserve' } : null;
+  const publicTitle = pathname === '/reserve' ? { title: t('site.reserveTitle'), path: '/reserve' } : pathname === '/offers' ? { title: t('site.offers.title'), path: '/offers' } : null;
   return (
     <SkinContext.Provider value={module.skin}>
       <Seo site={site} page={page} themeColor={themeColor} title={privateTitle ?? publicTitle?.title ?? null} path={publicTitle?.path} />
@@ -263,6 +264,8 @@ export default function SiteApp() {
             <Route path="/reservation" element={<ReservationLookupPage site={site} />} />
             <Route path="/t/:token" element={<TableLanding site={site} />} />
             <Route path="/table" element={<TablePage site={site} />} />
+            <Route path="/offers" element={<OffersPage site={site} />} />
+            <Route path="/unsubscribe" element={<UnsubscribePage site={site} />} />
             <Route
               path="/style-guide"
               element={

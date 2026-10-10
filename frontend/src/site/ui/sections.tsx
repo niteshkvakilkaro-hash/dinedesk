@@ -9,6 +9,7 @@ import { Lightbox, Paragraphs, useStory } from '../components/shared';
 import type { GalleryItem, SectionKey, SiteData } from '../types';
 import { DishCard, useDishPrice } from './DishCard';
 import { Hours, MapFacade, SectionHead, themeStyle } from './primitives';
+import { Reviews } from './Growth';
 
 const ext = { target: '_blank', rel: 'noopener noreferrer' } as const;
 const delay = (i: number) => ({ ['--i' as string]: i });
@@ -357,5 +358,8 @@ export function HomeSections({ site, sections, extra }: { site: SiteData; sectio
     }
   });
   if (visitAt === -1) out.push(<Reserve key="reserve" site={site} />);
+  // Real, published guest reviews (nothing when there are none).
+  const at = out.findIndex((n) => (n as React.ReactElement).key === 'reserve');
+  out.splice(at === -1 ? out.length : at, 0, <Reviews key="reviews" site={site} />);
   return <>{out}</>;
 }

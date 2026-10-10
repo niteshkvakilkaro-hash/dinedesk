@@ -42,15 +42,18 @@ final class Roles
         'pos.use',
         'reports.view',
         'rooms.manage',        // hotel front desk
+        'inventory.manage',    // raw materials, stock, recipes
+        'marketing.manage',    // coupons, loyalty, gift cards, banners, campaigns
+        'customers.view',      // CRM, feedback
     ];
 
     public const MATRIX = [
         self::OWNER => '*',
-        self::MANAGER => ['staff.schedule', 'theme.manage', 'menu.manage', 'orders.view', 'orders.manage', 'orders.create', 'reservations.manage', 'tables.manage', 'tables.setup', 'reports.view', 'rooms.manage', 'kot.update', 'pos.use'],
-        self::CASHIER => ['pos.use', 'orders.view', 'orders.manage', 'orders.create', 'tables.manage'],
+        self::MANAGER => ['staff.schedule', 'theme.manage', 'menu.manage', 'orders.view', 'orders.manage', 'orders.create', 'reservations.manage', 'tables.manage', 'tables.setup', 'reports.view', 'rooms.manage', 'kot.update', 'pos.use', 'inventory.manage', 'marketing.manage', 'customers.view'],
+        self::CASHIER => ['pos.use', 'orders.view', 'orders.manage', 'orders.create', 'tables.manage', 'customers.view'],
         self::WAITER => ['orders.view', 'orders.create', 'tables.manage'],
         self::KITCHEN => ['kot.update', 'orders.view'],
-        self::FRONT_DESK => ['rooms.manage', 'reservations.manage', 'orders.view', 'orders.create'],
+        self::FRONT_DESK => ['rooms.manage', 'reservations.manage', 'orders.view', 'orders.create', 'customers.view'],
     ];
 
     /** Create/refresh every permission and role (idempotent). */

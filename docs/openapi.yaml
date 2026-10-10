@@ -1348,6 +1348,303 @@ paths:
       responses:
         '200': { description: OK }
         '422': { description: '`invalid_merge` / `billed`' }
+  /site/offers:
+    get:
+      tags: [Growth (public)]
+      summary: 'Public coupons and live offer banners (website /offers page)'
+      responses:
+        '200': { description: OK }
+  /site/orders/{publicId}/feedback:
+    get:
+      tags: [Growth (public)]
+      summary: 'Whether the order can be rated (completed, not rated yet)'
+      parameters:
+        - { name: t, in: query, required: true, schema: { type: string }, description: Order tracking token }
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Growth (public)]
+      summary: 'Rate a completed order once (1–5, optional food / service, comment, consent to show it publicly)'
+      requestBody: { content: { application/json: { schema: { type: object, required: [t, rating], properties: { t: { type: string }, rating: { type: integer, minimum: 1, maximum: 5 }, food: { type: [integer, 'null'] }, service: { type: [integer, 'null'] }, comment: { type: [string, 'null'] }, consent_public: { type: boolean } } } } } }
+      responses:
+        '201': { description: Saved (published only after the owner chooses to show it) }
+        '422': { description: '`not_completed` / `already_rated`' }
+  /site/loyalty/code:
+    post:
+      tags: [Growth (public)]
+      summary: 'Send a 6-digit code by SMS to check and use loyalty points (rate limited)'
+      requestBody: { content: { application/json: { schema: { type: object, required: [phone], properties: { phone: { type: string } } } } } }
+      responses:
+        '200': { description: Sent }
+  /site/loyalty/verify:
+    post:
+      tags: [Growth (public)]
+      summary: 'Confirm the code; returns a 30-minute token, the balance and the point value'
+      requestBody: { content: { application/json: { schema: { type: object, required: [phone, code], properties: { phone: { type: string }, code: { type: string } } } } } }
+      responses:
+        '200': { description: '{ token, points, value }' }
+        '422': { description: Wrong or expired code }
+  /site/unsubscribe:
+    post:
+      tags: [Growth (public)]
+      summary: 'Stop offer messages (token from the link in each message)'
+      requestBody: { content: { application/json: { schema: { type: object, required: [t], properties: { t: { type: string } } } } } }
+      responses:
+        '200': { description: Unsubscribed }
+  /tenant/customers:
+    get:
+      tags: [Customers (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Customers built from real orders and bookings: search, tag, sort (recent / spend / visits / points / name), 30 per page'
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: tag, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string } }
+      responses:
+        '200': { description: 'List with meta.tags and meta.opted_in' }
+  /tenant/customers/lookup:
+    get:
+      tags: [Customers (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Find a guest by phone at the POS (name and loyalty points), or null'
+      parameters:
+        - { name: phone, in: query, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+  /tenant/customers/{id}:
+    get:
+      tags: [Customers (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Customer with order history, bookings and points history'
+      responses:
+        '200': { description: OK }
+    put:
+      tags: [Customers (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Tags, notes, special dates (only with the guest''s consent) and switching offers off'
+      responses:
+        '200': { description: Saved }
+  /tenant/feedback:
+    get:
+      tags: [Customers (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Guest ratings with summary (count, average, published)'
+      responses:
+        '200': { description: OK }
+  /tenant/feedback/{id}:
+    put:
+      tags: [Customers (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Publish / hide on the website and reply'
+      responses:
+        '200': { description: Saved }
+        '422': { description: '`no_consent` (the guest did not agree to show it)' }
+  /tenant/marketing/coupons:
+    get:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Coupons with use counts and discount given
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'New coupon: flat or percent, max discount, min order, validity, total and per-guest limits, online / POS, public'
+      responses:
+        '201': { description: Created }
+  /tenant/marketing/coupons/{id}:
+    put:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Update a coupon
+      responses:
+        '200': { description: Saved }
+    delete:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Delete an unused coupon (a used one is switched off instead)'
+      responses:
+        '200': { description: OK }
+  /tenant/marketing/banners:
+    get:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Website banners (top bar, popup, offers page) with schedule
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'New banner (button links limited to /menu, /reserve, /offers, /contact)'
+      responses:
+        '201': { description: Created }
+  /tenant/marketing/banners/{id}:
+    put:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Update a banner
+      responses:
+        '200': { description: Saved }
+    delete:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Delete a banner
+      responses:
+        '200': { description: OK }
+  /tenant/marketing/campaigns:
+    get:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Messages sent
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Send a message (WhatsApp / SMS / email) to opted-in guests only, with an unsubscribe link (rate limited)'
+      responses:
+        '201': { description: Queued }
+        '422': { description: '`no_recipients`' }
+  /tenant/marketing/campaigns/audience:
+    post:
+      tags: [Marketing (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Count opted-in guests matching tags, min visits, inactive days, birthday month'
+      responses:
+        '200': { description: '{ count }' }
+  /tenant/loyalty:
+    get:
+      tags: [Loyalty (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Loyalty settings and stats (members, outstanding points)'
+      responses:
+        '200': { description: OK }
+    put:
+      tags: [Loyalty (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Settings: enabled, points per ₹100, point value, minimum to redeem, max % of a bill'
+      responses:
+        '200': { description: Saved }
+  /tenant/loyalty/customers/{customerId}/adjust:
+    post:
+      tags: [Loyalty (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Add or remove points with a reason (audited)
+      responses:
+        '200': { description: OK }
+  /tenant/loyalty/gift-cards:
+    get:
+      tags: [Loyalty (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Gift cards with balances
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Loyalty (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Issue a gift card (₹1–1,00,000; paid by cash / UPI / card or complimentary; optional expiry); code XXXX-XXXX-XXXX-XXXX'
+      responses:
+        '201': { description: Created }
+  /tenant/loyalty/gift-cards/lookup:
+    get:
+      tags: [Loyalty (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Check a gift card balance at the POS'
+      parameters:
+        - { name: code, in: query, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+  /tenant/loyalty/gift-cards/{id}:
+    get:
+      tags: [Loyalty (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Gift card with its transactions
+      responses:
+        '200': { description: OK }
+  /tenant/loyalty/gift-cards/{id}/void:
+    post:
+      tags: [Loyalty (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Cancel a gift card (remaining balance no longer usable; audited)'
+      responses:
+        '200': { description: OK }
+  /tenant/inventory/items:
+    get:
+      tags: [Inventory (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Stock items with low flags, dishes using them and stock value'
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Inventory (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'New item (kg / g / l / ml / pcs) with opening stock, low level, cost'
+      responses:
+        '201': { description: Created }
+  /tenant/inventory/items/{id}:
+    put:
+      tags: [Inventory (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Update an item
+      responses:
+        '200': { description: Saved }
+    delete:
+      tags: [Inventory (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Delete an item (and its recipe lines)
+      responses:
+        '200': { description: OK }
+  /tenant/inventory/items/{id}/stock:
+    post:
+      tags: [Inventory (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Stock in / out: purchase, wastage or a physical count'
+      requestBody: { content: { application/json: { schema: { type: object, required: [type, quantity], properties: { type: { type: string, enum: [purchase, wastage, count] }, quantity: { type: number }, cost_per_unit: { type: [number, 'null'] }, note: { type: [string, 'null'] } } } } } }
+      responses:
+        '200': { description: OK }
+  /tenant/inventory/items/{id}/movements:
+    get:
+      tags: [Inventory (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Stock movements (purchase, wastage, sale, return, adjust)'
+      responses:
+        '200': { description: OK }
+  /tenant/inventory/recipes:
+    get:
+      tags: [Inventory (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Dishes with their recipe lines
+      responses:
+        '200': { description: OK }
+  /tenant/inventory/recipes/{menuItemId}:
+    put:
+      tags: [Inventory (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Replace a dish''s recipe (ingredient, quantity per serving, optionally per size). Stock is deducted when the kitchen ticket is created and returned if the order is cancelled'
+      responses:
+        '200': { description: Saved }
+  /tenant/reports/overview:
+    get:
+      tags: [Reports (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Analytics from real data: sales, orders, GST, discounts, AOV, repeat rate, series by day / week / month, by type / payment / source, peak-hour heatmap, top and slow dishes, categories, bookings, offers'
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { name: by, in: query, schema: { type: string, enum: [day, week, month] } }
+      responses:
+        '200': { description: OK }
+  /tenant/reports/export/{type}:
+    get:
+      tags: [Reports (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'CSV (Excel-friendly, UTF-8 BOM): sales, orders, dishes, categories, customers, reservations; up to 366 days'
+      parameters:
+        - { name: type, in: path, required: true, schema: { type: string, enum: [sales, orders, dishes, categories, customers, reservations] } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: text/csv }
   /plans:
     get:
       tags: [Plans]

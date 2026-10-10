@@ -16,6 +16,9 @@ use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tables\Services\DineIn;
 use App\Modules\Kitchen\Services\Kitchen;
 use App\Support\Realtime\Live;
+use App\Modules\Crm\Services\CustomerActivity;
+use App\Modules\Loyalty\Services\Loyalty;
+use App\Modules\Marketing\Services\Coupons;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
@@ -96,8 +99,9 @@ class OrderFlow
 
         // Diners at a table may skip their phone number.
         $phone = ! empty($data['customer']['phone']) ? Phone::normalize($data['customer']['phone']) : null;
+        [$quote, $offers] = $this->discounts($tenant, $quote, $data, $phone);
 
-        $order = DB::transaction(function () use ($tenant, $data, $type, $scheduled, $zone, $quote, $phone, $locale, $table) {
+        $order = DB::transaction(function () use ($tenant, $data, $type, $scheduled, $zone, $quote, $phone, $locale, $table, $offers) {
             $customer = null;
             if ($phone) {
                 $customer = Customer::firstOrNew(['phone' => $phone]);
@@ -107,6 +111,10 @@ class OrderFlow
                     'orders_count' => $customer->orders_count + 1,
                     'last_order_at' => now(),
                 ])->save();
+                // Offers by message only with a clear yes (never pre-ticked).
+                if (! empty($data['marketing_opt_in']) && ! $customer->marketing_opt_in) {
+                    $customer->update(['marketing_opt_in' => true, 'marketing_opt_in_at' => now(), 'unsubscribe_token' => $customer->unsubscribe_token ?? Str::random(40)]);
+                }
             }
             $session = $table ? $this->dineIn->sessionFor($table) : null;
 
@@ -133,7 +141,9 @@ class OrderFlow
                 'tax_total' => $quote['tax_total'],
                 'delivery_fee' => $quote['delivery_fee'],
                 'packaging_fee' => $quote['packaging_fee'],
-                'discount_total' => '0.00',
+                'discount_total' => $quote['discount_total'] ?? '0.00',
+                'discount_label' => $quote['discount_label'] ?? null,
+                'marketing_opt_in' => ! empty($data['marketing_opt_in']),
                 'total' => $quote['total'],
                 'prices_include_tax' => $quote['prices_include_tax'],
                 'payment_method' => $data['payment_method'],
@@ -149,6 +159,12 @@ class OrderFlow
                 ]));
             }
             $this->event($order, 'pending', null, null);
+            if ($offers['coupon']) {
+                $this->coupons()->redeem($offers['coupon'], $offers['coupon_off'], $order->id, null, $customer?->id);
+            }
+            if ($offers['points'] > 0) {
+                $this->loyalty()->redeem($offers['loyalty_customer'], $offers['points'], $order->id, null);
+            }
 
             return $order;
         });
@@ -246,6 +262,61 @@ class OrderFlow
         return $order->fresh('items');
     }
 
+    /**
+     * Coupon and loyalty points for an online order: checked, worked out on the food before
+     * GST and taken off the quote. Points need the checkout token from the phone code.
+     *
+     * @return array{0: array, 1: array{coupon: ?\App\Modules\Marketing\Models\Coupon, coupon_off: int, loyalty_customer: ?Customer, points: int}}
+     */
+    public function discounts(Tenant $tenant, array $quote, array $data, ?string $phone): array
+    {
+        $items = Money::toPaise($quote['subtotal']);
+        $coupon = null;
+        $couponOff = 0;
+        $labels = [];
+        if (! empty($data['coupon_code'])) {
+            if (! $this->features->enabled($tenant, 'coupons')) {
+                throw new ApiException('Coupons are not available.', 422, 'coupon_invalid', ['field' => 'coupon_code']);
+            }
+            $coupon = $this->coupons()->find($data['coupon_code'], 'online');
+            $customerId = $phone ? Customer::where('phone', $phone)->value('id') : null;
+            $couponOff = $this->coupons()->discount($coupon, $items, $customerId);
+            $labels[] = "Coupon {$coupon->code}";
+        }
+        $loyaltyCustomer = null;
+        $points = 0;
+        $pointsOff = 0;
+        if (! empty($data['loyalty']['token']) && ! empty($data['loyalty']['points'])) {
+            if (! $this->features->enabled($tenant, 'loyalty')) {
+                throw new ApiException('Loyalty points are not available.', 422, 'loyalty_off');
+            }
+            $loyaltyCustomer = $this->loyalty()->customerFromToken($tenant, $data['loyalty']['token']);
+            if ($phone && $loyaltyCustomer->phone !== $phone) {
+                throw new ApiException('Use the same mobile number you confirmed for your points.', 422, 'loyalty_phone', ['field' => 'customer.phone']);
+            }
+            $r = $this->loyalty()->redeemable($loyaltyCustomer, (int) $data['loyalty']['points'], $items - $couponOff);
+            [$points, $pointsOff] = [$r['points'], $r['paise']];
+            if ($points > 0) {
+                $labels[] = "{$points} points";
+            }
+        }
+        $quote = $this->pricing->applyDiscount($quote, $couponOff + $pointsOff, $labels ? implode(' · ', $labels) : null);
+        $quote['coupon'] = $coupon ? ['code' => $coupon->code, 'discount' => Money::toRupees($couponOff)] : null;
+        $quote['loyalty'] = $points ? ['points' => $points, 'discount' => Money::toRupees($pointsOff)] : null;
+
+        return [$quote, ['coupon' => $coupon, 'coupon_off' => $couponOff, 'loyalty_customer' => $loyaltyCustomer, 'points' => $points]];
+    }
+
+    private function coupons(): Coupons
+    {
+        return app(Coupons::class);
+    }
+
+    private function loyalty(): Loyalty
+    {
+        return app(Loyalty::class);
+    }
+
     /** Payment captured (checkout callback or webhook). Safe to call twice. */
     public function markPaid(Payment $payment, string $providerPaymentId, ?string $method = null): void
     {
@@ -322,6 +393,12 @@ class OrderFlow
 
         $fresh = $order->fresh();
         $this->kitchen->syncFromOrder($fresh);
+        if ($to === 'completed') {
+            app(CustomerActivity::class)->orderCompleted($fresh);
+        }
+        if ($to === 'cancelled') {
+            app(CustomerActivity::class)->orderCancelled($fresh);
+        }
         $this->emitOrder($fresh, 'order.changed');
         $this->notifier->statusChanged($fresh);
 
@@ -339,6 +416,7 @@ class OrderFlow
             ->each(function (Order $order) use (&$count) {
                 $order->update(['status' => 'cancelled', 'cancel_reason' => 'Payment not completed']);
                 $this->event($order, 'cancelled', 'Payment not completed', null);
+                app(CustomerActivity::class)->orderCancelled($order);
                 $count++;
             });
 

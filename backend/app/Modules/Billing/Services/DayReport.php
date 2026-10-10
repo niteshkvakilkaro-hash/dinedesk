@@ -53,7 +53,11 @@ class DayReport
 
         $cashBills = Money::toPaise($payments->firstWhere('mode', 'cash')['amount'] ?? 0);
         $cashOutside = (int) $unbilledPaid->whereIn('payment_method', ['cod', 'counter'])->sum(fn ($o) => Money::toPaise($o->total));
-        $expected = Money::toPaise($openingCash) + $cashBills + $cashOutside;
+        // Gift cards sold today (money taken, not sales: GST applies when they are spent).
+        $cards = \App\Modules\Loyalty\Models\GiftCardTransaction::where('type', 'issue')->where('created_at', '>=', $from)->where('created_at', '<', $to)->get();
+        $cardsByMode = $cards->groupBy(fn ($t) => $t->mode ?? 'other')->map(fn ($rows, $mode) => ['mode' => $mode, 'count' => $rows->count(), 'amount' => $sum($rows, 'amount')])->values();
+        $cashCards = (int) $cards->where('mode', 'cash')->sum(fn ($t) => Money::toPaise($t->amount));
+        $expected = Money::toPaise($openingCash) + $cashBills + $cashOutside + $cashCards;
 
         return [
             'date' => $date,
@@ -75,6 +79,7 @@ class DayReport
             ],
             'payments' => $payments,
             'outside_bills' => $outside,
+            'gift_cards_sold' => $cardsByMode,
             'orders' => [
                 'count' => $live->count(),
                 'value' => $sum($live, 'total'),
@@ -94,6 +99,7 @@ class DayReport
                 'opening' => Money::toRupees(Money::toPaise($openingCash)),
                 'from_bills' => Money::toRupees($cashBills),
                 'outside_bills' => Money::toRupees($cashOutside),
+                'gift_cards' => Money::toRupees($cashCards),
                 'expected' => Money::toRupees($expected),
             ],
             'closing' => ($c = DayClosing::whereDate('business_date', $date)->first()) ? [

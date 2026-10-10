@@ -13,6 +13,7 @@ import { BillSummary, OrderTypePicker } from './Cart';
 import { scheduleSlots } from './schedule';
 import { useSkin } from './skin';
 import { useActiveTable } from '../table';
+import { Offers, type OfferState } from './Offers';
 
 const CONTACT_KEY = 'dd_checkout_contact';
 
@@ -70,6 +71,8 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState('');
   const [placing, setPlacing] = useState(false);
+  const [offers, setOffers] = useState<OfferState>({ coupon: null, loyalty: null });
+  const [optIn, setOptIn] = useState(false);
 
   useEffect(() => {
     if (!methods.includes(method as PaymentMethod)) setMethod(methods[0] ?? '');
@@ -81,7 +84,11 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
   );
   const day = days.find((d) => d.date === slotDay) ?? days[0];
 
-  const quote = useQuote(type, type === 'delivery' ? { pincode: contact.pincode, lat: geo?.lat, lng: geo?.lng } : {});
+  const quote = useQuote(type, type === 'delivery' ? { pincode: contact.pincode, lat: geo?.lat, lng: geo?.lng } : {}, {
+    coupon_code: offers.coupon,
+    phone: contact.phone,
+    loyalty: offers.loyalty ? { token: offers.loyalty.token, points: offers.loyalty.points } : null,
+  });
   const set = (k: keyof Contact, v: string) => setContact((c) => ({ ...c, [k]: v }));
 
   if (!ordering.enabled) {
@@ -168,6 +175,9 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
         scheduled_for: when === 'later' && !table ? slot || day?.slots[0]?.value : null,
         customer: { name: contact.name, phone: contact.phone || null, email: contact.email || null },
         table_token: table?.token ?? null,
+        coupon_code: offers.coupon,
+        loyalty: offers.loyalty?.points ? { token: offers.loyalty.token, points: offers.loyalty.points } : null,
+        marketing_opt_in: optIn,
         address: type === 'delivery' ? { line1: contact.line1, line2: contact.line2 || null, landmark: contact.landmark || null, pincode: contact.pincode, lat: geo?.lat ?? null, lng: geo?.lng ?? null } : null,
         notes: notes || null,
         items: apiLines(lines),
@@ -312,6 +322,12 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
               {field('email', 'customer.email', t('order.email'), { type: 'email', autoComplete: 'email' }, true)}
             </div>
             <p className="text-xs text-t-muted">{t('order.contactUse')}</p>
+            {site.growth?.coupons && (
+              <label className="flex items-start gap-3 text-sm">
+                <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[var(--t-primary)]" />
+                <span>{t('order.optIn', { name: site.name })}</span>
+              </label>
+            )}
           </section>
 
           {type === 'delivery' && (
@@ -337,6 +353,8 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
               )}
             </section>
           )}
+
+          <Offers site={site} phone={contact.phone} value={offers} onChange={setOffers} quote={quote.data} />
 
           <section className={`p-5 ${skin.card}`} aria-labelledby="pay-h">
             <h2 id="pay-h" className={`text-2xl ${skin.heading}`}>
@@ -397,7 +415,7 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
                 {formError}
               </p>
             )}
-            <button type="button" onClick={() => void place()} disabled={placing || quote.isError || !!minError || methods.length === 0} className={`mt-4 flex min-h-14 w-full items-center justify-center gap-2 px-4 text-lg disabled:opacity-50 ${skin.primary}`}>
+            <button type="button" onClick={() => void place()} disabled={placing || quote.isError || !!minError || !!quote.data?.offer_error || methods.length === 0} className={`mt-4 flex min-h-14 w-full items-center justify-center gap-2 px-4 text-lg disabled:opacity-50 ${skin.primary}`}>
               {placing && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
               {method === 'online' ? t('order.payAndPlace', { amount: q ? money(q.total) : '' }) : t('order.place')}
             </button>

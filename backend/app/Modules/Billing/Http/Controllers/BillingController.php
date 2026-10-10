@@ -111,6 +111,9 @@ class BillingController extends Controller
             'buyer.name' => ['nullable', 'string', 'max:120'],
             'buyer.phone' => ['nullable', 'string', 'max:20'],
             'buyer.gstin' => ['nullable', 'regex:/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/i'],
+            'coupon_code' => ['nullable', 'string', 'max:30'],
+            'customer_phone' => ['nullable', 'string', 'max:20'],
+            'points' => ['nullable', 'integer', 'min:0'],
         ], ['buyer.gstin.regex' => 'Enter a valid 15-character GSTIN.']);
 
         $session = null;
@@ -126,7 +129,7 @@ class BillingController extends Controller
                 throw new ApiException('Order not found.', 404, 'not_found');
             }
         }
-        $invoice = $this->billing->bill($this->context->require(), $orders, $session, $data['discount'] ?? null, $data['buyer'] ?? null, $request->user());
+        $invoice = $this->billing->bill($this->context->require(), $orders, $session, $data['discount'] ?? null, $data['buyer'] ?? null, $request->user(), ['coupon_code' => $data['coupon_code'] ?? null, 'customer_phone' => $data['customer_phone'] ?? null, 'points' => $data['points'] ?? 0]);
 
         return $this->created($this->presenter->present($invoice->fresh()), 'Bill ready.');
     }

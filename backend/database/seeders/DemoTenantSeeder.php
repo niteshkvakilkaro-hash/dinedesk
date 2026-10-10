@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Modules\Marketing\Models\Banner;
+use App\Modules\Marketing\Models\Coupon;
 use App\Modules\Menu\Support\SampleMenu;
 use App\Modules\Onboarding\Actions\CreateBusiness;
 use App\Modules\Ordering\Models\DeliveryZone;
@@ -170,6 +172,10 @@ class DemoTenantSeeder extends Seeder
                 }
                 app(ReservationSettings::class)->save(array_replace(ReservationSettings::defaults(), ['enabled' => true, 'default_capacity' => 20, 'max_party' => 8]));
             }
+
+            // A sample offer so coupons and banners can be tried; clearly marked as demo.
+            Coupon::create(['code' => 'DEMO10', 'description' => 'Demo coupon: 10% off (sample offer, not a real promotion)', 'type' => 'percent', 'value' => 10, 'max_discount' => 100, 'min_order' => 300, 'online' => true, 'pos' => true, 'is_public' => true, 'is_active' => true]);
+            Banner::create(['placement' => 'bar', 'title' => 'Demo offer: 10% off with code DEMO10', 'title_hi' => 'डेमो ऑफ़र: कोड DEMO10 से 10% छूट', 'cta_label' => 'See offers', 'cta_link' => '/offers', 'coupon_code' => 'DEMO10', 'is_active' => true, 'sort_order' => 1]);
         });
 
         return $tenant->fresh();

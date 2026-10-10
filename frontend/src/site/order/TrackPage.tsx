@@ -5,6 +5,7 @@ import { ApiError } from '@/lib/api';
 import { telHref, useLocalized } from '../data';
 import { FoodTypeMark } from '../components/bits';
 import { STATUS_FLOW, useMoney, useTrackedOrder } from '../ordering';
+import { FeedbackForm } from '../ui/Growth';
 import type { OrderStatus, SiteData } from '../types';
 import { BillSummary } from './Cart';
 import { useSkin } from './skin';
@@ -117,6 +118,11 @@ export default function TrackPage({ site }: { site: SiteData }) {
             </a>
           )}
           <Link to="/menu" className={`mt-2 flex min-h-12 items-center justify-center ${skin.primary}`}>{t('order.orderMore')}</Link>
+          {order.status === 'completed' && (
+            <div className="mt-4">
+              <FeedbackForm orderId={order.id} token={token} site={site} />
+            </div>
+          )}
         </aside>
       </div>
     </Wrap>

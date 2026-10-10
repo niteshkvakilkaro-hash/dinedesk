@@ -3,7 +3,7 @@ import { api } from '@/lib/api';
 import { usePollInterval } from '@/lib/realtime';
 import type { MenuCategory } from '@/site/types';
 
-export type PayMode = 'cash' | 'upi' | 'card' | 'online' | 'other';
+export type PayMode = 'cash' | 'upi' | 'card' | 'gift_card' | 'online' | 'other';
 
 export interface Bill {
   id: number;

@@ -27,7 +27,7 @@ export function OrderTypePicker({ site, value, onChange }: { site: SiteData; val
 }
 
 /** Bill lines; the same breakdown is used in the cart, at checkout and on the tracking page. */
-export function BillSummary({ quote, showDeliveryHint = false, deliveryPending = false }: { quote: Pick<Quote, 'subtotal' | 'tax_total' | 'packaging_fee' | 'delivery_fee' | 'total' | 'prices_include_tax'> & { discount_total?: string }; showDeliveryHint?: boolean; deliveryPending?: boolean }) {
+export function BillSummary({ quote, showDeliveryHint = false, deliveryPending = false }: { quote: Pick<Quote, 'subtotal' | 'tax_total' | 'packaging_fee' | 'delivery_fee' | 'total' | 'prices_include_tax'> & { discount_total?: string | null; discount_label?: string | null }; showDeliveryHint?: boolean; deliveryPending?: boolean }) {
   const { t } = useTranslation();
   const money = useMoney();
   const row = (label: string, value: string, strong = false) => (
@@ -38,11 +38,12 @@ export function BillSummary({ quote, showDeliveryHint = false, deliveryPending =
   );
   return (
     <dl className="space-y-1.5">
-      {row(quote.prices_include_tax ? t('order.itemsInclGst') : t('order.itemTotal'), money(quote.subtotal))}
+      {/* Items before the discount, then the discount (coupon / points), then GST on what is left. */}
+      {row(quote.prices_include_tax ? t('order.itemsInclGst') : t('order.itemTotal'), money(Number(quote.subtotal) + Number(quote.discount_total ?? 0)))}
+      {quote.discount_total && Number(quote.discount_total) > 0 && row(quote.discount_label ? `${t('order.discount')} (${quote.discount_label})` : t('order.discount'), `− ${money(quote.discount_total)}`)}
       {Number(quote.tax_total) > 0 && row(quote.prices_include_tax ? t('order.gstIncluded') : t('order.gst'), money(quote.tax_total))}
       {Number(quote.packaging_fee) > 0 && row(t('order.packaging'), money(quote.packaging_fee))}
       {deliveryPending ? row(t('order.delivery'), t('order.deliveryAtCheckout')) : Number(quote.delivery_fee) > 0 ? row(t('order.delivery'), money(quote.delivery_fee)) : showDeliveryHint && row(t('order.delivery'), t('order.free'))}
-      {quote.discount_total && Number(quote.discount_total) > 0 && row(t('order.discount'), `− ${money(quote.discount_total)}`)}
       {row(t('order.total'), money(quote.total), true)}
     </dl>
   );

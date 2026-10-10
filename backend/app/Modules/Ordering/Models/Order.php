@@ -19,7 +19,7 @@ class Order extends Model
     public const PAYMENT_METHODS = ['online', 'cod', 'counter'];
 
     protected $fillable = [
-        'tenant_id', 'tracking_token', 'number', 'customer_id', 'type', 'status', 'scheduled_for',
+        'tenant_id', 'tracking_token', 'number', 'customer_id', 'type', 'status', 'scheduled_for', 'stock_deducted_at', 'discount_label', 'marketing_opt_in',
         'customer_name', 'customer_phone', 'customer_email', 'address', 'delivery_zone_id', 'table_label', 'dining_table_id', 'table_session_id', 'source', 'created_by', 'notes',
         'subtotal', 'tax_total', 'delivery_fee', 'packaging_fee', 'discount_total', 'total', 'prices_include_tax',
         'payment_method', 'payment_status', 'cancel_reason', 'locale', 'placed_at',

@@ -6,10 +6,11 @@ import { api, ApiError, downloadFile } from '@/lib/api';
 import { formatMoney as formatINR } from '@/lib/format';
 import { Alert, Badge, Dialog, Field, Spinner, toast } from '@/components/ui';
 import type { Bill, PayMode } from './api';
+import { useFeature } from '@/hooks/useSession';
 
 export type BillTarget = { title: string; orderIds?: number[]; sessionId?: number; invoiceId?: number };
 
-const MODES: PayMode[] = ['cash', 'upi', 'card', 'other'];
+const BASE_MODES: PayMode[] = ['cash', 'upi', 'card', 'other'];
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 function Totals({ bill }: { bill: Bill }) {
@@ -55,8 +56,15 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
   const [voiding, setVoiding] = useState(false);
   const [voidReason, setVoidReason] = useState('');
   const [error, setError] = useState('');
+  const hasCoupons = useFeature('coupons');
+  const hasLoyalty = useFeature('loyalty');
+  const MODES: PayMode[] = hasLoyalty ? ['cash', 'upi', 'card', 'gift_card', 'other'] : BASE_MODES;
+  const [coupon, setCoupon] = useState('');
+  const [guest, setGuest] = useState<{ phone: string; found: { name: string; loyalty_points: number } | null | undefined; points: string }>({ phone: '', found: undefined, points: '' });
 
   useEffect(() => {
+    setCoupon('');
+    setGuest({ phone: '', found: undefined, points: '' });
     setBillId(target?.invoiceId ?? null);
     setDisc({ type: 'none', value: '', reason: '' });
     setBuyer({ name: '', phone: '', gstin: '' });
@@ -82,6 +90,9 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
         order_ids: target?.orderIds ?? null,
         discount: disc.type === 'none' ? null : { type: disc.type, value: Number(disc.value) || 0, reason: disc.reason || null },
         buyer: showBuyer ? { name: buyer.name || null, phone: buyer.phone || null, gstin: buyer.gstin || null } : null,
+        coupon_code: coupon.trim() || null,
+        customer_phone: guest.found ? guest.phone : null,
+        points: guest.found && Number(guest.points) > 0 ? Number(guest.points) : 0,
       }),
     onSuccess: (res) => {
       qc.setQueryData(['bill', res.data.id], res.data);
@@ -146,6 +157,31 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
               </div>
             )}
           </fieldset>
+          {(hasCoupons || hasLoyalty) && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {hasCoupons && (
+                <Field label={t('pos.coupon')} optional>{(a) => <input {...a} className="field-input font-mono uppercase" maxLength={30} value={coupon} onChange={(e) => setCoupon(e.target.value)} />}</Field>
+              )}
+              {hasLoyalty && (
+                <div>
+                  <span className="field-label">{t('pos.guestPoints')}</span>
+                  <div className="flex gap-2">
+                    <input className="field-input" type="tel" aria-label={t('pos.guestPhone')} placeholder={t('pos.guestPhone')} value={guest.phone} onChange={(e) => setGuest({ phone: e.target.value, found: undefined, points: '' })} />
+                    <button type="button" className="btn-outline !min-h-11 shrink-0 text-sm" disabled={guest.phone.replace(/\D/g, '').length < 10} onClick={() => void api.get<{ name: string; loyalty_points: number } | null>('/tenant/customers/lookup', { phone: guest.phone }).then((r) => setGuest((g) => ({ ...g, found: r.data }))).catch((e: Error) => toast.error(e.message))}>
+                      {t('pos.find')}
+                    </button>
+                  </div>
+                  {guest.found === null && <p className="mt-1 text-sm text-muted">{t('pos.noGuest')}</p>}
+                  {guest.found && (
+                    <label className="mt-2 flex items-center gap-2 text-sm">
+                      <span>{t('pos.guestHas', { name: guest.found.name, count: guest.found.loyalty_points })}</span>
+                      <input className="field-input !w-24 !py-1.5" type="number" min={0} max={guest.found.loyalty_points} aria-label={t('pos.usePoints')} placeholder={t('pos.usePoints')} value={guest.points} onChange={(e) => setGuest({ ...guest, points: e.target.value })} />
+                    </label>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           <div>
             <button type="button" className="text-sm font-semibold underline" onClick={() => setShowBuyer(!showBuyer)} aria-expanded={showBuyer}>
               {t('pos.addBuyer')}
@@ -209,7 +245,7 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
                     ))}
                   </div>
                   <input className="field-input !w-32 !py-2 tabular-nums" type="number" min={0} step="0.01" inputMode="decimal" aria-label={t('pos.amount')} value={row.amount} onChange={(e) => setRows(rows.map((r, j) => (j === i ? { ...r, amount: e.target.value } : r)))} />
-                  {row.mode !== 'cash' && <input className="field-input !w-40 !py-2" placeholder={t('pos.reference')} aria-label={t('pos.reference')} value={row.reference} onChange={(e) => setRows(rows.map((r, j) => (j === i ? { ...r, reference: e.target.value } : r)))} />}
+                  {row.mode !== 'cash' && <input className={`field-input !py-2 ${row.mode === 'gift_card' ? '!w-56 font-mono uppercase' : '!w-40'}`} placeholder={row.mode === 'gift_card' ? t('pos.giftCardCode') : t('pos.reference')} aria-label={row.mode === 'gift_card' ? t('pos.giftCardCode') : t('pos.reference')} value={row.reference} onChange={(e) => setRows(rows.map((r, j) => (j === i ? { ...r, reference: e.target.value } : r)))} />}
                   {rows.length > 1 && (
                     <button type="button" className="btn-ghost !min-h-10 !px-2" onClick={() => setRows(rows.filter((_, j) => j !== i))} aria-label={t('common.remove')}>
                       <Trash2 className="h-4 w-4" aria-hidden="true" />

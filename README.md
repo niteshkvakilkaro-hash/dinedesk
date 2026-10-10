@@ -9,7 +9,26 @@ dinedesk/
 └── docs/       openapi.yaml (API reference), DESIGN.md (website design system)
 ```
 
-## Status: Phase 5 (Operations) complete
+## Status: Phase 6 (Growth) complete
+
+### Phase 6
+
+| Area | What works |
+|---|---|
+| Inventory | `/dashboard/inventory`: raw materials in kg / g / l / ml / pcs with opening stock, low-stock level and cost; **stock in / out** as purchase, wastage or a physical count; movement history; stock value. **Recipes** link dishes (or a single size) to ingredients per serving. Stock is deducted when the kitchen ticket is created and returned if the order is cancelled. A low-stock alert goes once to staff who manage inventory and again once stock has gone back above the level. Growth plan |
+| Coupons | Flat or percent, max discount, minimum order, start / end, total and per-guest limits, online and/or POS, public (listed on `/offers`) or hidden. Taken off the food value before GST and shared across lines to the paisa; reversed if the order or bill is cancelled. Used coupons are switched off, never deleted |
+| Loyalty points | Points per ₹100 on completed orders (food value only), point value, minimum to redeem, max % of a bill. Online redemption needs a **6-digit SMS code** (hashed, 5 tries) and a 30-minute token. At the POS, find the guest by phone and use points. Points come back on cancellation; manual adjustments need a reason and are audited |
+| Gift cards | Issued from Marketing (cash / UPI / card / complimentary, optional expiry), code `XXXX-XXXX-XXXX-XXXX`, redeemed at the POS as a **Gift card** payment (partial use keeps the balance), refunded if the bill is cancelled, can be cancelled. Cash gift-card sales count in the day-end cash drawer |
+| Website | Scheduled **banners**: top bar, a once-per-visit popup, cards on `/offers`. Offers box at checkout (coupon, points). A **Send me offers** checkbox, unticked by default. **Reviews** section only from real ratings that the guest agreed to show and the owner published. **Rate your order** form on the tracking page after completion. `/unsubscribe` page |
+| Customers (CRM) | `/dashboard/customers`: built from real orders and bookings, with orders, visits, total spent, points, last order; search, tags, sorting; history and points log; private notes; birthday / anniversary only when the guest agreed. Staff can switch offers **off** but never on. Feedback tab: publish / hide (only with consent), reply |
+| Messages | Campaigns by WhatsApp / SMS / email **only to opted-in guests**, filtered by tags, minimum visits, days since last visit, birthday month; audience count before sending; queued, rate limited, each with an unsubscribe link |
+| Reports | `/dashboard/reports`: last 7 / 30 / 90 days or any range up to a year; sales, orders, GST, discounts, average order, repeat-guest rate; sales by day / week / month (chart); by order type, payment and source; **peak-hours heatmap**; top and slow dishes; categories; bookings and no-show rate; coupon use. **CSV** (opens in Excel, UTF-8, formula-safe) for sales, orders, dishes, categories, customers and bookings. Everything comes from real data; nothing is estimated |
+| Roles | New permissions: `inventory.manage`, `marketing.manage` (manager); `customers.view` (manager, cashier, front desk); reports stay with `reports.view` |
+| Tests | Backend 100 tests / 1,071 assertions (+ coupon limits and reversal, loyalty earn / OTP / redeem / reverse, gift card redeem / refund / expiry, stock deduction per size and return, low alert, CRM consent rules, feedback once per completed order and publishing only with consent, campaigns only to opted-in guests and unsubscribe, reports and CSV). Frontend 32 unit tests. End-to-end browser run: demo banner on the site, coupon DEMO10 at checkout (−₹86), recipe Paneer Tikka → POS order → stock 5 → 4.75 kg with a low alert, ₹500 gift card issued and used to pay a POS bill, customers and reports pages |
+
+**Demo data:** each demo business has one coupon `DEMO10` and a banner, both labelled as demo. No sample reviews, customers or stock are created.
+
+**Try it:** open http://haveli-demo.localhost:5173, use `DEMO10` at checkout and rate the order once it is completed; sign in as `demo-owner@example.com` / `DemoOwner2026` and open **Customers**, **Marketing**, **Inventory** and **Reports**.
 
 ### Phase 5
 
@@ -187,9 +206,13 @@ Key backend suites: `Tenancy/TenantIsolationTest` (ORM + API isolation), `Identi
 - **Laravel 12** is used instead of 11: Composer blocks every Laravel 11 release over published security advisories. The structure is identical.
 - **Development cache/queues** use the database (no Redis on XAMPP/Windows). Production uses Redis, Horizon and Reverb (Phases 5 and 8).
 
-## Next: Phase 6 — Growth features
+## Next: Phase 7 — Hotel module
 
-Inventory with recipe-based stock deduction, coupons, loyalty points, gift cards, banners, customer CRM, feedback, reports and analytics with CSV export.
+The hotel module from the master plan.
+
+## Done: Phase 6 — Growth features
+
+See the Phase 6 section above.
 
 ## Done: Phase 5 — Operations
 

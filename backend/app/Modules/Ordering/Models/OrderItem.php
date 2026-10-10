@@ -10,7 +10,7 @@ class OrderItem extends Model
     use BelongsToTenant;
 
     protected $fillable = [
-        'tenant_id', 'order_id', 'menu_item_id', 'name', 'name_hi', 'variant_name', 'addons', 'food_type',
+        'tenant_id', 'order_id', 'menu_item_id', 'item_variant_id', 'name', 'name_hi', 'variant_name', 'addons', 'food_type',
         'unit_price', 'quantity', 'tax_rate', 'line_subtotal', 'line_tax', 'line_total', 'notes',
     ];
 
