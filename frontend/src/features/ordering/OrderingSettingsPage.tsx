@@ -297,7 +297,7 @@ export default function OrderingSettingsPage() {
         </div>
       </section>
 
-      <div className="sticky bottom-20 z-10 flex justify-end rounded-card border border-line bg-surface/95 p-3 backdrop-blur md:bottom-4">
+      <div className="sticky bottom-20 z-10 flex justify-end rounded-card border border-line bg-surface/95 p-3 backdrop-blur lg:bottom-4">
         <button type="submit" className="btn-primary" disabled={save.isPending}>{save.isPending ? <Spinner /> : t('common.save')}</button>
       </div>
       {zone && <ZoneEditor key={zone === 'new' ? 'new' : zone.id} zone={zone} onClose={() => setZone(null)} />}

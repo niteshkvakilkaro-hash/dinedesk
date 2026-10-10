@@ -204,7 +204,8 @@
       "hotel": "Hotel",
       "billing": "Billing",
       "branches": "Branches",
-      "domains": "Domain"
+      "domains": "Domain",
+      "label": "Dashboard"
     },
     "welcome": "Namaste, {{name}}",
     "demoBanner": "This is a demo business. Its data is sample content.",
@@ -251,7 +252,16 @@
     "setupPending": "To do",
     "siteLive": "Live",
     "customiseSite": "Customise website",
-    "liveHint": "Live updates are on: screens change the moment something happens."
+    "liveHint": "Live updates are on: screens change the moment something happens.",
+    "groups": {
+      "daily": "Daily work",
+      "menuHotel": "Menu & hotel",
+      "grow": "Grow",
+      "website": "Website",
+      "settings": "Settings"
+    },
+    "collapseMenu": "Collapse menu",
+    "expandMenu": "Expand menu"
   },
   "platform": {
     "title": "Super admin",
