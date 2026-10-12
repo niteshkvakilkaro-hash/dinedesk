@@ -106,4 +106,13 @@ return [
             'code_variable' => env('MSG91_CODE_VARIABLE') ?: 'otp',
         ],
     ],
+    /*
+    | Android apps (Trusted Web Activity) that open the platform dashboard full-screen.
+    | Each business's own app is set per website with: php artisan android:app <host> <package> <sha256>
+    | Fingerprint = SHA-256 of the app signing key (Play Console → App integrity), comma separated.
+    */
+    'android' => [
+        'admin_package' => env('ANDROID_ADMIN_PACKAGE'),
+        'admin_sha256' => array_values(array_filter(array_map('trim', explode(',', (string) env('ANDROID_ADMIN_SHA256', ''))))),
+    ],
 ];

@@ -159,8 +159,8 @@ server {
         expires 30d;
         add_header Cache-Control "public";
     }
-    # Per-business robots.txt, sitemap.xml and app manifest / icons come from Laravel (it reads the Host)
-    location ~ ^/(robots\.txt|sitemap\.xml|site\.webmanifest|site-icon-\d+\.png)$ {
+    # Per-business robots.txt, sitemap.xml, app manifest / icons and Android app links come from Laravel (it reads the Host)
+    location ~ ^/(robots\.txt|sitemap\.xml|site\.webmanifest|site-icon-\d+\.png|\.well-known/assetlinks\.json)$ {
         root /var/www/dinedesk/backend/public;
         try_files $uri /index.php?$query_string;
     }
@@ -301,3 +301,7 @@ cd ../frontend && npm ci && npm run build
 - [ ] `php artisan schedule:list` shows the jobs; `storage/app/private/backups` has today's file and it is copied off-site
 - [ ] Horizon and Reverb are running (`supervisorctl status`); the dashboard shows **Live**
 - [ ] Firewall: only 22, 80 and 443 open (`ufw allow OpenSSH 80 443`)
+
+## Android apps
+
+Guest apps for a business website and the dashboard app are Trusted Web Activities built with Bubblewrap from the live site: see [android/README.md](../android/README.md). After building, link the app to its domain so it opens without a browser bar: `php artisan android:app <host> <package> <sha256>` for a business website, or `ANDROID_ADMIN_PACKAGE` / `ANDROID_ADMIN_SHA256` in `.env` for the platform domain. Check `https://<host>/.well-known/assetlinks.json`.

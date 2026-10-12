@@ -156,3 +156,33 @@ Artisan::command('webpush:vapid', function () {
     $this->line('WEBPUSH_VAPID_PRIVATE='.$keys['privateKey']);
     $this->info('Add these to backend/.env (and keep the private key secret).');
 })->purpose('Generate VAPID keys for Web Push alerts');
+
+// Links a business website to its Android app (Trusted Web Activity) for /.well-known/assetlinks.json.
+Artisan::command('android:app {host : The website host, e.g. hungryhaveli.in} {package? : Android package name, e.g. in.hungryhaveli.app} {sha256?* : SHA-256 signing-key fingerprints} {--clear}', function (TenantContext $context) {
+    $resolver = app(\App\Modules\Tenancy\Support\TenantResolver::class);
+    $tenant = $resolver->resolve(strtolower($this->argument('host')));
+    if (! $tenant) {
+        $this->error('No business website at that host.');
+
+        return 1;
+    }
+    $settings = fn () => app(\App\Modules\Settings\Services\TenantSettings::class);
+    if ($this->option('clear')) {
+        $context->run($tenant, fn () => $settings()->set(\App\Modules\Website\Http\Controllers\AndroidAppController::SETTING, null));
+        $this->info("Removed the Android app link for {$tenant->name}.");
+
+        return 0;
+    }
+    $package = (string) $this->argument('package');
+    $prints = array_map('strtoupper', $this->argument('sha256'));
+    if (! preg_match('/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/i', $package) || ! $prints
+        || array_filter($prints, fn ($p) => ! preg_match('/^([0-9A-F]{2}:){31}[0-9A-F]{2}$/', $p))) {
+        $this->error('Give a package name (like in.hungryhaveli.app) and at least one fingerprint (AB:CD:... 32 pairs).');
+
+        return 1;
+    }
+    $context->run($tenant, fn () => $settings()->set(\App\Modules\Website\Http\Controllers\AndroidAppController::SETTING, ['package' => $package, 'sha256' => $prints]));
+    $this->info("{$tenant->name} → {$package}. Check https://{$this->argument('host')}/.well-known/assetlinks.json");
+
+    return 0;
+})->purpose('Link a business website to its Android app');
