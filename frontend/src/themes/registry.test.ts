@@ -11,7 +11,7 @@ describe('theme registry', () => {
       expect(def.preview).toBeTruthy();
       expect(def.motion.personality.length).toBeGreaterThan(2);
       expect(def.motion.ease).toEqual([0.16, 1, 0.3, 1]);
-      expect(['fullbleed', 'split', 'editorial']).toContain(def.style.hero);
+      expect(['fullbleed', 'royal', 'split', 'editorial']).toContain(def.style.hero);
     }
   });
 
