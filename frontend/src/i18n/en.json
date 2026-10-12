@@ -3346,5 +3346,20 @@
     "tally": "Tally Prime vouchers (XML)",
     "tallyNote": "Before importing in Tally (Import → Vouchers), create these ledgers once: {{ledgers}}, plus a ledger for each B2B buyer.",
     "caNote": "Please have your CA check the figures before filing. DineDesk prepares the data; it doesn't file returns."
+  },
+  "push": {
+    "title": "Alerts on this device",
+    "on": "Turn on alerts",
+    "off": "Turn off alerts",
+    "test": "Send a test",
+    "testSent": "Test alert sent. It should appear in a few seconds.",
+    "state": {
+      "on": "New orders and bookings ring on this device, even when the dashboard is closed.",
+      "off": "Get new orders and bookings as phone alerts, even when the dashboard is closed.",
+      "loading": "…",
+      "denied": "Alerts are blocked for this site. Allow notifications in the browser's site settings, then try again.",
+      "unsupported": "This browser can't show push alerts. On iPhone, add the dashboard to the Home Screen first (Share → Add to Home Screen).",
+      "server-off": "Push alerts aren't set up on this server yet."
+    }
   }
 }

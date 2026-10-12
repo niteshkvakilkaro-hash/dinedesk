@@ -148,3 +148,11 @@ Artisan::command('backup:database', function () {
 })->purpose('Back up the database to storage/app/private/backups');
 
 Schedule::command('backup:database')->dailyAt('02:30')->withoutOverlapping();
+
+// Keys for push alerts on staff phones: run once, put the two lines in .env.
+Artisan::command('webpush:vapid', function () {
+    $keys = \Minishlink\WebPush\VAPID::createVapidKeys();
+    $this->line('WEBPUSH_VAPID_PUBLIC='.$keys['publicKey']);
+    $this->line('WEBPUSH_VAPID_PRIVATE='.$keys['privateKey']);
+    $this->info('Add these to backend/.env (and keep the private key secret).');
+})->purpose('Generate VAPID keys for Web Push alerts');

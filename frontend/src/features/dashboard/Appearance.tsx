@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Moon, Palette, Sun } from 'lucide-react';
+import { Bell, BellOff, Check, Moon, Palette, Sun } from 'lucide-react';
+import { toast } from '@/components/ui';
+import { usePush } from '@/lib/push';
 import { PALETTES, setAdminTheme, useAdminPalette, type AdminPalette, type AdminTheme } from '@/lib/adminTheme';
 
 /** Sidebar, accent and page colours of each palette, for the little previews. */
@@ -10,6 +12,33 @@ const SWATCH: Record<AdminPalette, [string, string, string]> = {
   royal: ['#3e0f18', '#e2b357', '#fbf5f0'],
   ocean: ['#10263b', '#5eead4', '#f3f7fa'],
 };
+
+/** Push alerts (new orders, bookings) on this device. */
+function PushAlerts() {
+  const { t } = useTranslation();
+  const push = usePush();
+  const run = (fn: () => Promise<unknown>) => void fn().catch((e: Error) => toast.error(e.message));
+  return (
+    <div className="mt-4 border-t border-line pt-4">
+      <p className="text-xs font-bold uppercase tracking-wider text-muted">{t('push.title')}</p>
+      {push.state === 'on' ? (
+        <div className="mt-2 flex gap-2">
+          <button type="button" className="btn-outline !min-h-10 flex-1 text-sm" onClick={() => run(async () => { await push.test(); toast.success(t('push.testSent')); })}>
+            <Bell className="h-4 w-4" aria-hidden="true" /> {t('push.test')}
+          </button>
+          <button type="button" className="btn-ghost !min-h-10 text-sm" onClick={() => run(push.turnOff)} aria-label={t('push.off')} title={t('push.off')}>
+            <BellOff className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      ) : push.state === 'off' || push.state === 'loading' ? (
+        <button type="button" className="btn-primary mt-2 w-full !min-h-10 text-sm" disabled={push.state === 'loading'} onClick={() => run(push.turnOn)}>
+          <Bell className="h-4 w-4" aria-hidden="true" /> {t('push.on')}
+        </button>
+      ) : null}
+      <p className="mt-2 text-xs text-muted">{t(`push.state.${push.state}`)}</p>
+    </div>
+  );
+}
 
 /** Header menu: light / dark and the colour palette of the dashboard (saved on this device). */
 export function Appearance({ theme }: { theme: AdminTheme }) {
@@ -62,6 +91,7 @@ export function Appearance({ theme }: { theme: AdminTheme }) {
             ))}
           </div>
           <p className="mt-3 text-xs text-muted">{t('dashboard.appearanceHint')}</p>
+          <PushAlerts />
         </div>
       )}
     </div>

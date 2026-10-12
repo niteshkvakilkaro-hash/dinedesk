@@ -19,7 +19,7 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /** Business modules; each may ship a routes.php mounted under /api/v1. */
-    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports', 'Hotel', 'Subscriptions', 'Branches', 'Domains', 'DataExport', 'Accounts'];
+    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports', 'Hotel', 'Subscriptions', 'Branches', 'Domains', 'DataExport', 'Accounts', 'Notify'];
 
     public function register(): void
     {
@@ -40,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         foreach (['whatsapp', 'sms'] as $channel) {
             Notification::extend($channel, fn ($app) => new MessengerChannel($app->make(Messenger::class), $channel));
         }
+        Notification::extend('webpush', fn () => new \App\Modules\Notify\Support\WebPushChannel());
         $this->rateLimits();
         $this->moduleRoutes();
     }

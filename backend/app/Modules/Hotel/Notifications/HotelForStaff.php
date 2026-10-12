@@ -12,7 +12,16 @@ class HotelForStaff extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'webpush'];
+    }
+
+    public function toWebPush(object $notifiable): array
+    {
+        $d = $this->data;
+
+        return ($d['kind'] ?? '') === 'banquet'
+            ? ['title' => 'Event enquiry · '.($d['name'] ?? ''), 'body' => trim(ucfirst((string) ($d['event_type'] ?? '')).' '.($d['event_date'] ?? '')), 'url' => '/dashboard/hotel', 'tag' => 'banquet-'.($d['enquiry_id'] ?? '')]
+            : ['title' => 'Room booking · '.($d['name'] ?? ''), 'body' => ($d['check_in'] ?? '').' → '.($d['check_out'] ?? '').' · #'.($d['code'] ?? ''), 'url' => '/dashboard/hotel', 'tag' => 'stay-'.($d['booking_id'] ?? '')];
     }
 
     public function toArray(object $notifiable): array

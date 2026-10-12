@@ -1,4 +1,5 @@
-import { lazy, Suspense, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, type ReactNode } from 'react';
+import { registerDashboardWorker } from '@/lib/push';
 import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { MotionConfig } from 'motion/react';
 import { useAuthStore } from '@/stores/auth';
@@ -72,6 +73,22 @@ function Guard({ need, children }: { need: Need; children: ReactNode }) {
 
 /** Sign-up, onboarding, business dashboard and super admin (loaded only on the platform host). */
 export default function PlatformApp() {
+  // The dashboard installs like an app (manifest + a push-only service worker); business websites have their own.
+  useEffect(() => {
+    if (!document.querySelector('link[rel="manifest"]')) {
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = '/admin.webmanifest';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+      const icon = document.createElement('link');
+      icon.rel = 'apple-touch-icon';
+      icon.href = '/icons/dd-192.png';
+      document.head.appendChild(icon);
+    }
+    void registerDashboardWorker();
+  }, []);
   return (
     // reducedMotion="user": Motion drops movement for people who ask for less motion.
     <MotionConfig reducedMotion="user">

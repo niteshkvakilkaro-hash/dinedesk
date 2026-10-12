@@ -12,7 +12,16 @@ class NewOrderForStaff extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'webpush'];
+    }
+
+    /** Push alert on staff phones (see Notify module). */
+    public function toWebPush(object $notifiable): array
+    {
+        $o = $this->order;
+        $when = $o->scheduled_for ? ' · for '.$o->scheduled_for->setTimezone('Asia/Kolkata')->format('j M, g:i A') : '';
+
+        return ['title' => "New order #{$o->number} · ₹{$o->total}", 'body' => trim("{$o->customer_name} · ".str_replace('_', ' ', $o->type).$when, ' ·'), 'url' => '/dashboard/orders', 'tag' => "order-{$o->id}"];
     }
 
     public function toArray(object $notifiable): array

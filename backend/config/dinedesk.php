@@ -81,6 +81,13 @@ return [
     'guest_documents_disk' => env('GUEST_DOCUMENTS_DISK', 'local'),
 
     // WhatsApp / SMS provider for customer updates ("log" writes them to the log).
+    // Web Push alerts to staff phones (php artisan webpush:vapid makes the keys).
+    'webpush' => [
+        'public_key' => env('WEBPUSH_VAPID_PUBLIC'),
+        'private_key' => env('WEBPUSH_VAPID_PRIVATE'),
+        'subject' => env('WEBPUSH_SUBJECT') ?: 'mailto:support@example.com',
+    ],
+
     'messaging' => [
         // log (development) | live (LiveMessenger: Meta WhatsApp Cloud API + MSG91 for codes)
         'driver' => env('MESSAGING_DRIVER', 'log'),

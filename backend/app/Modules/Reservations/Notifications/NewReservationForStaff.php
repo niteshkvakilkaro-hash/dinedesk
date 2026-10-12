@@ -12,7 +12,14 @@ class NewReservationForStaff extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'webpush'];
+    }
+
+    public function toWebPush(object $notifiable): array
+    {
+        $r = $this->reservation;
+
+        return ['title' => "Table booking · {$r->name}", 'body' => "{$r->party_size} guests · ".$r->date->format('j M')." at {$r->time} · #{$r->code}", 'url' => '/dashboard/reservations', 'tag' => "reservation-{$r->id}"];
     }
 
     public function toArray(object $notifiable): array
