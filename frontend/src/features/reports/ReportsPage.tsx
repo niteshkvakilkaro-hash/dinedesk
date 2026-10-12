@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Download, LineChart } from 'lucide-react';
 import { api, downloadFile } from '@/lib/api';
+import { GstPanel } from './GstPanel';
 import { formatMoney } from '@/lib/format';
 import { ErrorState, SkeletonRows, toast } from '@/components/ui';
 import { shiftDate, todayIn } from '@/features/reservations/api';
@@ -225,6 +226,7 @@ export default function ReportsPage() {
           )}
         </>
       )}
+      <GstPanel />
     </div>
   );
 }

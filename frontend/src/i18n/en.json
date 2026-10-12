@@ -3325,5 +3325,26 @@
     "stats": "Would go to {{today}} today · {{sent}} sent in the last 30 days",
     "message": "Message",
     "messageHint": "{name} becomes the customer's first name. Add a coupon code if you like, e.g. use BDAY10."
+  },
+  "gst": {
+    "title": "GST and Tally",
+    "lead": "The month's sales in GSTR-1 sections for your CA, and sales vouchers for Tally Prime.",
+    "month": "Month",
+    "noGstin": "Add your GSTIN in Business details: without it your bills are plain bills, not tax invoices.",
+    "taxable": "Taxable value",
+    "bills": "Bills",
+    "billsValue": "{{count}} (B2B {{b2b}}, cancelled {{void}})",
+    "unbilled_one": "{{count}} order was paid without a bill (website / online): taxable {{taxable}}, GST {{tax}}. It is included in B2CS and in Tally as one voucher per day.",
+    "unbilled_other": "{{count}} orders were paid without a bill (website / online): taxable {{taxable}}, GST {{tax}}. They are included in B2CS and in Tally as one voucher per day.",
+    "rateLine": "{{rate}}%: {{taxable}}",
+    "section": {
+      "b2b": "B2B (CSV)",
+      "b2cs": "B2CS (CSV)",
+      "hsn": "HSN/SAC summary (CSV)",
+      "docs": "Documents issued (CSV)"
+    },
+    "tally": "Tally Prime vouchers (XML)",
+    "tallyNote": "Before importing in Tally (Import → Vouchers), create these ledgers once: {{ledgers}}, plus a ledger for each B2B buyer.",
+    "caNote": "Please have your CA check the figures before filing. DineDesk prepares the data; it doesn't file returns."
   }
 }
