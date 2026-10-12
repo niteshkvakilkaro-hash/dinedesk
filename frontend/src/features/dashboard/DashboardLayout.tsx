@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, CalendarDays, ChefHat, Contact, CreditCard, Globe, Globe2, Hotel, Images, Network, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, PanelLeftClose, PanelLeftOpen, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wifi } from 'lucide-react';
+import { Building2, CalendarDays, ChefHat, Contact, CreditCard, Globe, Globe2, Hotel, Images, Network, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, PanelLeftClose, PanelLeftOpen, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wallet, Wifi } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { disconnectLive, useLive, useLiveStatus } from '@/lib/realtime';
 import { useCan, useFeature, useSession, useSignOut } from '@/hooks/useSession';
@@ -130,6 +130,7 @@ export default function DashboardLayout() {
         { to: '/dashboard/marketing', label: t('dashboard.nav.marketing'), icon: Megaphone, show: canMarketingPerm && (hasCoupons || hasLoyaltyPlan) },
         { to: '/dashboard/inventory', label: t('dashboard.nav.inventory'), icon: Package, show: canInventoryPerm && hasInventory },
         { to: '/dashboard/reports', label: t('dashboard.nav.reports'), icon: LineChart, show: canReports },
+        { to: '/dashboard/finance', label: t('dashboard.nav.finance'), icon: Wallet, show: canReports },
       ],
     },
     {

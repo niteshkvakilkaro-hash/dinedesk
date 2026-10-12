@@ -205,7 +205,8 @@
       "billing": "Billing",
       "branches": "Branches",
       "domains": "Domain",
-      "label": "Dashboard"
+      "label": "Dashboard",
+      "finance": "Profit & loss"
     },
     "welcome": "Namaste, {{name}}",
     "demoBanner": "This is a demo business. Its data is sample content.",
@@ -3404,5 +3405,68 @@
       "unsupported": "This browser can't show push alerts. On iPhone, add the dashboard to the Home Screen first (Share → Add to Home Screen).",
       "server-off": "Push alerts aren't set up on this server yet."
     }
+  },
+  "finance": {
+    "title": "Profit & loss",
+    "subtitle": "What you earned, what it cost and what was left, without GST.",
+    "tab": {
+      "pnl": "Profit & loss",
+      "expenses": "Expenses",
+      "dishes": "Dish costs"
+    },
+    "revenue": "Revenue",
+    "withoutGst": "Without GST",
+    "revenueSplit": "Food {{food}} · Rooms {{rooms}}",
+    "foodCost": "Food cost",
+    "ofSales": "{{value}}% of food sales",
+    "expenses": "Expenses",
+    "expensesHint": "Rent, salaries, gas …",
+    "netProfit": "Net profit",
+    "margin": "{{value}}% margin",
+    "coverage": "Food cost counts only dishes with a recipe ({{recipes}} of {{dishes}}) and ingredients with a cost price ({{missing}} without). Add them under Inventory for a complete picture.",
+    "daily": "Day by day",
+    "costs": "Food cost + expenses",
+    "profit": "Profit",
+    "statement": "Statement",
+    "restaurantSales": "Restaurant sales (without GST)",
+    "roomSales": "Room sales (without GST)",
+    "grossProfit": "Gross profit",
+    "note": "From your own records: sales after discounts, recipes at today's cost price and the expenses you added. Ask your CA for your books of account.",
+    "addExpense": "Add expense",
+    "added": "Expense added.",
+    "noExpenses": "No expenses this month",
+    "noExpensesBody": "Add rent, salaries, bills and supplies to see your real profit.",
+    "total": "Total",
+    "deleteConfirm": "Delete this expense?",
+    "date": "Date",
+    "amount": "Amount (₹)",
+    "category": "Category",
+    "paidBy": "Paid by",
+    "noteLabel": "Note",
+    "cat": {
+      "rent": "Rent",
+      "salaries": "Salaries",
+      "utilities": "Electricity & water",
+      "gas": "Gas / fuel",
+      "supplies": "Supplies (non-food)",
+      "marketing": "Marketing",
+      "maintenance": "Repairs & maintenance",
+      "other": "Other"
+    },
+    "mode": {
+      "cash": "Cash",
+      "upi": "UPI",
+      "card": "Card",
+      "bank": "Bank transfer"
+    },
+    "dishesIntro": "What each dish costs to make from its recipe, against its price before GST. Many restaurants aim for a food cost of 25–35%.",
+    "dish": "Dish",
+    "price": "Price",
+    "cost": "Cost",
+    "foodCostPct": "Food cost",
+    "marginCol": "Margin",
+    "noRecipe": "No recipe",
+    "missingCosts_one": "{{count}} ingredient has no cost price",
+    "missingCosts_other": "{{count}} ingredients have no cost price"
   }
 }
