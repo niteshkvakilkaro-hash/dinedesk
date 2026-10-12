@@ -77,7 +77,7 @@
     "sun": "Sunday"
   },
   "features": {
-    "website": "Website + 3 themes",
+    "website": "Website with ready-made themes",
     "themes": "Theme switching",
     "online_ordering": "Online ordering",
     "reservations": "Table reservations",
@@ -806,7 +806,35 @@
       "thanks": "Thank you!",
       "thanksText": "We have your enquiry and will call you soon.",
       "call": "Prefer to talk?"
-    }
+    },
+    "diet": {
+      "jain": "Jain",
+      "no_onion_garlic": "No onion & garlic",
+      "vegan": "Vegan",
+      "gluten_free": "Gluten-free"
+    },
+    "allergen": {
+      "gluten": "Gluten",
+      "dairy": "Dairy",
+      "nuts": "Tree nuts",
+      "peanuts": "Peanuts",
+      "soy": "Soy",
+      "egg": "Egg",
+      "fish": "Fish",
+      "shellfish": "Shellfish",
+      "sesame": "Sesame",
+      "mustard": "Mustard"
+    },
+    "contains": "Contains: {{list}}",
+    "filters": "Filters",
+    "filtersCount": "Filters ({{count}})",
+    "dietTitle": "Diet",
+    "avoidTitle": "Hide dishes with",
+    "allergyNote": "Based on what the restaurant has listed. For a serious allergy, please tell the staff before you order.",
+    "clearFilters": "Clear filters",
+    "showDishes_one": "Show {{count}} dish",
+    "showDishes_other": "Show {{count}} dishes",
+    "noFilterMatch": "No dishes match these filters."
   },
   "website": {
     "title": "Website",
@@ -1166,7 +1194,23 @@
     "codeSent": "We've sent a code to your phone.",
     "confirmCode": "Confirm code",
     "checkPoints": "Check my points",
-    "optIn": "Send me offers and updates from {{name}}. I can unsubscribe anytime."
+    "optIn": "Send me offers and updates from {{name}}. I can unsubscribe anytime.",
+    "eta": {
+      "ready": "Should be ready by about {{time}}",
+      "arrive": "Should reach you by about {{time}}",
+      "late": "Taking a little longer than usual. The restaurant is on it."
+    },
+    "again": {
+      "button": "Order again",
+      "none": "None of these dishes are on the menu right now.",
+      "some": "Added to your cart. Not available right now: {{list}}."
+    },
+    "mine": {
+      "title": "My orders",
+      "lead": "Orders placed from this phone or browser.",
+      "empty": "No orders from this device yet.",
+      "track": "View order"
+    }
   },
   "orders": {
     "title": "Orders",
@@ -1359,7 +1403,9 @@
     "file": "File",
     "importNow_one": "Import {{count}} dish",
     "importNow_other": "Import {{count}} dishes",
-    "imported": "{{count}} dishes imported."
+    "imported": "{{count}} dishes imported.",
+    "diets": "Diet labels",
+    "dietsHint": "Shown on the dish and used by the menu filters. Jain, vegan and no onion/garlic are for veg dishes only. Only tick what is true for this dish."
   },
   "orderingAdmin": {
     "title": "Online ordering",
@@ -1442,7 +1488,8 @@
     "notificationsHint": "Sent when an order is received, confirmed, ready, out for delivery, completed or cancelled.",
     "email": "Email (when the customer gives one)",
     "providerHint": "Sent through the messaging provider set up by DineDesk.",
-    "saved": "Ordering settings saved."
+    "saved": "Ordering settings saved.",
+    "smsHint": "SMS rules in India (DLT) allow only fixed templates, so SMS is used for one-time codes. Order updates go by WhatsApp and email."
   },
   "reservationsAdmin": {
     "title": "Bookings",
@@ -2660,6 +2707,409 @@
       "verify": "Domain connected.",
       "primary": "This is now your main address.",
       "delete": "Domain removed."
+    }
+  },
+  "mk": {
+    "nav": {
+      "features": "Features",
+      "themes": "Themes",
+      "pricing": "Pricing",
+      "start": "Start free trial",
+      "dashboard": "Open dashboard",
+      "menu": "Menu",
+      "close": "Close menu",
+      "main": "Main"
+    },
+    "hero": {
+      "eyebrow": "For restaurants, cafés, cloud kitchens and hotels in India",
+      "title": "Your restaurant's website, orders and billing. All in one place.",
+      "lead": "A fast, good-looking website with your menu, online ordering, table bookings and QR ordering, plus a POS with GST bills and a kitchen screen. Set up in an afternoon, no developer needed.",
+      "primary": "Start free trial",
+      "secondary": "See live demo sites",
+      "points": [
+        "No per-order commission",
+        "Hindi and English",
+        "GST-ready bills"
+      ],
+      "visualAlt": "A restaurant website made with DineDesk, on a laptop and a phone",
+      "chipOrders": "Orders arrive live",
+      "chipQr": "QR table ordering",
+      "chipGst": "GST bill in one tap"
+    },
+    "why": {
+      "title": "Built to bring guests to you, not to a marketplace",
+      "items": {
+        "own": {
+          "title": "Your customers stay yours",
+          "text": "Orders come through your own website. DineDesk takes no commission per order, and online payments go to your own Razorpay account."
+        },
+        "look": {
+          "title": "Look like a premium brand",
+          "text": "Seven designed themes for fine dining, cafés, QSRs, street food and hotels. Your logo and colours, checked for readability."
+        },
+        "run": {
+          "title": "Run the whole floor",
+          "text": "Orders, QR tables, POS, kitchen screen, bookings and day-end in one dashboard that works on a phone."
+        }
+      }
+    },
+    "modules": {
+      "title": "Everything a restaurant needs, working together",
+      "lead": "Switch on what you use. Everything shares one menu, one set of orders and one set of customers.",
+      "learnMore": "Learn more",
+      "items": {
+        "website": {
+          "title": "Restaurant website",
+          "text": "Menu, photos, hours, map and booking on your own address, in Hindi and English, ready for Google."
+        },
+        "ordering": {
+          "title": "Online ordering",
+          "text": "Delivery and takeaway with zones, scheduled slots, coupons and live order tracking."
+        },
+        "qr": {
+          "title": "QR table ordering",
+          "text": "Guests scan, order and call a waiter from the table. One running bill per table."
+        },
+        "bookings": {
+          "title": "Table bookings",
+          "text": "Free time slots only, table-size matching, reminders and no-show tracking."
+        },
+        "pos": {
+          "title": "POS and GST bills",
+          "text": "Bill counter and table orders with CGST/SGST, split payments, discounts and day-end."
+        },
+        "kds": {
+          "title": "Kitchen display",
+          "text": "Tickets reach the kitchen screen instantly, with timers and a chime."
+        },
+        "hotel": {
+          "title": "Hotel rooms",
+          "text": "Room booking engine, front desk, housekeeping and room-service ordering."
+        },
+        "marketing": {
+          "title": "Loyalty and offers",
+          "text": "Points, coupons, gift cards and WhatsApp campaigns to guests who opted in."
+        },
+        "inventory": {
+          "title": "Inventory",
+          "text": "Recipes deduct stock as orders are cooked, with low-stock alerts."
+        },
+        "reports": {
+          "title": "Reports",
+          "text": "Sales, GST, top dishes, peak hours and repeat guests, with Excel exports."
+        }
+      }
+    },
+    "themes": {
+      "title": "Pick a look. Change it any time.",
+      "lead": "Every theme is a full website with its own fonts, colours and motion. Open a demo to try it on a phone.",
+      "demo": "Open live demo",
+      "all": "See all themes",
+      "demoNote": "Demo sites use sample menus and photos, not real businesses."
+    },
+    "how": {
+      "title": "Live in three steps",
+      "steps": [
+        {
+          "title": "Create your account",
+          "text": "Sign up with email or your mobile number and add your business details and hours."
+        },
+        {
+          "title": "Pick a theme and add your menu",
+          "text": "Upload your logo and photos, type your dishes or import them from a spreadsheet."
+        },
+        {
+          "title": "Go live and share",
+          "text": "Your site is live on its own address. Print the QR code for tables and share the link on WhatsApp and Instagram."
+        }
+      ]
+    },
+    "india": {
+      "title": "Made for how India eats out",
+      "lead": "The details that matter here are built in, not bolted on.",
+      "items": [
+        "Hindi and English for guests and staff",
+        "GST tax invoices with CGST / SGST and B2B GSTIN",
+        "UPI, cards and cash, with split payments",
+        "Veg / non-veg marks, Jain and no onion-garlic labels",
+        "WhatsApp order updates and Call / WhatsApp buttons",
+        "FSSAI licence and GSTIN in your website footer"
+      ]
+    },
+    "pricing": {
+      "title": "Simple plans",
+      "lead": "Start with a free trial. Upgrade, downgrade or cancel from your dashboard."
+    },
+    "faq": {
+      "title": "Questions owners ask",
+      "items": [
+        {
+          "q": "Does DineDesk take a commission on my orders?",
+          "a": "No. You pay a monthly plan. Online payments go to your own Razorpay account (Razorpay's own fees apply), and cash and counter payments are yours."
+        },
+        {
+          "q": "Do I need a developer or designer?",
+          "a": "No. You pick a theme, add your logo, photos and menu, and go live from the dashboard. Everything can be changed later."
+        },
+        {
+          "q": "Can I use my own domain?",
+          "a": "Yes, on Growth and Pro. Your site also keeps a free address on the DineDesk domain."
+        },
+        {
+          "q": "Will my website show up on Google?",
+          "a": "Every live site gets page titles, descriptions, a sitemap and business details in the format search engines read. Ranking depends on your content and reviews, so add real photos and keep your hours up to date."
+        },
+        {
+          "q": "Does it work for hotels?",
+          "a": "Yes. The Pro plan adds rooms, an online booking engine, front desk, housekeeping and room-service ordering from a QR code in each room."
+        },
+        {
+          "q": "Can I take my data with me?",
+          "a": "Yes. Download all your orders, customers and menu as Excel-ready files from the dashboard at any time."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Give your restaurant the website it deserves",
+      "text": "Try every feature free. No card needed to start.",
+      "button": "Start free trial"
+    },
+    "footer": {
+      "tagline": "Websites, online ordering and restaurant management for India.",
+      "product": "Product",
+      "account": "Account",
+      "rights": "© {{year}} DineDesk"
+    },
+    "seo": {
+      "homeTitle": "DineDesk: restaurant website, online ordering and POS for India",
+      "homeDesc": "Get a professional restaurant website with online ordering, QR table ordering, table bookings, POS with GST bills and a kitchen display. No per-order commission. Free trial.",
+      "pricingTitle": "Pricing: DineDesk restaurant software plans",
+      "pricingDesc": "DineDesk plans for restaurants, cafés and hotels: website, online ordering, QR ordering, POS and more. Start with a free trial, no card needed.",
+      "themesTitle": "Restaurant website themes and live demos | DineDesk",
+      "themesDesc": "Seven restaurant website themes for fine dining, cafés, QSRs, street food and hotels. Open a live demo on your phone."
+    },
+    "feature": {
+      "whatYouGet": "What you get",
+      "related": "More from DineDesk",
+      "faqTitle": "Questions",
+      "backHome": "All features"
+    },
+    "f": {
+      "website": {
+        "metaTitle": "Restaurant website builder for India | DineDesk",
+        "metaDesc": "Make a fast, mobile-first restaurant website with your menu, photos, hours, map, table booking and online ordering. Hindi and English. Free trial.",
+        "eyebrow": "Restaurant website",
+        "title": "A restaurant website that looks premium and loads fast",
+        "lead": "Pick a theme, add your logo, photos and menu, and you are live on your own address. Guests see your menu, today's hours and how to reach you in a tap.",
+        "points": [
+          {
+            "title": "Seven designed themes",
+            "text": "Fine dining, café, grill, QSR, street food and hotel looks, each with its own fonts and motion."
+          },
+          {
+            "title": "Your menu, always current",
+            "text": "Veg / non-veg marks, sizes, extras, spice levels, allergens and sold-out dishes update instantly."
+          },
+          {
+            "title": "Made for phones",
+            "text": "App-style bottom tabs, Call and WhatsApp buttons, and quick loading on mobile data."
+          },
+          {
+            "title": "Hindi and English",
+            "text": "Every page and dish can have a Hindi version; guests switch with one tap."
+          },
+          {
+            "title": "Ready for Google",
+            "text": "Page titles, descriptions, a sitemap and restaurant details in the format search engines read."
+          },
+          {
+            "title": "Your own domain",
+            "text": "Use your own .com or .in on Growth and Pro, with free automatic HTTPS."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Can I change the theme later?",
+            "a": "Yes. Switch themes and colours any time; your menu and content stay as they are."
+          },
+          {
+            "q": "Can I edit text and photos myself?",
+            "a": "Yes. Story, milestones, gallery, contact details, sections and their order are all editable from the dashboard."
+          }
+        ]
+      },
+      "ordering": {
+        "metaTitle": "Commission-free online ordering for restaurants | DineDesk",
+        "metaDesc": "Take delivery and takeaway orders on your own website with no per-order commission. Delivery zones, scheduled orders, Razorpay, coupons and live tracking.",
+        "eyebrow": "Online ordering",
+        "title": "Take orders on your own website, without commission",
+        "lead": "Guests order delivery or takeaway from your site and pay online or on delivery. Orders ring in your dashboard and kitchen, and guests follow them live.",
+        "points": [
+          {
+            "title": "No per-order commission",
+            "text": "You pay a plan, not a cut of every order. Online payments go to your own Razorpay account."
+          },
+          {
+            "title": "Delivery zones",
+            "text": "By pincode or distance, with minimum order, delivery fee and free-delivery threshold."
+          },
+          {
+            "title": "Scheduled orders",
+            "text": "ASAP or a later slot from your hours and prep time; holidays are skipped."
+          },
+          {
+            "title": "Live tracking",
+            "text": "A private tracking page with status, an estimated ready time and WhatsApp updates."
+          },
+          {
+            "title": "Order again",
+            "text": "Guests see their past orders and reorder in one tap, at today's prices."
+          },
+          {
+            "title": "Coupons and points",
+            "text": "Discounts and loyalty points at checkout, with GST worked out correctly."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Which payment methods are supported?",
+            "a": "UPI, cards, netbanking and wallets through Razorpay, plus cash on delivery and pay at the counter."
+          },
+          {
+            "q": "Do I need my own delivery riders?",
+            "a": "Yes, DineDesk handles ordering and tracking; delivery is done by your team."
+          }
+        ]
+      },
+      "qr": {
+        "metaTitle": "QR code menu and table ordering for restaurants | DineDesk",
+        "metaDesc": "Guests scan a QR code at the table, see your menu, order and call a waiter. One running bill per table, kitchen tickets and live table status.",
+        "eyebrow": "QR table ordering",
+        "title": "Scan, order, eat. No waiting for the menu.",
+        "lead": "Every table gets its own QR code. Guests browse your menu on their phone, order, call a waiter or ask for the bill, and everything lands on one running bill.",
+        "points": [
+          {
+            "title": "A QR code per table",
+            "text": "Print an A4 sheet of QR cards. Turn a code off or replace it if a sticker goes missing."
+          },
+          {
+            "title": "One running bill",
+            "text": "Everyone at the table adds to the same bill, and sees what has been ordered."
+          },
+          {
+            "title": "Call waiter, request bill",
+            "text": "Calls ring on the table board and the waiter app with a chime."
+          },
+          {
+            "title": "Straight to the kitchen",
+            "text": "Orders become kitchen tickets instantly on the kitchen display."
+          },
+          {
+            "title": "Live floor plan",
+            "text": "See free, busy and bill-asked tables; move or merge tables in a tap."
+          },
+          {
+            "title": "Waiter app",
+            "text": "Waiters add items for a table from their phone, installable like an app."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Do guests need to download an app?",
+            "a": "No. The QR code opens your menu in the phone's browser."
+          },
+          {
+            "q": "Can guests pay at the table?",
+            "a": "They can ask for the bill from their phone; staff settle it with cash, UPI or card from the POS."
+          }
+        ]
+      },
+      "pos": {
+        "metaTitle": "Restaurant POS with GST billing and kitchen display | DineDesk",
+        "metaDesc": "Fast restaurant POS: GST tax invoices with CGST/SGST, split payments, discounts, kitchen display, day-end cash drawer and reports. Works in the browser.",
+        "eyebrow": "POS and GST billing",
+        "title": "Bill faster, with GST done right",
+        "lead": "Take counter and table orders, send them to the kitchen, and print proper GST invoices. Close the day with a cash drawer that adds up.",
+        "points": [
+          {
+            "title": "GST tax invoices",
+            "text": "Numbered per financial year, CGST / SGST per line, B2B GSTIN, round-off and PDF."
+          },
+          {
+            "title": "Split and mixed payments",
+            "text": "Cash, UPI and card in any mix; change is shown for cash."
+          },
+          {
+            "title": "Discounts with a reason",
+            "text": "Percent or amount, taken off before GST and recorded for the owner."
+          },
+          {
+            "title": "Kitchen display",
+            "text": "New, cooking and ready columns with timers, on any TV, tablet or phone."
+          },
+          {
+            "title": "Day-end",
+            "text": "Sales by mode, taxes, cancellations and the expected vs counted cash drawer."
+          },
+          {
+            "title": "Staff roles",
+            "text": "Owner, manager, cashier, waiter and kitchen each see only what they need."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Do I need special hardware?",
+            "a": "No. It runs in the browser on a laptop, tablet or phone. Bills download as PDF to print."
+          },
+          {
+            "q": "Does it work with online orders too?",
+            "a": "Yes. Website, QR, POS and waiter orders all appear in the same place and the same day-end."
+          }
+        ]
+      },
+      "hotel": {
+        "metaTitle": "Hotel booking engine and front desk software | DineDesk",
+        "metaDesc": "Room booking engine on your own website, front desk, housekeeping, GST room bills and room-service ordering, together with your restaurant. Pro plan.",
+        "eyebrow": "Hotel management",
+        "title": "Rooms and restaurant, in one system",
+        "lead": "Guests book rooms on your website and order room service from a QR code in the room. The front desk sees arrivals, the calendar and one bill for the whole stay.",
+        "points": [
+          {
+            "title": "Booking engine",
+            "text": "Live availability, weekend and seasonal prices, extra guests and GST, never oversold."
+          },
+          {
+            "title": "Advance payments",
+            "text": "Take 10–100% online to hold the room; guests can cancel online up to your cut-off."
+          },
+          {
+            "title": "Front desk",
+            "text": "Today's arrivals and departures, a room calendar, check-in and check-out."
+          },
+          {
+            "title": "Housekeeping",
+            "text": "Clean, dirty, inspected and out-of-order rooms on one board."
+          },
+          {
+            "title": "Room service",
+            "text": "A QR code in each room opens the menu; orders go to the room's bill."
+          },
+          {
+            "title": "One GST bill",
+            "text": "Room nights, food and extras on one invoice with the right SAC codes."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Which plan includes the hotel module?",
+            "a": "The Pro plan."
+          },
+          {
+            "q": "Can I take bookings by phone too?",
+            "a": "Yes. The front desk can add phone and walk-in bookings with an advance."
+          }
+        ]
+      }
     }
   }
 }

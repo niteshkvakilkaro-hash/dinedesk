@@ -42,6 +42,7 @@ class MenuController extends Controller
             'items_limit' => $this->features->limit($tenant, 'menu_items'),
             'has_demo' => MenuItem::where('is_demo', true)->exists() || MenuCategory::where('is_demo', true)->exists(),
             'allergens' => MenuItem::ALLERGENS,
+            'diets' => MenuItem::DIETS,
         ]);
     }
 
@@ -312,6 +313,8 @@ class MenuController extends Controller
             'spice_level' => ['required', 'integer', 'between:0,3'],
             'allergens' => ['nullable', 'array'],
             'allergens.*' => [Rule::in(MenuItem::ALLERGENS), 'distinct'],
+            'diet_tags' => ['nullable', 'array'],
+            'diet_tags.*' => [Rule::in(MenuItem::DIETS), 'distinct'],
             'is_available' => ['required', 'boolean'],
             'is_bestseller' => ['required', 'boolean'],
             'is_chefs_special' => ['required', 'boolean'],
@@ -343,6 +346,8 @@ class MenuController extends Controller
             'food_type' => $d['food_type'],
             'spice_level' => $d['spice_level'],
             'allergens' => $d['allergens'] ?? [] ?: null,
+            // Jain and vegan dishes are vegetarian by definition.
+            'diet_tags' => $d['food_type'] === 'veg' ? ($d['diet_tags'] ?? [] ?: null) : (array_values(array_intersect($d['diet_tags'] ?? [], ['gluten_free'])) ?: null),
             'is_available' => $d['is_available'],
             'is_bestseller' => $d['is_bestseller'],
             'is_chefs_special' => $d['is_chefs_special'],

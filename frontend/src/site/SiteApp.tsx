@@ -19,6 +19,7 @@ import { ReservationLookupPage, ReservePage } from './ui/ReservePage';
 import { OffersPage, UnsubscribePage } from './ui/Growth';
 import { TableLanding, TablePage } from './ui/TablePages';
 import TrackPage from './order/TrackPage';
+import MyOrdersPage from './order/MyOrdersPage';
 import { EventsPage, RoomCheckout, RoomLanding, RoomsPage, StayLookupPage, StayPage } from './ui/HotelPages';
 import { useActiveRoom } from './hotel';
 import { useOpenLabel } from './components/bits';
@@ -147,6 +148,8 @@ function SiteLayout({ site, module, themeColor }: { site: SiteData; module: Them
     ? t('order.checkoutTitle')
     : pathname.startsWith('/order/')
       ? t('order.trackTitle')
+      : pathname === '/orders'
+        ? t('order.mine.title')
       : pathname.startsWith('/style-guide')
         ? t('site.sg.title')
         : pathname.startsWith('/t/') || pathname === '/table'
@@ -275,6 +278,7 @@ export default function SiteApp() {
             <Route path="/r/:token" element={<RoomLanding site={site} />} />
             <Route path="/events" element={<EventsPage site={site} />} />
             <Route path="/order/:id" element={<TrackPage site={site} />} />
+            <Route path="/orders" element={<MyOrdersPage site={site} />} />
             <Route path="/reserve" element={<ReservePage site={site} />} />
             <Route path="/reservation" element={<ReservationLookupPage site={site} />} />
             <Route path="/t/:token" element={<TableLanding site={site} />} />

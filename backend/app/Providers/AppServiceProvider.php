@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Tenancy\Support\TenantContext;
+use App\Support\Messaging\LiveMessenger;
 use App\Support\Messaging\LogMessenger;
 use App\Support\Messaging\Messenger;
 use App\Support\Messaging\MessengerChannel;
@@ -28,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(FeatureService::class);
 
         $this->app->bind(Messenger::class, fn () => match (config('dinedesk.messaging.driver')) {
+            'live' => new LiveMessenger(),
             default => new LogMessenger(),
         });
     }

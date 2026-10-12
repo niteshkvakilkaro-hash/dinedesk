@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Info, Search } from 'lucide-react';
+import { Info, Search, SlidersHorizontal } from 'lucide-react';
 import type { PageKey, PageProps } from '@/themes/types';
 import { useLocalized, useSiteGallery, useSiteMenu } from '../data';
 import { SiteImg } from '../components/bits';
 import { ContactList, Lightbox, Paragraphs, useGalleryFilter, useHomeSections, useMenuFilter, useStory } from '../components/shared';
 import type { SiteData } from '../types';
+import { SiteDialog } from '../order/skin';
 import { DishRow } from './DishCard';
 import { Hero } from './Hero';
 import { Divider, Hours, MapFacade, themeStyle } from './primitives';
@@ -49,8 +50,11 @@ function Menu({ site }: PageProps) {
   const { t } = useTranslation();
   const l = useLocalized();
   const { data: menu } = useSiteMenu();
-  const { categories, vegOnly, setVegOnly, search, setSearch, hasDemo } = useMenuFilter(menu);
+  const filter = useMenuFilter(menu);
+  const { categories, vegOnly, setVegOnly, search, setSearch, hasDemo, filterCount } = filter;
   const [active, setActive] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const canFilter = filter.availableDiets.length > 0 || filter.availableAllergens.length > 0;
 
   // Highlight the section being read.
   useEffect(() => {
@@ -83,8 +87,8 @@ function Menu({ site }: PageProps) {
               </a>
             ))}
           </nav>
-          <div className="flex items-center gap-2">
-            <label className="relative flex-1 lg:w-64 lg:flex-none">
+          <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+            <label className="relative basis-full sm:flex-1 sm:basis-auto lg:w-64 lg:flex-none">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" aria-hidden="true" />
               <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('site.searchMenu')} aria-label={t('site.searchMenu')} className="s-input !min-h-10 !pl-10" />
             </label>
@@ -92,6 +96,12 @@ function Menu({ site }: PageProps) {
               <span className="h-2.5 w-2.5 rounded-full bg-[#2E9A55]" aria-hidden="true" />
               {t('site.vegOnly')}
             </button>
+            {canFilter && (
+              <button type="button" className="s-chip" aria-pressed={filterCount > 0} aria-haspopup="dialog" onClick={() => setFiltersOpen(true)}>
+                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                {filterCount ? t('site.filtersCount', { count: filterCount }) : t('site.filters')}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -103,7 +113,16 @@ function Menu({ site }: PageProps) {
           </p>
         )}
         {!menu?.length && <p className="s-muted py-16 text-center">{t('site.noMenu')}</p>}
-        {!!menu?.length && !categories.length && <p className="s-muted py-16 text-center">{search ? t('site.noResults', { q: search }) : t('site.noVeg')}</p>}
+        {!!menu?.length && !categories.length && (
+          <div className="py-16 text-center">
+            <p className="s-muted">{search ? t('site.noResults', { q: search }) : filterCount ? t('site.noFilterMatch') : t('site.noVeg')}</p>
+            {(filterCount > 0 || vegOnly) && (
+              <button type="button" className="s-btn s-btn-secondary mt-4" onClick={filter.clearFilters}>
+                {t('site.clearFilters')}
+              </button>
+            )}
+          </div>
+        )}
         {categories.map((c) => (
           <section key={c.id} id={`cat-${c.slug}`} data-menu-section aria-labelledby={`h-${c.slug}`} className="scroll-mt-44 pt-10 lg:scroll-mt-36">
             <div className="s-reveal flex items-baseline justify-between gap-4 border-b border-t-line pb-4">
@@ -120,7 +139,58 @@ function Menu({ site }: PageProps) {
           </section>
         ))}
       </div>
+      <SiteDialog
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        title={t('site.filters')}
+        footer={
+          <div className="flex gap-2">
+            <button type="button" className="s-btn s-btn-secondary flex-1" onClick={filter.clearFilters}>
+              {t('site.clearFilters')}
+            </button>
+            <button type="button" data-autofocus className="s-btn s-btn-primary flex-1" onClick={() => setFiltersOpen(false)}>
+              {t('site.showDishes', { count: categories.reduce((n, c) => n + c.items.length, 0) })}
+            </button>
+          </div>
+        }
+      >
+        {filter.availableDiets.length > 0 && (
+          <fieldset className="min-w-0">
+            <legend className="mb-2 font-bold">{t('site.dietTitle')}</legend>
+            <div className="flex flex-wrap gap-2">
+              {filter.availableDiets.map((d) => (
+                <ToggleChip key={d} on={filter.diets.includes(d)} onClick={() => filter.setDiets(toggle(filter.diets, d))}>
+                  {t(`site.diet.${d}`)}
+                </ToggleChip>
+              ))}
+            </div>
+          </fieldset>
+        )}
+        {filter.availableAllergens.length > 0 && (
+          <fieldset className={`min-w-0 ${filter.availableDiets.length ? 'mt-6' : ''}`}>
+            <legend className="mb-2 font-bold">{t('site.avoidTitle')}</legend>
+            <div className="flex flex-wrap gap-2">
+              {filter.availableAllergens.map((a) => (
+                <ToggleChip key={a} on={filter.avoid.includes(a)} onClick={() => filter.setAvoid(toggle(filter.avoid, a))}>
+                  {t(`site.allergen.${a}`)}
+                </ToggleChip>
+              ))}
+            </div>
+            <p className="s-small s-muted mt-3">{t('site.allergyNote')}</p>
+          </fieldset>
+        )}
+      </SiteDialog>
     </>
+  );
+}
+
+const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
+
+function ToggleChip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button type="button" className="s-chip" aria-pressed={on} onClick={onClick}>
+      {children}
+    </button>
   );
 }
 

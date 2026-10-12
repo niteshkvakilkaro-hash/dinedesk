@@ -92,6 +92,8 @@ class OrderPresenter
     private function line($i): array
     {
         return [
+            // Lets the guest order the same dish again (matched to today's menu and prices).
+            'item_id' => $i->menu_item_id,
             'name' => $i->name,
             'name_hi' => $i->name_hi,
             'variant_name' => $i->variant_name,

@@ -293,7 +293,7 @@ export default function OrderingSettingsPage() {
         <div className="divide-y divide-line">
           <Toggle checked={s.notifications.email} onChange={(v) => up({ notifications: { ...s.notifications, email: v } })} label={t('orderingAdmin.email')} />
           <Toggle checked={s.notifications.whatsapp} onChange={(v) => up({ notifications: { ...s.notifications, whatsapp: v } })} label="WhatsApp" hint={t('orderingAdmin.providerHint')} />
-          <Toggle checked={s.notifications.sms} onChange={(v) => up({ notifications: { ...s.notifications, sms: v } })} label="SMS" hint={t('orderingAdmin.providerHint')} />
+          <Toggle checked={s.notifications.sms} onChange={(v) => up({ notifications: { ...s.notifications, sms: v } })} label="SMS" hint={t('orderingAdmin.smsHint')} />
         </div>
       </section>
 

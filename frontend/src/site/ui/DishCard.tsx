@@ -18,13 +18,26 @@ export function useDishPrice() {
   };
 }
 
+/** "Contains: dairy, nuts" from what the restaurant has listed. */
+export function Allergens({ item, className = '' }: { item: MenuItem; className?: string }) {
+  const { t } = useTranslation();
+  if (!item.allergens?.length) return null;
+  return <p className={`s-small s-muted ${className}`}>{t('site.contains', { list: item.allergens.map((a) => t(`site.allergen.${a}`)).join(', ') })}</p>;
+}
+
 function Tags({ item }: { item: MenuItem }) {
   const { t } = useTranslation();
-  if (!item.is_bestseller && !item.is_chefs_special) return null;
+  const diets = item.diet_tags ?? [];
+  if (!item.is_bestseller && !item.is_chefs_special && !diets.length) return null;
   return (
     <span className="flex flex-wrap gap-1.5">
       {item.is_chefs_special && <span className="s-badge">{t('site.chefsSpecial')}</span>}
       {item.is_bestseller && <span className="s-badge s-badge-outline">{t('site.bestseller')}</span>}
+      {diets.map((d) => (
+        <span key={d} className="s-badge s-badge-outline">
+          {t(`site.diet.${d}`)}
+        </span>
+      ))}
     </span>
   );
 }
@@ -81,6 +94,7 @@ export function DishRow({ item, index = 0 }: { item: MenuItem; index?: number })
           <Spice level={item.spice_level} />
         </div>
         {l(item, 'description') && <p className="s-small s-muted">{l(item, 'description')}</p>}
+        <Allergens item={item} />
         <div className="mt-1">{item.is_available ? <AddButton item={item} className="!min-h-10" /> : <span className="s-small font-semibold">{t('site.unavailable')}</span>}</div>
       </div>
     </li>

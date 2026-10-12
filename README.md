@@ -11,6 +11,19 @@ dinedesk/
 
 ## Status: Phase 8 (SaaS billing & scale) complete — all eight phases done
 
+### After Phase 8: guest conveniences, real messaging, marketing site
+
+| Area | What works |
+|---|---|
+| WhatsApp / SMS | `MESSAGING_DRIVER=live`: WhatsApp through **Meta's WhatsApp Cloud API** (every order, booking and stay update goes through one approved utility template whose body is `{{1}}`, `WHATSAPP_TEMPLATE`), and SMS through **MSG91** for one-time codes only (sign-in with `OTP_DRIVER=sms`, loyalty codes) via a DLT-approved OTP template. Indian DLT rules make free-text SMS impossible, so update texts by SMS are skipped with a warning and the dashboard says so. Missing keys or a non-Indian number: skipped and logged; a provider error throws so the queued message is retried |
+| My orders & order again | `/orders` on every site lists orders placed from that phone or browser (no account) with status, total and items; **Order again** puts them back in the cart from today's menu and prices (sold-out or removed dishes are listed, dropped extras left out). Linked from the More sheet and the footer |
+| Ready-by time | The tracking page shows "should be ready by about …" (or "reach you by" for deliveries) from the owner's prep and delivery minutes, counted from confirmation; "taking a little longer" once it passes. Nothing for scheduled, unpaid online or finished orders |
+| Diet labels & allergy filter | Dishes can be labelled **Jain, no onion & garlic, vegan, gluten-free** (the first three only on veg dishes; also a `diet_tags` CSV column). Badges on the dish; a **Filters** sheet on the menu (only the labels and allergens the menu uses) to show only matching dishes and hide dishes with chosen allergens, with a note to tell staff about serious allergies. Allergens now show on the site ("Contains: …") |
+| Phones | Bottom tabs on business sites; nothing on any page is wider than the phone (map, combo builder and admin grids fixed). Dashboard dark mode |
+| Marketing site | DineDesk's own pages on the platform domain: home (real product screenshots, modules, themes with live demos, steps, plans, FAQ), `/pricing`, `/themes`, and five feature pages under `/features/…` written for owner searches. Each has its own title, description, canonical, Open Graph tags and JSON-LD (Organization, SoftwareApplication, FAQPage, BreadcrumbList; no ratings or customer counts). `robots.txt` and `sitemap.xml` on the platform domain now allow and list these pages (before, the platform domain answered `Disallow: /`) |
+
+**To bring traffic:** pre-render the marketing pages (or serve them from a static build) so search engines get the HTML without running JavaScript, add the domain to Google Search Console and submit `/sitemap.xml`, and create a Google Business Profile. Each restaurant should link its site from its own Google Business Profile and Instagram.
+
 ### Phase 8
 
 | Area | What works |

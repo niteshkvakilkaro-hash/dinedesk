@@ -25,6 +25,7 @@ class MenuPresenter
             'food_type' => $i->food_type,
             'spice_level' => $i->spice_level,
             'allergens' => $i->allergens ?? [],
+            'diet_tags' => $i->diet_tags ?? [],
             'is_available' => $i->is_available,
             'is_bestseller' => $i->is_bestseller,
             'is_chefs_special' => $i->is_chefs_special,

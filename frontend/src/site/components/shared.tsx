@@ -4,7 +4,7 @@ import { Globe, Mail, MapPin, MessageCircle, Phone, PlayCircle, X, ChevronLeft, 
 import { DAYS } from '@/components/HoursEditor';
 import { formatTime } from '@/lib/format';
 import { mapHref, telHref, useLocalized, whatsappHref } from '../data';
-import type { GalleryItem, MenuCategory, SectionKey, SiteData } from '../types';
+import { DIETS, type Diet, type GalleryItem, type MenuCategory, type SectionKey, type SiteData } from '../types';
 import type { OpenStatus } from '@/lib/openStatus';
 import { SiteImg } from './bits';
 
@@ -97,16 +97,31 @@ export function ContactList({ site, className = '', itemClassName = '', iconClas
 export function useMenuFilter(menu: MenuCategory[] | undefined) {
   const [vegOnly, setVegOnly] = useState(false);
   const [search, setSearch] = useState('');
+  // Dishes must carry every chosen diet label and none of the allergens to avoid.
+  const [diets, setDiets] = useState<Diet[]>([]);
+  const [avoid, setAvoid] = useState<string[]>([]);
+  const all = useMemo(() => (menu ?? []).flatMap((c) => c.items), [menu]);
+  // Only offer the filters this menu can answer.
+  const availableDiets = useMemo(() => DIETS.filter((d) => all.some((i) => i.diet_tags?.includes(d))), [all]);
+  const availableAllergens = useMemo(() => [...new Set(all.flatMap((i) => i.allergens ?? []))].sort(), [all]);
   const categories = useMemo(() => {
     const q = search.trim().toLowerCase();
     const matches = (i: MenuCategory['items'][number]) =>
       !q || [i.name, i.name_hi, i.description, i.description_hi].some((v) => v?.toLowerCase().includes(q));
+    const fits = (i: MenuCategory['items'][number]) =>
+      diets.every((d) => i.diet_tags?.includes(d)) && !avoid.some((a) => i.allergens?.includes(a));
     return (menu ?? [])
-      .map((c) => ({ ...c, items: c.items.filter((i) => (!vegOnly || i.food_type === 'veg') && matches(i)) }))
+      .map((c) => ({ ...c, items: c.items.filter((i) => (!vegOnly || i.food_type === 'veg') && fits(i) && matches(i)) }))
       .filter((c) => c.items.length > 0);
-  }, [menu, vegOnly, search]);
+  }, [menu, vegOnly, search, diets, avoid]);
   const hasDemo = (menu ?? []).some((c) => c.is_demo || c.items.some((i) => i.is_demo));
-  return { categories, vegOnly, setVegOnly, search, setSearch, hasDemo };
+  const filterCount = diets.length + avoid.length;
+  const clearFilters = () => {
+    setDiets([]);
+    setAvoid([]);
+    setVegOnly(false);
+  };
+  return { categories, vegOnly, setVegOnly, search, setSearch, hasDemo, diets, setDiets, avoid, setAvoid, availableDiets, availableAllergens, filterCount, clearFilters };
 }
 
 /** Menu search box; each theme passes its own input classes. */

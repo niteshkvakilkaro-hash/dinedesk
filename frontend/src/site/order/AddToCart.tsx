@@ -153,6 +153,7 @@ export function DishOptions({ item, open, onClose }: { item: MenuItem; open: boo
         <FoodTypeMark type={item.food_type} />
         {l(item, 'description')}
       </p>
+      {!!item.allergens?.length && <p className="mt-2 text-sm opacity-75">{t('site.contains', { list: item.allergens.map((a) => t(`site.allergen.${a}`)).join(', ') })}</p>}
       {error && (
         <p role="alert" className="mt-3 rounded bg-[#fee2e2] px-3 py-2 text-sm font-semibold text-[#991b1b]">
           {error}

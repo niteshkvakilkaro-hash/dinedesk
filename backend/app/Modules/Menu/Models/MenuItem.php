@@ -17,9 +17,12 @@ class MenuItem extends Model
 
     public const ALLERGENS = ['gluten', 'dairy', 'nuts', 'peanuts', 'soy', 'egg', 'fish', 'shellfish', 'sesame', 'mustard'];
 
+    /** Set by the owner; the website shows them and lets guests filter by them. */
+    public const DIETS = ['jain', 'no_onion_garlic', 'vegan', 'gluten_free'];
+
     protected $fillable = [
         'tenant_id', 'menu_category_id', 'name', 'name_hi', 'description', 'description_hi', 'price', 'tax_rate',
-        'food_type', 'spice_level', 'allergens', 'is_available', 'is_bestseller', 'is_chefs_special',
+        'food_type', 'spice_level', 'allergens', 'diet_tags', 'is_available', 'is_bestseller', 'is_chefs_special',
         'image', 'sort_order', 'is_demo',
     ];
 
@@ -30,6 +33,7 @@ class MenuItem extends Model
             'tax_rate' => 'decimal:2',
             'spice_level' => 'integer',
             'allergens' => 'array',
+            'diet_tags' => 'array',
             'is_available' => 'boolean',
             'is_bestseller' => 'boolean',
             'is_chefs_special' => 'boolean',

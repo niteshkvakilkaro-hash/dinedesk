@@ -19,13 +19,13 @@ use Illuminate\Support\Str;
  * Columns (header row required; only category, name and price/variants are mandatory):
  * category, name, name_hi, description, description_hi, price, food_type, spice_level,
  * tax_rate, variants ("Half:180|Full:320"), allergens ("dairy|nuts"),
- * is_bestseller, is_chefs_special, is_available
+ * is_bestseller, is_chefs_special, is_available, diet_tags ("jain|vegan"; veg dishes only, except gluten_free)
  */
 class MenuImport
 {
     public const COLUMNS = [
         'category', 'name', 'name_hi', 'description', 'description_hi', 'price', 'food_type', 'spice_level',
-        'tax_rate', 'variants', 'allergens', 'is_bestseller', 'is_chefs_special', 'is_available',
+        'tax_rate', 'variants', 'allergens', 'is_bestseller', 'is_chefs_special', 'is_available', 'diet_tags',
     ];
 
     public const MAX_ROWS = 1000;
@@ -114,6 +114,7 @@ class MenuImport
                     'food_type' => $this->foodType($row['food_type'] ?? ''),
                     'spice_level' => (int) ($row['spice_level'] ?? 0),
                     'allergens' => $this->allergens($row['allergens'] ?? '') ?: null,
+                    'diet_tags' => $this->diets($row['diet_tags'] ?? '', $this->foodType($row['food_type'] ?? '')) ?: null,
                     'is_bestseller' => $this->bool($row['is_bestseller'] ?? '', false),
                     'is_chefs_special' => $this->bool($row['is_chefs_special'] ?? '', false),
                     'is_available' => $this->bool($row['is_available'] ?? '', true),
@@ -194,6 +195,10 @@ class MenuImport
         if ($unknown) {
             $messages[] = 'Unknown allergen(s): '.implode(', ', $unknown).'.';
         }
+        $diets = $this->allergens($row['diet_tags'] ?? '', false);
+        if ($bad = array_diff($diets, MenuItem::DIETS)) {
+            $messages[] = 'Unknown diet tag(s): '.implode(', ', $bad).' (use '.implode(', ', MenuItem::DIETS).').';
+        }
 
         return $messages;
     }
@@ -221,6 +226,14 @@ class MenuImport
         $list = array_values(array_filter(array_map(fn ($a) => strtolower(trim($a)), preg_split('/[|,]/', $raw) ?: [])));
 
         return $onlyKnown ? array_values(array_intersect($list, MenuItem::ALLERGENS)) : $list;
+    }
+
+    /** Diet tags from "jain|vegan"; only gluten_free applies to non-veg and egg dishes. */
+    private function diets(string $raw, ?string $foodType): array
+    {
+        $list = array_values(array_intersect($this->allergens($raw, false), MenuItem::DIETS));
+
+        return $foodType === 'veg' ? $list : array_values(array_intersect($list, ['gluten_free']));
     }
 
     private function foodType(string $raw, ?string $default = 'veg'): ?string

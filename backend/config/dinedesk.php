@@ -82,6 +82,21 @@ return [
 
     // WhatsApp / SMS provider for customer updates ("log" writes them to the log).
     'messaging' => [
+        // log (development) | live (LiveMessenger: Meta WhatsApp Cloud API + MSG91 for codes)
         'driver' => env('MESSAGING_DRIVER', 'log'),
+        'whatsapp' => [
+            'token' => env('WHATSAPP_TOKEN'),
+            'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+            // An approved utility template whose body is one variable: {{1}}
+            'template' => env('WHATSAPP_TEMPLATE') ?: 'dinedesk_update',
+            'language' => env('WHATSAPP_TEMPLATE_LANG') ?: 'en',
+            'api_version' => env('WHATSAPP_API_VERSION') ?: 'v21.0',
+        ],
+        'sms' => [
+            'auth_key' => env('MSG91_AUTH_KEY'),
+            // A DLT-approved OTP template in MSG91 with one variable for the code
+            'otp_template_id' => env('MSG91_OTP_TEMPLATE_ID'),
+            'code_variable' => env('MSG91_CODE_VARIABLE') ?: 'otp',
+        ],
     ],
 ];

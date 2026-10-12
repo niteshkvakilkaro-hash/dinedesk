@@ -161,6 +161,17 @@ class WebsiteTest extends TestCase
             ->assertJsonCount(1, 'data.holidays')->assertJsonPath('data.holidays.0.label', 'Festival');
     }
 
+    public function test_the_platform_domain_has_its_own_robots_and_sitemap(): void
+    {
+        $domain = config('dinedesk.platform_domain');
+        $this->get('/robots.txt', ['X-Tenant-Host' => $domain])->assertOk()
+            ->assertSee("Allow: /\nDisallow: /dashboard", false)->assertSee("Sitemap: https://{$domain}/sitemap.xml");
+        $xml = $this->get('/sitemap.xml', ['X-Tenant-Host' => "www.{$domain}"])->assertOk()->getContent();
+        $this->assertStringContainsString("<loc>https://{$domain}/pricing</loc>", $xml);
+        $this->assertStringContainsString("<loc>https://{$domain}/features/qr-menu-ordering</loc>", $xml);
+        $this->assertStringNotContainsString('/dashboard', $xml);
+    }
+
     public function test_robots_and_sitemap_per_business(): void
     {
         $live = $this->business('Cafe Sol', 'growth', ['status' => 'live']);

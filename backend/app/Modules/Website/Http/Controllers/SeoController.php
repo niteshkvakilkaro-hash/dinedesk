@@ -20,6 +20,12 @@ class SeoController extends Controller
 {
     public const PAGES = ['/', '/menu', '/about', '/gallery', '/contact'];
 
+    /** DineDesk's own marketing pages on the platform domain (same list as the frontend's MARKETING_PAGES). */
+    public const PLATFORM_PAGES = [
+        '/', '/pricing', '/themes', '/features/restaurant-website', '/features/online-ordering',
+        '/features/qr-menu-ordering', '/features/pos-billing', '/features/hotel-management',
+    ];
+
     public function __construct(
         private readonly TenantResolver $resolver,
         private readonly TenantContext $context,
@@ -28,6 +34,18 @@ class SeoController extends Controller
 
     public function robots(Request $request): Response
     {
+        if ($this->onPlatform($request)) {
+            $host = $this->platformHost();
+            $private = collect(['/dashboard', '/platform', '/onboarding', '/kitchen', '/waiter', '/login'])->map(fn ($p) => "Disallow: {$p}")->implode("
+");
+
+            return $this->text("User-agent: *
+Allow: /
+{$private}
+
+Sitemap: https://{$host}/sitemap.xml
+");
+        }
         $tenant = $this->tenant($request);
         if (! $tenant || ! $this->indexable($tenant)) {
             return $this->text("User-agent: *\nDisallow: /\n");
@@ -39,6 +57,16 @@ class SeoController extends Controller
 
     public function sitemap(Request $request): Response
     {
+        if ($this->onPlatform($request)) {
+            $host = $this->platformHost();
+            $urls = collect(self::PLATFORM_PAGES)->map(fn ($p) => "  <url><loc>https://{$host}{$p}</loc></url>")->implode("
+");
+
+            return $this->xml("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">
+{$urls}
+</urlset>
+");
+        }
         $tenant = $this->tenant($request);
         abort_if(! $tenant || ! $this->indexable($tenant), 404);
 
@@ -76,6 +104,23 @@ class SeoController extends Controller
     private function tenant(Request $request): ?Tenant
     {
         return $this->resolver->resolve($this->resolver->hostFrom($request));
+    }
+
+    private function onPlatform(Request $request): bool
+    {
+        return $this->resolver->isPlatformHost($this->resolver->hostFrom($request));
+    }
+
+    /** The marketing site's address: the bare platform domain. */
+    private function platformHost(): string
+    {
+        return (string) config('dinedesk.platform_domain');
+    }
+
+    private function xml(string $body): Response
+    {
+        return response('<?xml version="1.0" encoding="UTF-8"?>'."
+".$body, 200, ['Content-Type' => 'application/xml; charset=UTF-8', 'Cache-Control' => 'public, max-age=3600']);
     }
 
     private function indexable(Tenant $tenant): bool

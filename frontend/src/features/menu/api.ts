@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, API_BASE } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
-import type { SiteImage } from '@/site/types';
+import type { Diet, SiteImage } from '@/site/types';
 
 export type FoodType = 'veg' | 'non_veg' | 'egg';
 
@@ -26,6 +26,7 @@ export interface AdminItem {
   food_type: FoodType;
   spice_level: number;
   allergens: string[];
+  diet_tags: Diet[];
   is_available: boolean;
   is_bestseller: boolean;
   is_chefs_special: boolean;

@@ -6,6 +6,10 @@ import { useSession } from '@/hooks/useSession';
 import { Spinner, Toaster } from '@/components/ui';
 
 const Landing = lazy(() => import('@/features/marketing/Landing'));
+const MarketingLayout = lazy(() => import('@/features/marketing/MarketingLayout'));
+const FeaturePage = lazy(() => import('@/features/marketing/FeaturePage'));
+const ThemesPage = lazy(() => import('@/features/marketing/ThemesPage'));
+const PricingPage = lazy(() => import('@/features/marketing/PricingPage'));
 const SignupPage = lazy(() => import('@/features/auth/AuthPages').then((m) => ({ default: m.SignupPage })));
 const LoginPage = lazy(() => import('@/features/auth/AuthPages').then((m) => ({ default: m.LoginPage })));
 const OnboardingWizard = lazy(() => import('@/features/onboarding/OnboardingWizard'));
@@ -73,7 +77,13 @@ export default function PlatformApp() {
     <MotionConfig reducedMotion="user">
       <Suspense fallback={<FullPageSpinner />}>
     <Routes>
-      <Route index element={<Landing />} />
+      {/* DineDesk's own marketing pages */}
+      <Route element={<MarketingLayout />}>
+        <Route index element={<Landing />} />
+        <Route path="pricing" element={<PricingPage />} />
+        <Route path="themes" element={<ThemesPage />} />
+        <Route path="features/:slug" element={<FeaturePage />} />
+      </Route>
       <Route path="signup" element={<Guard need="guest"><SignupPage /></Guard>} />
       <Route path="login" element={<Guard need="guest"><LoginPage /></Guard>} />
       <Route path="onboarding" element={<Guard need="onboarding"><OnboardingWizard /></Guard>} />

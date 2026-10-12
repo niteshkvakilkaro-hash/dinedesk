@@ -4,7 +4,9 @@ import { Check, ChefHat, CircleCheckBig, Clock, PackageCheck, Phone, ReceiptText
 import { ApiError } from '@/lib/api';
 import { telHref, useLocalized } from '../data';
 import { FoodTypeMark } from '../components/bits';
-import { STATUS_FLOW, useMoney, useTrackedOrder } from '../ordering';
+import { STATUS_FLOW, useMoney, useNow, useTrackedOrder } from '../ordering';
+import { orderEstimate } from './eta';
+import { OrderAgain } from './OrderAgain';
 import { FeedbackForm } from '../ui/Growth';
 import type { OrderStatus, SiteData } from '../types';
 import { BillSummary } from './Cart';
@@ -30,6 +32,7 @@ export default function TrackPage({ site }: { site: SiteData }) {
   const token = params.get('t') ?? '';
   const justPlaced = params.get('placed') === '1';
   const { data: order, isLoading, error } = useTrackedOrder(id, token);
+  const now = useNow();
   const time = (iso: string) => new Intl.DateTimeFormat(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { timeZone: site.timezone, hour: 'numeric', minute: '2-digit', day: 'numeric', month: 'short' }).format(new Date(iso));
 
   if (isLoading) return <Wrap><p>{t('common.loading')}</p></Wrap>;
@@ -49,6 +52,8 @@ export default function TrackPage({ site }: { site: SiteData }) {
   const currentIndex = flow.indexOf(order.status);
   const awaitingPayment = order.payment_method === 'online' && order.payment_status !== 'paid' && !cancelled;
   const phone = site.content.contact.phone;
+  const eta = orderEstimate(order, site.ordering.prep_minutes, site.ordering.delivery_minutes, now);
+  const clock = (d: Date) => new Intl.DateTimeFormat(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { timeZone: site.timezone, hour: 'numeric', minute: '2-digit' }).format(d);
 
   return (
     <Wrap>
@@ -60,6 +65,12 @@ export default function TrackPage({ site }: { site: SiteData }) {
           {cancelled ? t('order.status.cancelled') : awaitingPayment ? (order.payment_status === 'failed' ? t('order.paymentFailedShort') : t('order.awaitingPayment')) : t(`order.statusLong.${order.status}`)}
         </p>
         {order.scheduled_for && !cancelled && <p className="mt-1 flex items-center gap-2 text-t-muted"><Clock className="h-4 w-4" aria-hidden="true" />{t('order.scheduledFor', { time: time(order.scheduled_for) })}</p>}
+        {eta && (
+          <p className={`mt-3 inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold ${skin.card}`}>
+            <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />
+            {eta.late ? t('order.eta.late') : t(eta.kind === 'arrive' ? 'order.eta.arrive' : 'order.eta.ready', { time: clock(eta.at) })}
+          </p>
+        )}
         {cancelled && order.cancel_reason && <p className="mt-1 text-t-muted">{t('order.reason', { reason: order.cancel_reason })}</p>}
         {order.payment_status === 'refund_due' && <p className="mt-1 text-t-muted">{t('order.refundDue')}</p>}
       </div>
@@ -117,6 +128,7 @@ export default function TrackPage({ site }: { site: SiteData }) {
               <Phone className="h-4 w-4" aria-hidden="true" /> {t('order.callRestaurant')}
             </a>
           )}
+          {(order.status === 'completed' || cancelled) && <OrderAgain site={site} order={order} className="mt-2" />}
           <Link to="/menu" className={`mt-2 flex min-h-12 items-center justify-center ${skin.primary}`}>{t('order.orderMore')}</Link>
           {order.status === 'completed' && (
             <div className="mt-4">

@@ -146,6 +146,31 @@ class MenuManagementTest extends TestCase
         $this->assertTrue($menu[0]['items'][0]['is_bestseller']);
     }
 
+    public function test_diet_tags_are_saved_shown_on_the_site_and_imported(): void
+    {
+        $tenant = $this->business();
+        $this->actingAsUser($this->ownerOf($tenant));
+        $cat = $this->postJson('/api/v1/tenant/menu/categories', ['name' => 'Mains', 'is_active' => true])->json('data.categories.0.id');
+
+        $this->postJson('/api/v1/tenant/menu/items', $this->dish($cat, ['diet_tags' => ['jain', 'no_onion_garlic']]))->assertCreated()
+            ->assertJsonPath('data.diet_tags', ['jain', 'no_onion_garlic']);
+        // Jain / vegan can't apply to a non-veg dish; gluten-free can.
+        $this->postJson('/api/v1/tenant/menu/items', $this->dish($cat, ['name' => 'Chicken Tikka', 'food_type' => 'non_veg', 'diet_tags' => ['jain', 'gluten_free']]))->assertCreated()
+            ->assertJsonPath('data.diet_tags', ['gluten_free']);
+        $this->postJson('/api/v1/tenant/menu/items', $this->dish($cat, ['diet_tags' => ['keto']]))->assertStatus(422);
+
+        $menu = $this->getJson('/api/v1/site/menu', ['X-Tenant-Host' => $this->host($tenant)])->json('data.0.items');
+        $this->assertSame(['jain', 'no_onion_garlic'], $menu[0]['diet_tags']);
+
+        $csv = UploadedFile::fake()->createWithContent('menu.csv', "category,name,price,food_type,diet_tags\nSoups,Tomato Soup,120,veg,jain|vegan\nSoups,Mutton Soup,180,non_veg,vegan|gluten_free\n");
+        $this->postJson('/api/v1/tenant/menu/import', ['file' => $csv, 'dry_run' => false])->assertOk()->assertJsonPath('meta.imported', 2);
+        $tags = app(TenantContext::class)->run($tenant, fn () => MenuItem::whereIn('name', ['Tomato Soup', 'Mutton Soup'])->orderBy('name')->pluck('diet_tags', 'name')->all());
+        $this->assertSame(['Mutton Soup' => ['gluten_free'], 'Tomato Soup' => ['jain', 'vegan']], $tags);
+
+        $bad = UploadedFile::fake()->createWithContent('menu.csv', "category,name,price,diet_tags\nSoups,X,10,paleo\n");
+        $this->postJson('/api/v1/tenant/menu/import', ['file' => $bad, 'dry_run' => true])->assertOk()->assertJsonPath('data.valid', false);
+    }
+
     public function test_clearing_the_sample_menu(): void
     {
         $tenant = $this->business();

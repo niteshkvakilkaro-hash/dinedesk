@@ -5,6 +5,7 @@ import { api, ApiError } from '@/lib/api';
 import { Alert, Dialog, Field, Spinner, toast } from '@/components/ui';
 import type { AdminCategory, AdminGroup, AdminItem, AdminVariant, AdminAddon, FoodType, MenuData } from './api';
 import { downloadTemplate, useMenuMutation } from './api';
+import { DIETS } from '@/site/types';
 
 const TAX_RATES = ['', '0', '5', '12', '18', '28'];
 const FOOD: FoodType[] = ['veg', 'non_veg', 'egg'];
@@ -76,6 +77,7 @@ const emptyItem = (categoryId: number): Omit<AdminItem, 'id' | 'sort_order' | 'i
   food_type: 'veg',
   spice_level: 0,
   allergens: [],
+  diet_tags: [],
   is_available: true,
   is_bestseller: false,
   is_chefs_special: false,
@@ -268,6 +270,23 @@ export function DishEditor({ menu, allergens, item, categoryId, open, onClose }:
                 );
               })}
             </div>
+          </fieldset>
+          <fieldset className="sm:col-span-2">
+            <legend className="field-label">{t('menuAdmin.diets')}</legend>
+            <div className="flex flex-wrap gap-1.5">
+              {DIETS.map((d) => {
+                // Jain, vegan and no onion/garlic only make sense on a veg dish.
+                const allowed = form.food_type === 'veg' || d === 'gluten_free';
+                const on = allowed && form.diet_tags.includes(d);
+                return (
+                  <label key={d} className={`flex min-h-9 items-center rounded-full border px-2.5 text-xs font-semibold ${on ? 'border-ink bg-ink text-paper' : 'border-line'} ${allowed ? 'cursor-pointer' : 'cursor-not-allowed opacity-45'}`}>
+                    <input type="checkbox" className="sr-only" disabled={!allowed} checked={on} onChange={() => set('diet_tags', on ? form.diet_tags.filter((x) => x !== d) : [...form.diet_tags, d])} />
+                    {t(`site.diet.${d}`)}
+                  </label>
+                );
+              })}
+            </div>
+            <p className="mt-1.5 text-xs text-muted">{t('menuAdmin.dietsHint')}</p>
           </fieldset>
         </div>
 

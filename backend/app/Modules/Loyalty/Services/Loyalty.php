@@ -162,7 +162,7 @@ class Loyalty
         Cache::put($key, ['hash' => Hash::make($code), 'tries' => 0], now()->addMinutes(10));
         Cache::put("{$key}:wait", true, now()->addSeconds(30));
         try {
-            $this->messenger->send('sms', $phone, "{$code} is your code to use your {$tenant->name} points. It expires in 10 minutes.");
+            $this->messenger->send('sms', $phone, "{$code} is your code to use your {$tenant->name} points. It expires in 10 minutes.", $code);
         } catch (\Throwable $e) {
             Log::warning('Loyalty code not sent: '.$e->getMessage());
         }

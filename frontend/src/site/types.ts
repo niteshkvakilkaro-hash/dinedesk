@@ -68,6 +68,10 @@ export interface SiteData {
   seo: { title: string; description: string; description_hi: string | null; canonical: string; image: string | null; indexable: boolean };
 }
 
+/** Diet labels an owner can set on a dish (same list as the backend's MenuItem::DIETS). */
+export const DIETS = ['jain', 'no_onion_garlic', 'vegan', 'gluten_free'] as const;
+export type Diet = (typeof DIETS)[number];
+
 export interface MenuItem {
   id: number;
   name: string;
@@ -78,6 +82,7 @@ export interface MenuItem {
   food_type: 'veg' | 'non_veg' | 'egg';
   spice_level: number;
   allergens: string[];
+  diet_tags: Diet[];
   is_available: boolean;
   is_bestseller: boolean;
   is_chefs_special: boolean;
@@ -238,7 +243,7 @@ export interface CustomerOrder {
   address: { line1: string | null; line2: string | null; landmark: string | null; pincode: string | null } | null;
   table_label: string | null;
   notes: string | null;
-  items: { name: string; name_hi: string | null; variant_name: string | null; addons: { name: string; price: string }[]; food_type: 'veg' | 'non_veg' | 'egg'; unit_price: string; quantity: number; tax_rate: string; line_total: string; notes: string | null }[];
+  items: { item_id: number | null; name: string; name_hi: string | null; variant_name: string | null; addons: { name: string; price: string }[]; food_type: 'veg' | 'non_veg' | 'egg'; unit_price: string; quantity: number; tax_rate: string; line_total: string; notes: string | null }[];
   subtotal: string;
   tax_total: string;
   delivery_fee: string;

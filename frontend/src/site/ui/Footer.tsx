@@ -1,12 +1,13 @@
 import { Link, NavLink, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { BedDouble, CalendarCheck, House, Images, Info, LayoutGrid, MapPin, MessageCircle, Navigation, PartyPopper, Phone, ShoppingBag, Tag, UtensilsCrossed } from 'lucide-react';
+import { BedDouble, CalendarCheck, House, Images, Info, LayoutGrid, MapPin, MessageCircle, Navigation, PartyPopper, Phone, ReceiptText, ShoppingBag, Tag, UtensilsCrossed } from 'lucide-react';
 import { formatPhone } from '@/lib/format';
 import { cartCount, useCart } from '../cart';
 import { mapHref, telHref, useLocalized, whatsappHref } from '../data';
 import { ReduceMotionToggle, SiteLanguageToggle } from '../components/bits';
 import { useMobileMenu, useNavItems, type NavKey } from '../components/nav';
 import { SiteDialog } from '../order/skin';
+import { recentOrders } from '../ordering';
 import type { SiteData } from '../types';
 import { Brand } from './Header';
 import { OpenBadge, useTodayHours } from './primitives';
@@ -53,6 +54,13 @@ export function Footer({ site }: { site: SiteData }) {
                 </Link>
               </li>
             ))}
+            {site.ordering.enabled && (
+              <li>
+                <Link to="/orders" className="inline-flex min-h-10 items-center hover:underline">
+                  {t('order.mine.title')}
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
         <div className="col-span-2 md:col-span-3">
@@ -195,7 +203,13 @@ export function MobileBar({ site }: { site: SiteData }) {
             })}
           </ul>
         )}
-        <div className={`grid gap-2 ${rest.length ? 'mt-5' : ''} ${c.phone && c.whatsapp ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        {(site.ordering.enabled || recentOrders(window.location.host).length > 0) && (
+          <NavLink to="/orders" onClick={() => setMore(false)} className={`s-card flex min-h-14 items-center gap-3 px-4 font-semibold aria-[current=page]:text-t-link ${rest.length ? 'mt-2' : ''}`}>
+            <ReceiptText className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span className="truncate">{t('order.mine.title')}</span>
+          </NavLink>
+        )}
+        <div className={`mt-5 grid gap-2 ${c.phone && c.whatsapp ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {c.phone && (
             <a href={telHref(c.phone)} className="s-btn s-btn-secondary !px-2">
               <Phone className="h-[18px] w-[18px]" aria-hidden="true" />
