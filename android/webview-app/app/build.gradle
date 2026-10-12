@@ -1,0 +1,78 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Where the phone reaches the dev PC (same Wi-Fi). Override: gradle assembleRelease -PdevHost=192.168.1.40
+def devHost = project.findProperty('devHost') ?: '192.168.1.25'
+def devPort = project.findProperty('devPort') ?: '5180'
+
+// Release signing from keystore.properties (git-ignored), made by build-local.ps1.
+def keyProps = new Properties()
+def keyFile = rootProject.file('keystore.properties')
+if (keyFile.exists()) keyFile.withInputStream { keyProps.load(it) }
+
+android {
+    namespace 'com.dinedesk.app'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 24
+        // 34 keeps the classic (non edge-to-edge) layout; this app is for local testing.
+        targetSdk 34
+        versionCode 1
+        versionName '1.0-local'
+    }
+
+    flavorDimensions = ['app']
+    productFlavors {
+        // Owners and staff: the DineDesk dashboard.
+        admin {
+            dimension 'app'
+            applicationId 'com.dinedesk.admin.local'
+            resValue 'string', 'app_name', 'DineDesk'
+            buildConfigField 'String', 'START_URL', "\"http://${devHost}:${devPort}/dashboard\""
+            buildConfigField 'String', 'THEME_COLOR', '"#14110f"'
+        }
+        // Guests: the Haveli Demo restaurant website (<slug>.<ip>.nip.io resolves to the PC).
+        haveli {
+            dimension 'app'
+            applicationId 'com.dinedesk.haveli.local'
+            resValue 'string', 'app_name', 'Haveli Demo'
+            buildConfigField 'String', 'START_URL', "\"http://haveli-demo.${devHost}.nip.io:${devPort}/?source=app\""
+            buildConfigField 'String', 'THEME_COLOR', '"#641E16"'
+        }
+    }
+
+    signingConfigs {
+        release {
+            if (keyProps['storeFile']) {
+                storeFile file(keyProps['storeFile'])
+                storePassword keyProps['storePassword']
+                keyAlias keyProps['keyAlias']
+                keyPassword keyProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig keyProps['storeFile'] ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+        resValues true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}

@@ -16,7 +16,8 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       host: true,
       // Tenant sites run on subdomains: haveli.localhost:5173, cafe-sol.localhost:5173 ...
-      allowedHosts: ['.localhost', 'localhost', '127.0.0.1'],
+      // .nip.io: a phone on the same Wi-Fi opens a business site as <slug>.<pc-ip>.nip.io (local Android app).
+      allowedHosts: ['.localhost', 'localhost', '127.0.0.1', '.nip.io'],
       proxy: {
         // The browser's host is forwarded in X-Tenant-Host by the API client,
         // so the proxy can rewrite Host freely.

@@ -17,7 +17,8 @@ export type Surface = { kind: 'platform' } | { kind: 'tenant'; host: string; slu
 
 export function resolveSurface(hostname = window.location.hostname): Surface {
   const host = hostname.toLowerCase();
-  if (PLATFORM_HOSTS.has(host)) return { kind: 'platform' };
+  // A bare IP address (a phone on the same Wi-Fi reaching a dev machine) is never a business domain.
+  if (PLATFORM_HOSTS.has(host) || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return { kind: 'platform' };
 
   const suffix = `.${PLATFORM_DOMAIN}`;
   if (host.endsWith(suffix)) {

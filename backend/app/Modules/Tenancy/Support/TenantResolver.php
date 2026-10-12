@@ -37,7 +37,8 @@ class TenantResolver
     {
         $domain = config('dinedesk.platform_domain');
 
-        return in_array($host, [$domain, "app.{$domain}", "www.{$domain}", '127.0.0.1'], true);
+        // A bare IP address is never a business domain.
+        return in_array($host, [$domain, "app.{$domain}", "www.{$domain}", '127.0.0.1'], true) || filter_var($host, FILTER_VALIDATE_IP) !== false;
     }
 
     public function resolve(string $host): ?Tenant
@@ -45,6 +46,10 @@ class TenantResolver
         $host = self::normalize($host);
         if ($host === '' || $this->isPlatformHost($host)) {
             return null;
+        }
+        // Development only: a phone on the same Wi-Fi opens {slug}.{pc-ip}.nip.io (local Android app).
+        if (app()->environment('local') && preg_match('/^([a-z0-9-]+)\.\d{1,3}(?:\.\d{1,3}){3}\.nip\.io$/', $host, $m)) {
+            $host = self::subdomainFor($m[1]);
         }
 
         $domain = TenantDomain::query()

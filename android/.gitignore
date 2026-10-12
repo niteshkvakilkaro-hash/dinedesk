@@ -1,4 +1,10 @@
 build/
 keys/
+apk/
 *.keystore
 *.jks
+webview-app/.gradle/
+webview-app/app/build/
+webview-app/local.properties
+webview-app/keystore.properties
+webview-app/build/

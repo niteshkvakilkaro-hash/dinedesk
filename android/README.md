@@ -39,3 +39,19 @@ an app can only ever be updated with the key it was first published with.
 2. Play re-signs the app: copy the *App signing key* SHA-256 from **Release → Setup → App integrity**
    and add it as a second fingerprint (`php artisan android:app <host> <package> <upload sha256> <play sha256>`).
 3. Each update: run the script again with `-Version 2`, `3`, …
+
+## Local test APKs (no domain needed)
+
+`webview-app/` is a small WebView app for testing on a phone before the site is live. It opens this
+PC's dev server over Wi-Fi: **DineDesk** (dashboard, `http://<pc-ip>:5180/dashboard`) and **Haveli Demo**
+(guest site, `http://haveli-demo.<pc-ip>.nip.io:5180`; nip.io resolves to the PC, and the backend maps
+it to the business only when `APP_ENV=local`).
+
+```powershell
+cd android\webview-app
+.\build-local.ps1            # → android\apk\DineDesk-local.apk, HaveliDemo-local.apk
+```
+
+Uses the JDK and SDK in `%USERPROFILE%\Android` and Gradle from `~/.gradle`. The phone must be on the
+same Wi-Fi, and Windows Firewall must allow Node (Vite) in once, from an admin PowerShell:
+`New-NetFirewallRule -DisplayName "DineDesk dev (Vite 5180)" -Direction Inbound -Protocol TCP -LocalPort 5180 -Action Allow -Profile Private`
