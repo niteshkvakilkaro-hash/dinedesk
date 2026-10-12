@@ -709,6 +709,14 @@
     z-index: 2;
   }
 
+  /* ---------- Royal themes: a shorter home page (less air between sections, smaller headings on phones) ---------- */
+  [data-hero='royal'] .s-section {
+    padding-block: clamp(44px, 6.5vw, 96px);
+  }
+  [data-hero='royal'] .s-h2 {
+    font-size: clamp(1.75rem, 3.6vw, 3rem);
+  }
+
   /* ---------- Royal hero (haveli, rajwada) ---------- */
   /* Short enough on phones that the quick actions show on the first screen. */
   .s-hero-royal {

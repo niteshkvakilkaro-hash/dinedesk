@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type ComponentType, type KeyboardEvent } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, BedDouble, CalendarCheck, Car, MapPin, MessageCircle, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-react';
+import { ArrowRight, BedDouble, ChevronRight, CalendarCheck, Car, MapPin, MessageCircle, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-react';
 import { useHotel } from '../hotel';
 import { useMoney } from '../ordering';
 import { formatPhone } from '@/lib/format';
@@ -9,7 +9,7 @@ import { featuredItems, mapHref, telHref, useLocalized, useSiteGallery, useSiteM
 import { FoodTypeMark, SiteImg } from '../components/bits';
 import { Lightbox, Paragraphs, useStory } from '../components/shared';
 import type { GalleryItem, SectionKey, SiteData } from '../types';
-import { DishCard, useDishPrice } from './DishCard';
+import { DishCard, DishRow, useDishPrice } from './DishCard';
 import { Hours, MapFacade, SectionHead, themeStyle } from './primitives';
 import { Reviews } from './Growth';
 
@@ -105,21 +105,33 @@ export function QuickActions({ site }: { site: SiteData }) {
   );
 }
 
-export function Signature({ extra: Extra }: { site: SiteData; extra?: ComponentType }) {
+/** Royal themes keep the home page short: lists instead of big cards, like the reference app. */
+const isRoyal = (site: SiteData) => themeStyle(site).hero === 'royal';
+
+export function Signature({ site, extra: Extra }: { site: SiteData; extra?: ComponentType }) {
   const { t } = useTranslation();
   const { data: menu } = useSiteMenu();
-  const items = featuredItems(menu, 6);
+  const royal = isRoyal(site);
+  const items = featuredItems(menu, royal ? 4 : 6);
   if (!items.length) return null;
   return (
     <>
       <section className="s-section s-ruled" aria-labelledby="signature-title">
         <div className="s-wrap">
           <SectionHead id="signature-title" eyebrow={t('site.fromKitchen')} title={t('site.signatureTitle')} action={<MoreLink to="/menu">{t('site.fullMenu')}</MoreLink>} />
-          <div className="s-scroller s-tilt-alt mt-10 md:mt-14">
-            {items.map((item, i) => (
-              <DishCard key={item.id} item={item} index={i} />
-            ))}
-          </div>
+          {royal ? (
+            <ul className="s-card mt-6 grid px-4 sm:px-6 md:mt-10 md:grid-cols-2 md:gap-x-10 [&>li]:border-t-line [&>li+li]:border-t md:[&>li:nth-child(2)]:border-t-0">
+              {items.map((item, i) => (
+                <DishRow key={item.id} item={item} index={i} compact />
+              ))}
+            </ul>
+          ) : (
+            <div className="s-scroller s-tilt-alt mt-10 md:mt-14">
+              {items.map((item, i) => (
+                <DishCard key={item.id} item={item} index={i} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
       {Extra && <Extra />}
@@ -135,6 +147,36 @@ export function FeaturedRooms({ site }: { site: SiteData }) {
   const { data } = useHotel(!!site.hotel?.has_rooms);
   const types = (data?.types ?? []).slice(0, 4);
   if (!site.hotel?.has_rooms || !types.length) return null;
+  if (isRoyal(site)) {
+    // Photo on the left, details and price on the right: one tap to the rooms page.
+    return (
+      <section className="s-section" aria-labelledby="rooms-title">
+        <div className="s-wrap">
+          <SectionHead id="rooms-title" eyebrow={t('site.rooms.eyebrow')} title={t('site.rooms.featured')} action={<MoreLink to="/rooms">{t('site.rooms.all')}</MoreLink>} />
+          <ul className="mt-6 grid gap-3 md:mt-10 md:grid-cols-2 md:gap-4">
+            {types.map((rt, i) => (
+              <li key={rt.id} className="s-reveal" style={delay(i)}>
+                <Link to="/rooms" className="s-card s-card-hover flex items-stretch gap-4 overflow-hidden p-3">
+                  {rt.photos[0] ? <SiteImg image={rt.photos[0]} alt={rt.photos[0].alt} sizes="144px" className="aspect-square w-28 shrink-0 sm:w-36" /> : <span className="flex aspect-square w-28 shrink-0 items-center justify-center rounded-[calc(var(--t-radius-card)-6px)] bg-t-surface-2 sm:w-36"><BedDouble className="h-8 w-8 opacity-60" aria-hidden="true" /></span>}
+                  <span className="flex min-w-0 flex-1 flex-col gap-1 py-1">
+                    <span className="font-display text-lg font-semibold leading-snug">{l(rt, 'name') ?? rt.name}</span>
+                    <span className="s-small s-muted line-clamp-1">{[rt.bed, t('site.rooms.upTo', { count: rt.max_adults })].filter(Boolean).join(' · ')}</span>
+                    {rt.amenities.length > 0 && <span className="s-small s-muted line-clamp-1">{rt.amenities.slice(0, 3).map((a) => t(`hotel.amenity.${a}`)).join(' · ')}</span>}
+                    <span className="mt-auto flex items-center justify-between gap-2 pt-1">
+                      <span>
+                        <span className="s-price">{money(Number(rt.from_price))}</span> <span className="s-small s-muted">{t('site.rooms.perNight')}</span>
+                      </span>
+                      <ChevronRight className="h-5 w-5 shrink-0 text-t-muted" aria-hidden="true" />
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="s-section" aria-labelledby="rooms-title">
       <div className="s-wrap">
@@ -183,7 +225,7 @@ export function AboutSplit({ site }: { site: SiteData }) {
         <div className={`s-reveal col-span-4 md:col-span-6 ${style.hero === 'split' || style.hero === 'royal' ? 'md:order-2 lg:col-span-5 lg:col-start-8' : ''}`}>
           {photo && (
             <div className="s-zoom">
-              <SiteImg image={photo} alt={ambience[0]?.alt_text ?? t('site.coverAlt', { name: site.name })} sizes="(min-width: 1024px) 560px, 100vw" className={`s-media aspect-[4/5] w-full ${style.imageMask === 'arch' ? 's-media-arch' : ''}`} />
+              <SiteImg image={photo} alt={ambience[0]?.alt_text ?? t('site.coverAlt', { name: site.name })} sizes="(min-width: 1024px) 560px, 100vw" className={`s-media w-full ${style.hero === 'royal' ? 'aspect-[4/3] md:aspect-[4/5]' : 'aspect-[4/5]'} ${style.imageMask === 'arch' ? 's-media-arch' : ''}`} />
             </div>
           )}
         </div>
@@ -278,16 +320,18 @@ export function MenuPreview(_props: { site: SiteData }) {
 
 export function Ambience({ site }: { site: SiteData }) {
   const { t } = useTranslation();
-  const items = useAmbience(site).slice(0, 5);
+  const royal = isRoyal(site);
+  const items = useAmbience(site).slice(0, royal ? 4 : 5);
   const [index, setIndex] = useState<number | null>(null);
   if (!items.length) return null;
   return (
     <section className="s-section s-ruled" aria-labelledby="ambience-title">
       <div className="s-wrap">
         <SectionHead id="ambience-title" eyebrow={t('site.ambienceEyebrow')} title={t('site.galleryTitle')} action={<MoreLink to="/gallery">{t('site.seeGallery')}</MoreLink>} />
-        <ul className="mt-10 grid auto-rows-[150px] grid-cols-2 gap-3 sm:auto-rows-[200px] md:mt-14 md:grid-cols-4 md:gap-4 lg:auto-rows-[240px]">
+        {/* Royal themes: four even tiles, 2×2 on phones, one row on desktop. */}
+        <ul className={royal ? 'mt-6 grid grid-cols-2 gap-3 md:mt-10 md:grid-cols-4 md:gap-4' : 'mt-10 grid auto-rows-[150px] grid-cols-2 gap-3 sm:auto-rows-[200px] md:mt-14 md:grid-cols-4 md:gap-4 lg:auto-rows-[240px]'}>
           {items.map((g, i) => (
-            <li key={g.id} className={`s-reveal s-zoom ${i === 0 ? 'col-span-2 row-span-2' : ''}`} style={delay(i)}>
+            <li key={g.id} className={`s-reveal s-zoom ${royal ? 'aspect-square' : i === 0 ? 'col-span-2 row-span-2' : ''}`} style={delay(i)}>
               <button type="button" className="block h-full w-full" onClick={() => setIndex(i)} aria-label={t('site.openPhoto', { alt: g.alt_text })}>
                 <SiteImg image={g.image!} alt="" sizes={i === 0 ? '(min-width: 768px) 50vw, 100vw' : '(min-width: 768px) 25vw, 50vw'} className="s-media h-full w-full" />
               </button>
