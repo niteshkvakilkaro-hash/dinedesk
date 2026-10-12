@@ -10,7 +10,7 @@ import { SiteDialog } from '../order/skin';
 import { DishRow } from './DishCard';
 import { Hero } from './Hero';
 import { Divider, Hours, MapFacade, themeStyle } from './primitives';
-import { HomeSections, QuickActions, Reserve } from './sections';
+import { FeaturedRooms, HomeSections, QuickActions, Reserve } from './sections';
 
 const delay = (i: number) => ({ ['--i' as string]: i });
 
@@ -40,6 +40,7 @@ export function makeHome(extra?: ComponentType) {
       <>
         <Hero site={site} />
         <QuickActions site={site} />
+        <FeaturedRooms site={site} />
         <HomeSections site={site} sections={sections} extra={extra} />
       </>
     );

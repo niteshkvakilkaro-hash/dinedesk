@@ -159,8 +159,8 @@ server {
         expires 30d;
         add_header Cache-Control "public";
     }
-    # Per-business robots.txt and sitemap.xml come from Laravel (it reads the Host)
-    location ~ ^/(robots\.txt|sitemap\.xml)$ {
+    # Per-business robots.txt, sitemap.xml and app manifest / icons come from Laravel (it reads the Host)
+    location ~ ^/(robots\.txt|sitemap\.xml|site\.webmanifest|site-icon-\d+\.png)$ {
         root /var/www/dinedesk/backend/public;
         try_files $uri /index.php?$query_string;
     }

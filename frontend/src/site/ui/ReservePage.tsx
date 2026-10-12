@@ -291,7 +291,7 @@ export function ReservationLookupPage({ site }: { site: SiteData }) {
   const remembered = rememberedBookings(window.location.host);
   const initialCode = (params.get('code') ?? '').toUpperCase();
   const [code, setCode] = useState(initialCode);
-  const [phone, setPhone] = useState(remembered.find((b) => b.code === initialCode)?.phone ?? '');
+  const [phone, setPhone] = useState(params.get('phone') ?? remembered.find((b) => b.code === initialCode)?.phone ?? '');
   const [booking, setBooking] = useState<GuestReservation | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);

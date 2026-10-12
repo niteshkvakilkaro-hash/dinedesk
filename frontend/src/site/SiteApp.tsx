@@ -19,6 +19,9 @@ import { ReservationLookupPage, ReservePage } from './ui/ReservePage';
 import { OffersPage, UnsubscribePage } from './ui/Growth';
 import { TableLanding, TablePage } from './ui/TablePages';
 import TrackPage from './order/TrackPage';
+import { setUpSiteApp } from './app';
+import ProfilePage from './order/ProfilePage';
+import BookingsPage from './order/BookingsPage';
 import MyOrdersPage from './order/MyOrdersPage';
 import { EventsPage, RoomCheckout, RoomLanding, RoomsPage, StayLookupPage, StayPage } from './ui/HotelPages';
 import { useActiveRoom } from './hotel';
@@ -150,6 +153,10 @@ function SiteLayout({ site, module, themeColor }: { site: SiteData; module: Them
       ? t('order.trackTitle')
       : pathname === '/orders'
         ? t('order.mine.title')
+        : pathname === '/account'
+          ? t('site.profile.title')
+          : pathname === '/bookings'
+            ? t('site.profile.bookings')
       : pathname.startsWith('/style-guide')
         ? t('site.sg.title')
         : pathname.startsWith('/t/') || pathname === '/table'
@@ -196,6 +203,11 @@ export default function SiteApp() {
   const reduce = useReduceMotion();
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const overrides = usePreviewOverrides(PREVIEW ? params.get('preview_theme') : null);
+  // Installable as this business's own app (not inside the dashboard's preview).
+  const hasSite = !!query.data;
+  useEffect(() => {
+    if (hasSite && !PREVIEW) setUpSiteApp();
+  }, [hasSite]);
 
   useEffect(() => {
     const lang = params.get('lang');
@@ -279,6 +291,8 @@ export default function SiteApp() {
             <Route path="/events" element={<EventsPage site={site} />} />
             <Route path="/order/:id" element={<TrackPage site={site} />} />
             <Route path="/orders" element={<MyOrdersPage site={site} />} />
+            <Route path="/account" element={<ProfilePage site={site} />} />
+            <Route path="/bookings" element={<BookingsPage site={site} />} />
             <Route path="/reserve" element={<ReservePage site={site} />} />
             <Route path="/reservation" element={<ReservationLookupPage site={site} />} />
             <Route path="/t/:token" element={<TableLanding site={site} />} />

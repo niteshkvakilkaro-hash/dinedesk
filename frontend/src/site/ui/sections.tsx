@@ -1,7 +1,9 @@
 import { useMemo, useRef, useState, type ComponentType, type KeyboardEvent } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, CalendarCheck, Car, MapPin, MessageCircle, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-react';
+import { ArrowRight, BedDouble, CalendarCheck, Car, MapPin, MessageCircle, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-react';
+import { useHotel } from '../hotel';
+import { useMoney } from '../ordering';
 import { formatPhone } from '@/lib/format';
 import { featuredItems, mapHref, telHref, useLocalized, useSiteGallery, useSiteMenu, whatsappHref } from '../data';
 import { FoodTypeMark, SiteImg } from '../components/bits';
@@ -28,6 +30,7 @@ export function QuickActions({ site }: { site: SiteData }) {
   const { t } = useTranslation();
   const c = site.content.contact;
   const actions = [
+    site.hotel?.has_rooms && { key: 'rooms', icon: BedDouble, label: t('site.nav.rooms'), hint: t('site.quick.roomsHint'), to: '/rooms' },
     site.has_menu && { key: 'menu', icon: site.ordering.enabled ? ShoppingBag : UtensilsCrossed, label: site.ordering.enabled ? t('site.quick.order') : t('site.quick.menu'), hint: site.ordering.enabled ? t('site.quick.orderHint') : t('site.quick.menuHint'), to: '/menu' },
     site.reservations?.enabled && { key: 'reserve', icon: CalendarCheck, label: t('site.reserveTitle'), hint: t('site.quick.reserveHint'), to: '/reserve' },
     c.phone && { key: 'call', icon: Phone, label: t('site.quick.call'), hint: formatPhone(c.phone), href: telHref(c.phone) },
@@ -90,6 +93,39 @@ export function Signature({ extra: Extra }: { site: SiteData; extra?: ComponentT
       </section>
       {Extra && <Extra />}
     </>
+  );
+}
+
+/** Hotels: a few room types right on the home page (photo, from-price), like the reference app. */
+export function FeaturedRooms({ site }: { site: SiteData }) {
+  const { t } = useTranslation();
+  const l = useLocalized();
+  const money = useMoney();
+  const { data } = useHotel(!!site.hotel?.has_rooms);
+  const types = (data?.types ?? []).slice(0, 4);
+  if (!site.hotel?.has_rooms || !types.length) return null;
+  return (
+    <section className="s-section" aria-labelledby="rooms-title">
+      <div className="s-wrap">
+        <SectionHead id="rooms-title" eyebrow={t('site.rooms.eyebrow')} title={t('site.rooms.featured')} action={<MoreLink to="/rooms">{t('site.rooms.all')}</MoreLink>} />
+        <div className="s-scroller mt-10 md:mt-14">
+          {types.map((rt, i) => (
+            <div key={rt.id} className="s-reveal h-full" style={delay(i)}>
+              <Link to="/rooms" className="s-card s-card-hover flex h-full flex-col overflow-hidden">
+                {rt.photos[0] ? <SiteImg image={rt.photos[0]} alt={rt.photos[0].alt} sizes="(min-width: 640px) 44vw, 78vw" className="aspect-[4/3] w-full !rounded-none" /> : <span className="flex aspect-[4/3] items-center justify-center bg-t-surface-2"><BedDouble className="h-8 w-8 opacity-60" aria-hidden="true" /></span>}
+                <span className="flex flex-1 flex-col gap-1.5 p-5">
+                  <span className="s-h3">{l(rt, 'name') ?? rt.name}</span>
+                  <span className="s-small s-muted">{[rt.bed, t('site.rooms.upTo', { count: rt.max_adults })].filter(Boolean).join(' · ')}</span>
+                  <span className="mt-auto pt-2">
+                    <span className="s-price text-lg">{money(Number(rt.from_price))}</span> <span className="s-small s-muted">{t('site.rooms.perNight')}</span>
+                  </span>
+                </span>
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

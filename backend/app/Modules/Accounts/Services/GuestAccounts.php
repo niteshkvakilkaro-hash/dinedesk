@@ -4,7 +4,9 @@ namespace App\Modules\Accounts\Services;
 
 use App\Modules\Accounts\Models\GuestAccount;
 use App\Modules\Accounts\Models\GuestSession;
+use App\Modules\Hotel\Models\RoomBooking;
 use App\Modules\Ordering\Models\Customer;
+use App\Modules\Reservations\Models\Reservation;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Support\ApiException;
@@ -109,6 +111,15 @@ class GuestAccounts
             'points' => (int) ($customer?->loyalty_points ?? 0),
             // The guest proved this phone, so they may open their own orders' tracking pages.
             'orders' => $orders->map(fn ($o) => ['id' => $o->public_id, 'token' => $o->tracking_token, 'number' => $o->number, 'at' => $o->placed_at->toIso8601String()])->values(),
+            // Their room stays and table bookings, newest first (links to manage each one).
+            'stays' => RoomBooking::with('type')->where('phone', $account->phone)->latest('id')->limit(20)->get()->map(fn (RoomBooking $b) => [
+                'id' => $b->public_id, 'token' => $b->access_token, 'code' => $b->code, 'room_type' => $b->type?->name,
+                'check_in' => $b->check_in->format('Y-m-d'), 'check_out' => $b->check_out->format('Y-m-d'), 'guests' => $b->adults + $b->children,
+                'status' => $b->status, 'total' => $b->total,
+            ])->values(),
+            'tables' => Reservation::where('phone', $account->phone)->latest('id')->limit(20)->get()->map(fn (Reservation $r) => [
+                'code' => $r->code, 'date' => $r->date->format('Y-m-d'), 'time' => $r->time, 'party' => $r->party_size, 'status' => $r->status,
+            ])->values(),
         ];
     }
 }

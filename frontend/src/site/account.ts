@@ -21,6 +21,8 @@ export interface GuestAccount {
   addresses: GuestAddress[];
   points: number;
   orders: { id: string; token: string; number: number; at: string }[];
+  stays: { id: string; token: string; code: string; room_type: string | null; check_in: string; check_out: string; guests: number; status: string; total: string }[];
+  tables: { code: string; date: string; time: string; party: number; status: string }[];
 }
 
 const key = () => `dd_guest_${typeof window === 'undefined' ? 'x' : window.location.host}`;

@@ -619,7 +619,9 @@
       "menu": "Menu",
       "book": "Book",
       "cart": "Cart",
-      "more": "More"
+      "more": "More",
+      "profile": "Profile",
+      "dining": "Dining"
     },
     "quick": {
       "label": "Quick actions",
@@ -631,7 +633,8 @@
       "whatsappHint": "Message us",
       "directions": "Directions",
       "directionsHint": "Open in Maps",
-      "reserveHint": "Pick a day and time"
+      "reserveHint": "Pick a day and time",
+      "roomsHint": "Check dates and book"
     },
     "sg": {
       "title": "Style guide",
@@ -934,7 +937,47 @@
     "clearFilters": "Clear filters",
     "showDishes_one": "Show {{count}} dish",
     "showDishes_other": "Show {{count}} dishes",
-    "noFilterMatch": "No dishes match these filters."
+    "noFilterMatch": "No dishes match these filters.",
+    "rooms": {
+      "eyebrow": "Stay with us",
+      "featured": "Featured rooms",
+      "all": "All rooms",
+      "perNight": "/ night",
+      "upTo_one": "Up to {{count}} adult",
+      "upTo_other": "Up to {{count}} adults"
+    },
+    "profile": {
+      "title": "Profile",
+      "account": "Your account",
+      "bookings": "My bookings",
+      "bookingsLead": "Bookings made from this phone. Sign in on the Profile tab to see the ones made from other devices too.",
+      "help": "Help & contact",
+      "install": "Get the {{name}} app",
+      "installHint": "Add it to your home screen: opens full screen, no app store needed.",
+      "iosHint": "Tap Share, then \"Add to Home Screen\".",
+      "installButton": "Install",
+      "tab": {
+        "rooms": "Rooms",
+        "tables": "Tables"
+      },
+      "noStays": "No room bookings yet.",
+      "noTables": "No table bookings yet.",
+      "bookRoom": "Book a room",
+      "tableBooking": "Table booking",
+      "guests_one": "{{count}} guest",
+      "guests_other": "{{count}} guests",
+      "status": {
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "checked_in": "Checked in",
+        "checked_out": "Completed",
+        "cancelled": "Cancelled",
+        "no_show": "Missed",
+        "seated": "Seated",
+        "completed": "Completed",
+        "rejected": "Declined"
+      }
+    }
   },
   "website": {
     "title": "Website",

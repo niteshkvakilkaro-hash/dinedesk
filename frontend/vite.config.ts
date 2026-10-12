@@ -22,9 +22,9 @@ export default defineConfig(({ mode }) => {
         // so the proxy can rewrite Host freely.
         '/api': { target: backend, changeOrigin: true },
         '/storage': { target: backend, changeOrigin: true },
-        // Per-business SEO files: the backend picks the business from X-Tenant-Host.
+        // Per-business SEO and app files: the backend picks the business from X-Tenant-Host.
         ...Object.fromEntries(
-          ['/robots.txt', '/sitemap.xml'].map((path) => [
+          ['/robots.txt', '/sitemap.xml', '/site.webmanifest', '/site-icon-'].map((path) => [
             path,
             {
               target: backend,

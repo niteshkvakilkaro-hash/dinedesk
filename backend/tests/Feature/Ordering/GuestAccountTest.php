@@ -38,6 +38,9 @@ class GuestAccountTest extends OrderingTestCase
         $this->getJson("/api/v1/site/orders/{$order['id']}?t={$order['token']}", $this->site())->assertOk();
         $this->assertSame($customers, $this->asTenant(fn () => Customer::count()));
 
+        $this->assertSame([], $data['account']['stays']);
+        $this->assertSame([], $data['account']['tables']);
+
         // Someone else's phone sees nothing of Asha's.
         $other = $this->signIn('98111 22233');
         $this->assertSame([], $other['account']['orders']);

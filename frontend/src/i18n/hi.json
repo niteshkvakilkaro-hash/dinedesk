@@ -619,7 +619,9 @@
       "menu": "मेन्यू",
       "book": "बुक करें",
       "cart": "कार्ट",
-      "more": "और"
+      "more": "और",
+      "profile": "प्रोफ़ाइल",
+      "dining": "डाइनिंग"
     },
     "quick": {
       "label": "तुरंत करें",
@@ -631,7 +633,8 @@
       "whatsappHint": "मैसेज करें",
       "directions": "रास्ता देखें",
       "directionsHint": "Maps में खोलें",
-      "reserveHint": "दिन और समय चुनें"
+      "reserveHint": "दिन और समय चुनें",
+      "roomsHint": "तारीख़ देखें और बुक करें"
     },
     "sg": {
       "title": "स्टाइल गाइड",
@@ -934,7 +937,47 @@
     "clearFilters": "फ़िल्टर हटाएँ",
     "showDishes_one": "{{count}} डिश दिखाएँ",
     "showDishes_other": "{{count}} डिश दिखाएँ",
-    "noFilterMatch": "इन फ़िल्टर से कोई डिश नहीं मिली।"
+    "noFilterMatch": "इन फ़िल्टर से कोई डिश नहीं मिली।",
+    "rooms": {
+      "eyebrow": "हमारे साथ ठहरें",
+      "featured": "ख़ास कमरे",
+      "all": "सभी कमरे",
+      "perNight": "/ रात",
+      "upTo_one": "{{count}} वयस्क तक",
+      "upTo_other": "{{count}} वयस्क तक"
+    },
+    "profile": {
+      "title": "प्रोफ़ाइल",
+      "account": "आपका अकाउंट",
+      "bookings": "मेरी बुकिंग",
+      "bookingsLead": "इस फ़ोन से की गई बुकिंग। दूसरे डिवाइस से की गई बुकिंग देखने के लिए प्रोफ़ाइल टैब पर साइन इन करें।",
+      "help": "मदद और संपर्क",
+      "install": "{{name}} का ऐप पाएँ",
+      "installHint": "इसे होम स्क्रीन पर जोड़ें: पूरी स्क्रीन पर खुलता है, ऐप स्टोर की ज़रूरत नहीं।",
+      "iosHint": "Share दबाएँ, फिर \"Add to Home Screen\"।",
+      "installButton": "इंस्टॉल",
+      "tab": {
+        "rooms": "कमरे",
+        "tables": "टेबल"
+      },
+      "noStays": "अभी कोई कमरे की बुकिंग नहीं।",
+      "noTables": "अभी कोई टेबल बुकिंग नहीं।",
+      "bookRoom": "कमरा बुक करें",
+      "tableBooking": "टेबल बुकिंग",
+      "guests_one": "{{count}} मेहमान",
+      "guests_other": "{{count}} मेहमान",
+      "status": {
+        "pending": "बाकी",
+        "confirmed": "कन्फ़र्म",
+        "checked_in": "चेक-इन",
+        "checked_out": "पूरा",
+        "cancelled": "रद्द",
+        "no_show": "नहीं आए",
+        "seated": "बैठ गए",
+        "completed": "पूरा",
+        "rejected": "मना किया"
+      }
+    }
   },
   "website": {
     "title": "वेबसाइट",

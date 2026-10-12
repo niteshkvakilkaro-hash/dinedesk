@@ -1,16 +1,14 @@
 import { Link, NavLink, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { BedDouble, CalendarCheck, House, Images, Info, LayoutGrid, MapPin, MessageCircle, Navigation, PartyPopper, Phone, ReceiptText, ShoppingBag, Tag, UtensilsCrossed } from 'lucide-react';
+import { BedDouble, CalendarCheck, House, Images, Info, MapPin, PartyPopper, ShoppingBag, Tag, UserRound, UtensilsCrossed } from 'lucide-react';
 import { formatPhone } from '@/lib/format';
 import { cartCount, useCart } from '../cart';
-import { mapHref, telHref, useLocalized, whatsappHref } from '../data';
+import { mapHref, telHref, useLocalized } from '../data';
 import { ReduceMotionToggle, SiteLanguageToggle } from '../components/bits';
-import { useMobileMenu, useNavItems, type NavKey } from '../components/nav';
-import { SiteDialog } from '../order/skin';
-import { recentOrders } from '../ordering';
+import { useNavItems, type NavKey } from '../components/nav';
 import type { SiteData } from '../types';
 import { Brand } from './Header';
-import { OpenBadge, useTodayHours } from './primitives';
+import { useTodayHours } from './primitives';
 
 const ext = { target: '_blank', rel: 'noopener noreferrer' } as const;
 
@@ -135,108 +133,53 @@ const TAB_ICONS: Record<NavKey, typeof House> = {
   events: PartyPopper,
   contact: MapPin,
 };
-// Which pages earn a tab of their own; the rest go under "More".
+// Which pages earn a tab of their own; the rest are listed on the Profile tab.
 const TAB_ORDER: NavKey[] = ['home', 'rooms', 'menu', 'reserve', 'offers', 'about', 'gallery', 'events', 'contact'];
 
-/** Phones and tablets: app-style bottom tabs (pages + cart) with the rest in a "More" sheet. */
+/** Phones and tablets: app-style bottom tabs (pages, cart and Profile), like a native app. */
 export function MobileBar({ site }: { site: SiteData }) {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const items = useNavItems(site);
   const count = cartCount(useCart((s) => s.lines));
   const setCartOpen = useCart((s) => s.setOpen);
-  const [more, setMore] = useMobileMenu();
   if (pathname.startsWith('/checkout') || pathname.startsWith('/order/') || pathname.startsWith('/style-guide')) return null;
-  const c = site.content.contact;
   const cart = site.ordering.enabled;
   const sorted = [...items].sort((a, b) => TAB_ORDER.indexOf(a.key) - TAB_ORDER.indexOf(b.key));
   const tabs = sorted.slice(0, cart ? 3 : 4);
-  const rest = items.filter((i) => !tabs.includes(i));
-  const restActive = rest.some((i) => i.to !== '/' && pathname.startsWith(i.to));
-  const label = (i: (typeof items)[number]) => (i.key === 'reserve' ? t('site.bar.book') : i.label);
+  // Profile also covers the pages without a tab, and the guest's orders and bookings.
+  const profileActive = ['/account', '/orders', '/bookings'].includes(pathname) || items.some((i) => !tabs.includes(i) && i.to !== '/' && pathname.startsWith(i.to));
+  const label = (i: (typeof items)[number]) => (i.key === 'reserve' ? t('site.bar.book') : i.key === 'menu' && site.hotel?.has_rooms ? t('site.bar.dining') : i.label);
   const icon = 'h-[22px] w-[22px]';
 
   return (
-    <>
-      <nav className="s-tabbar" aria-label={t('site.mainNav')}>
-        {tabs.map((i) => {
-          const Icon = TAB_ICONS[i.key];
-          return (
-            <NavLink key={i.key} to={i.to} end={i.to === '/'}>
-              <span className="s-tab-icon">
-                <Icon className={icon} aria-hidden="true" />
-              </span>
-              {label(i)}
-            </NavLink>
-          );
-        })}
-        {cart && (
-          <button type="button" onClick={() => setCartOpen(true)} aria-label={t('order.viewCart', { count })}>
+    <nav className="s-tabbar" aria-label={t('site.mainNav')}>
+      {tabs.map((i) => {
+        const Icon = TAB_ICONS[i.key];
+        return (
+          <NavLink key={i.key} to={i.to} end={i.to === '/'}>
             <span className="s-tab-icon">
-              <ShoppingBag className={icon} aria-hidden="true" />
-              {count > 0 && <span className="s-tab-count tabular-nums">{count}</span>}
+              <Icon className={icon} aria-hidden="true" />
             </span>
-            {t('site.bar.cart')}
-          </button>
-        )}
-        <button type="button" onClick={() => setMore(true)} aria-expanded={more} aria-haspopup="dialog" className={restActive ? 'is-active' : ''}>
-          <span className="s-tab-icon">
-            <LayoutGrid className={icon} aria-hidden="true" />
-          </span>
-          {t('site.bar.more')}
-        </button>
-      </nav>
-
-      <SiteDialog open={more} onClose={() => setMore(false)} title={t('site.bar.more')}>
-        {rest.length > 0 && (
-          <ul className="grid grid-cols-2 gap-2">
-            {rest.map((i) => {
-              const Icon = TAB_ICONS[i.key];
-              return (
-                <li key={i.key}>
-                  <NavLink to={i.to} end={i.to === '/'} onClick={() => setMore(false)} className="s-card flex min-h-14 items-center gap-3 px-4 font-semibold aria-[current=page]:text-t-link">
-                    <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                    <span className="truncate">{i.label}</span>
-                  </NavLink>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        {(site.ordering.enabled || recentOrders(window.location.host).length > 0) && (
-          <NavLink to="/orders" onClick={() => setMore(false)} className={`s-card flex min-h-14 items-center gap-3 px-4 font-semibold aria-[current=page]:text-t-link ${rest.length ? 'mt-2' : ''}`}>
-            <ReceiptText className="h-5 w-5 shrink-0" aria-hidden="true" />
-            <span className="truncate">{t('order.mine.title')}</span>
+            {label(i)}
           </NavLink>
-        )}
-        <div className={`mt-5 grid gap-2 ${c.phone && c.whatsapp ? 'grid-cols-3' : 'grid-cols-2'}`}>
-          {c.phone && (
-            <a href={telHref(c.phone)} className="s-btn s-btn-secondary !px-2">
-              <Phone className="h-[18px] w-[18px]" aria-hidden="true" />
-              {t('site.bar.call')}
-            </a>
-          )}
-          {c.whatsapp && (
-            <a href={whatsappHref(c.whatsapp, t('site.whatsappHello', { name: site.name }))} {...ext} className="s-btn s-btn-secondary !px-2">
-              <MessageCircle className="h-[18px] w-[18px]" aria-hidden="true" />
-              WhatsApp
-              <span className="sr-only"> ({t('common.opensInNewTab')})</span>
-            </a>
-          )}
-          <a href={mapHref(site)} {...ext} className="s-btn s-btn-secondary !px-2">
-            <Navigation className="h-[18px] w-[18px]" aria-hidden="true" />
-            {t('site.bar.directions')}
-            <span className="sr-only"> ({t('common.opensInNewTab')})</span>
-          </a>
-        </div>
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-t-line pt-4">
-          <OpenBadge site={site} />
-          <div className="flex items-center gap-4">
-            <SiteLanguageToggle className="inline-flex min-h-11 items-center font-semibold" />
-            <ReduceMotionToggle className="s-small inline-flex min-h-11 items-center font-semibold" />
-          </div>
-        </div>
-      </SiteDialog>
-    </>
+        );
+      })}
+      {cart && (
+        <button type="button" onClick={() => setCartOpen(true)} aria-label={t('order.viewCart', { count })}>
+          <span className="s-tab-icon">
+            <ShoppingBag className={icon} aria-hidden="true" />
+            {count > 0 && <span className="s-tab-count tabular-nums">{count}</span>}
+          </span>
+          {t('site.bar.cart')}
+        </button>
+      )}
+      <Link to="/account" className={profileActive ? 'is-active' : ''} aria-current={pathname === '/account' ? 'page' : undefined}>
+        <span className="s-tab-icon">
+          <UserRound className={icon} aria-hidden="true" />
+        </span>
+        {t('site.bar.profile')}
+      </Link>
+    </nav>
   );
 }
