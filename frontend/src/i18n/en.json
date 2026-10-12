@@ -1235,6 +1235,25 @@
       "counter": "At counter",
       "room": "To room",
       "upi": "UPI"
+    },
+    "account": {
+      "title": "See your orders on any phone",
+      "why": "Sign in with your mobile number to see orders from any device, save your addresses and check your points. We send a one-time code by SMS.",
+      "phone": "Mobile number",
+      "sendCode": "Send code",
+      "code": "Enter the 6-digit code sent to {{phone}}",
+      "signIn": "Sign in",
+      "changePhone": "Use another number",
+      "error": "Something went wrong. Please try again.",
+      "leadSignedIn": "Your orders from any phone or computer.",
+      "points_one": "{{count}} point",
+      "points_other": "{{count}} points",
+      "signOut": "Sign out",
+      "addresses": "Saved addresses",
+      "removeAddress": "Remove this address",
+      "noOrders": "No orders yet.",
+      "saveAddress": "Save this address for next time",
+      "signedIn": "Signed in"
     }
   },
   "orders": {

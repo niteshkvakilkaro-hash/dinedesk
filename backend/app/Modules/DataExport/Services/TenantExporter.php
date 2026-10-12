@@ -18,7 +18,7 @@ use ZipArchive;
 class TenantExporter
 {
     /** Never exported: platform internals or other people's sessions. */
-    private const SKIP_TABLES = ['personal_access_tokens', 'sessions', 'cache', 'cache_locks', 'jobs', 'failed_jobs', 'job_batches', 'password_reset_tokens', 'data_exports', 'support_sessions', 'otp_codes', 'notifications'];
+    private const SKIP_TABLES = ['personal_access_tokens', 'sessions', 'cache', 'cache_locks', 'jobs', 'failed_jobs', 'job_batches', 'password_reset_tokens', 'data_exports', 'support_sessions', 'otp_codes', 'notifications', 'guest_sessions'];
 
     /** Columns removed wherever they appear. */
     private const SECRET_COLUMNS = ['password', 'remember_token', 'access_token', 'tracking_token', 'qr_token', 'unsubscribe_token', 'path', 'code_hash'];

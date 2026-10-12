@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Crosshair, Loader2 } from 'lucide-react';
+import { ArrowLeft, Crosshair, Loader2, MapPin } from 'lucide-react';
+import { useGuestAccount, useGuestUpdate, type GuestAddress } from '../account';
 import { api, ApiError } from '@/lib/api';
 import { isIndianMobile } from '@/lib/format';
 import { apiLines, cartCount, useCart } from '../cart';
@@ -60,6 +61,14 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
 
   const type: OrderType = table ? 'dine_in' : storedType && ordering.types.includes(storedType) ? storedType : ordering.types[0];
   const [contact, setContact] = useState<Contact>(loadContact);
+  // Signed in on this website: their name and phone to start with, and their saved addresses.
+  const me = useGuestAccount().data;
+  const saveAddresses = useGuestUpdate();
+  const [saveAddr, setSaveAddr] = useState(true);
+  useEffect(() => {
+    if (me) setContact((c) => ({ ...c, name: c.name || me.name || '', phone: c.phone || me.phone.slice(3) }));
+  }, [me]);
+  const sameAddress = (a: GuestAddress) => a.line1 === contact.line1.trim() && a.pincode === contact.pincode;
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [notes, setNotes] = useState('');
@@ -152,6 +161,9 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
       const res = await request();
       const { order, token, razorpay } = res;
       rememberOrder(window.location.host, order.id, token, order.number);
+      if (me && saveAddr && type === 'delivery' && !me.addresses.some(sameAddress)) {
+        saveAddresses.mutate({ name: me.name ?? (contact.name.trim() || null), addresses: [...me.addresses, { label: null, line1: contact.line1.trim(), line2: contact.line2.trim() || null, landmark: contact.landmark.trim() || null, pincode: contact.pincode }].slice(-5) });
+      }
       if (method === 'online' && razorpay) {
         await pay(order, token, razorpay);
       } else {
@@ -335,12 +347,28 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
               <h2 id="addr-h" className={`text-2xl ${skin.heading}`}>
                 {t('order.addressTitle')}
               </h2>
+              {!!me?.addresses.length && (
+                <div className="flex flex-wrap gap-2" role="group" aria-label={t('order.account.addresses')}>
+                  {me.addresses.map((a, i) => (
+                    <button key={`${a.line1}-${i}`} type="button" aria-pressed={sameAddress(a)} className={`inline-flex min-h-10 max-w-full items-center gap-2 px-3 text-sm ${skin.chip}`} onClick={() => setContact({ ...contact, line1: a.line1, line2: a.line2 ?? '', landmark: a.landmark ?? '', pincode: a.pincode })}>
+                      <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <span className="truncate">{a.label ?? a.line1}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               {field('line1', 'address.line1', t('order.line1'), { autoComplete: 'address-line1' })}
               {field('line2', 'address.line2', t('order.line2'), { autoComplete: 'address-line2' }, true)}
               <div className="grid gap-4 sm:grid-cols-2">
                 {field('landmark', 'address.landmark', t('order.landmark'), {}, true)}
                 {field('pincode', 'address.pincode', t('order.pincode'), { inputMode: 'numeric', autoComplete: 'postal-code', maxLength: 6 })}
               </div>
+              {me && contact.line1.trim().length >= 3 && !me.addresses.some(sameAddress) && (
+                <label className="flex items-start gap-3 text-sm">
+                  <input type="checkbox" checked={saveAddr} onChange={(e) => setSaveAddr(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[var(--t-primary)]" />
+                  <span>{t('order.account.saveAddress')}</span>
+                </label>
+              )}
               <button type="button" onClick={locate} className={`inline-flex min-h-11 items-center gap-2 px-3 text-sm ${skin.secondary}`} disabled={locating}>
                 {locating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Crosshair className="h-4 w-4" aria-hidden="true" />}
                 {geo ? t('order.locationAdded') : t('order.useLocation')}

@@ -58,6 +58,8 @@ interface RequestOptions {
   body?: unknown;
   params?: Params;
   signal?: AbortSignal;
+  /** Extra request headers (e.g. a guest's X-Guest-Token on a business website). */
+  headers?: Record<string, string>;
 }
 
 function buildUrl(path: string, params?: Params) {
@@ -72,10 +74,11 @@ function buildUrl(path: string, params?: Params) {
   return qs ? `${url}?${qs}` : url;
 }
 
-export async function request<T>(path: string, { method = 'GET', body, params, signal }: RequestOptions = {}): Promise<Envelope<T>> {
+export async function request<T>(path: string, { method = 'GET', body, params, signal, headers: extra }: RequestOptions = {}): Promise<Envelope<T>> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-Tenant-Host': window.location.host,
+    ...extra,
   };
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
   if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json';
