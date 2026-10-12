@@ -708,6 +708,143 @@
     position: relative;
     z-index: 2;
   }
+
+  /* ---------- Royal hero (haveli, rajwada) ---------- */
+  /* Short enough on phones that the quick actions show on the first screen. */
+  .s-hero-royal {
+    min-height: min(74svh, 640px);
+  }
+  @media (min-width: 768px) {
+    .s-hero-royal {
+      min-height: min(88svh, 820px);
+    }
+  }
+  /* Darker at the foot (text and the icon bar) and at the top (the header over the photo). */
+  .s-hero-royal::after {
+    background:
+      linear-gradient(to top, color-mix(in srgb, var(--t-overlay) 96%, transparent) 0%, color-mix(in srgb, var(--t-overlay) 70%, transparent) 38%, color-mix(in srgb, var(--t-overlay) 10%, transparent) 72%, color-mix(in srgb, var(--t-overlay) 55%, transparent) 100%),
+      linear-gradient(to right, color-mix(in srgb, var(--t-overlay) 55%, transparent), transparent 75%);
+  }
+  .s-hero-royal .s-display {
+    font-size: clamp(2.6rem, 8vw, 5.25rem);
+    line-height: 1.02;
+    text-shadow: 0 2px 24px rgb(0 0 0 / 0.35);
+  }
+  .s-hero-kicker {
+    color: var(--t-accent) !important;
+    letter-spacing: 0.22em;
+  }
+  /* A gold rule with a diamond: ———◆——— */
+  .s-ornament {
+    position: relative;
+    display: block;
+    width: 120px;
+    height: 10px;
+    background: linear-gradient(var(--t-accent), var(--t-accent)) left center / 46px 1px no-repeat,
+      linear-gradient(var(--t-accent), var(--t-accent)) right center / 46px 1px no-repeat;
+  }
+  .s-ornament::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    background: var(--t-accent);
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  .s-btn-gold {
+    background: var(--t-accent);
+    color: var(--t-on-accent);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  }
+  .s-btn-gold:hover:not(:disabled) {
+    filter: brightness(1.06);
+  }
+  .s-status-glass {
+    background: rgb(255 255 255 / 0.14);
+    color: #fff;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
+    backdrop-filter: blur(10px);
+  }
+  /* Four quick actions on one card over the photo's lower edge. */
+  .s-quickbar {
+    display: grid;
+    gap: 4px;
+    padding: 10px;
+    border-radius: var(--t-radius-card, 18px);
+    background: var(--t-surface);
+    box-shadow: 0 18px 40px -16px rgb(0 0 0 / 0.35), inset 0 0 0 1px var(--t-line);
+  }
+  .s-quickbar-item {
+    display: flex;
+    min-height: 92px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 4px;
+    border-radius: calc(var(--t-radius-card, 18px) - 6px);
+    text-align: center;
+    color: var(--t-text);
+    transition: background-color 0.2s var(--t-ease);
+  }
+  .s-quickbar-item:hover {
+    background: var(--t-surface2);
+  }
+  .s-quickbar-icon {
+    display: flex;
+    height: 44px;
+    width: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--t-primary);
+    color: var(--t-accent);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--t-accent) 45%, transparent);
+  }
+  .s-quickbar-text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .s-quickbar-label {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  .s-quickbar-hint {
+    display: none;
+    font-size: 0.8125rem;
+    color: var(--t-muted);
+  }
+  @media (min-width: 768px) {
+    .s-quickbar {
+      padding: 14px;
+      gap: 8px;
+    }
+    .s-quickbar-item {
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 14px;
+      padding: 14px 16px;
+      text-align: left;
+    }
+    .s-quickbar-hint {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .s-quickbar-icon {
+      height: 48px;
+      width: 48px;
+    }
+    .s-quickbar-label {
+      font-size: 1rem;
+    }
+  }
   /* Ember: warm glow behind the headline. */
   [data-glow] .s-hero-full::before {
     content: '';

@@ -589,7 +589,9 @@
     "hero": {
       "order": "ऑनलाइन ऑर्डर करें",
       "book": "टेबल बुक करने के लिए कॉल करें",
-      "whatsapp": "WhatsApp पर ऑर्डर करें"
+      "whatsapp": "WhatsApp पर ऑर्डर करें",
+      "rooms": "कमरे देखें",
+      "restaurant": "हमारा रेस्टोरेंट"
     },
     "priceFrom": "{{price}} से",
     "signatureTitle": "ख़ास व्यंजन",

@@ -29,4 +29,4 @@ export const tokens: ThemeTokens = {
   heading: { transform: 'none', tracking: '-0.005em', weight: 400 },
 };
 
-export const style: ThemeStyle = { dark: false, hero: 'split', card: 'flat', imageMask: 'arch', playful: false };
+export const style: ThemeStyle = { dark: false, hero: 'royal', card: 'flat', imageMask: 'arch', playful: false };

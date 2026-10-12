@@ -32,4 +32,4 @@ export const tokens: ThemeTokens = {
   heading: { transform: 'none', tracking: '-0.01em', weight: 600 },
 };
 
-export const style: ThemeStyle = { dark: false, hero: 'split', card: 'soft', imageMask: 'rounded', playful: false };
+export const style: ThemeStyle = { dark: false, hero: 'royal', card: 'soft', imageMask: 'rounded', playful: false };

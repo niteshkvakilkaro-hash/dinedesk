@@ -38,6 +38,37 @@ export function QuickActions({ site }: { site: SiteData }) {
     { key: 'map', icon: MapPin, label: t('site.quick.directions'), hint: site.city ?? t('site.quick.directionsHint'), href: mapHref(site), external: true },
   ].filter(Boolean) as { key: string; icon: typeof Phone; label: string; hint: string; to?: string; href?: string; external?: boolean }[];
 
+  // Royal hero: one row of four icons on a card over the photo's lower edge.
+  if (themeStyle(site).hero === 'royal' && site.theme.cover) {
+    const order = ['rooms', 'menu', 'reserve', 'map', 'call', 'wa'];
+    const four = [...actions].sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key)).slice(0, 4);
+    return (
+      <nav aria-label={t('site.quick.label')} className="s-wrap relative z-10 -mt-16 md:-mt-20">
+        <ul className="s-quickbar s-reveal" style={{ gridTemplateColumns: `repeat(${four.length}, minmax(0, 1fr))` }}>
+          {four.map((a) => {
+            const inner = (
+              <>
+                <span className="s-quickbar-icon">
+                  <a.icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="s-quickbar-text">
+                  <span className="s-quickbar-label">{a.label}</span>
+                  <span className="s-quickbar-hint">{a.hint}</span>
+                </span>
+                {a.external && <span className="sr-only"> ({t('common.opensInNewTab')})</span>}
+              </>
+            );
+            return (
+              <li key={a.key}>
+                {a.to ? <Link to={a.to} className="s-quickbar-item">{inner}</Link> : <a href={a.href} className="s-quickbar-item" {...(a.external ? ext : {})}>{inner}</a>}
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    );
+  }
+
   return (
     <nav aria-label={t('site.quick.label')} className="s-wrap relative z-10 pt-6 md:pt-10">
       <ul className="grid grid-cols-2 gap-3 md:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] md:gap-4">
@@ -149,14 +180,14 @@ export function AboutSplit({ site }: { site: SiteData }) {
   return (
     <section className="s-section s-ruled s-alt" aria-labelledby="story-title">
       <div className="s-wrap s-grid items-center gap-y-12">
-        <div className={`s-reveal col-span-4 md:col-span-6 ${style.hero === 'split' ? 'md:order-2 lg:col-span-5 lg:col-start-8' : ''}`}>
+        <div className={`s-reveal col-span-4 md:col-span-6 ${style.hero === 'split' || style.hero === 'royal' ? 'md:order-2 lg:col-span-5 lg:col-start-8' : ''}`}>
           {photo && (
             <div className="s-zoom">
               <SiteImg image={photo} alt={ambience[0]?.alt_text ?? t('site.coverAlt', { name: site.name })} sizes="(min-width: 1024px) 560px, 100vw" className={`s-media aspect-[4/5] w-full ${style.imageMask === 'arch' ? 's-media-arch' : ''}`} />
             </div>
           )}
         </div>
-        <div className={`col-span-4 md:col-span-6 ${style.hero === 'split' ? 'md:order-1' : 'lg:col-span-5 lg:col-start-8'}`}>
+        <div className={`col-span-4 md:col-span-6 ${style.hero === 'split' || style.hero === 'royal' ? 'md:order-1' : 'lg:col-span-5 lg:col-start-8'}`}>
           <p className="s-reveal s-eyebrow">{t('site.ourStory')}</p>
           <h2 id="story-title" className="s-reveal s-h2 mt-3" style={delay(1)}>
             {t('site.storyTitle', { name: site.name })}

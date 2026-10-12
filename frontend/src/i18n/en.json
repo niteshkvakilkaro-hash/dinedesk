@@ -589,7 +589,9 @@
     "hero": {
       "order": "Order online",
       "book": "Call to book a table",
-      "whatsapp": "Order on WhatsApp"
+      "whatsapp": "Order on WhatsApp",
+      "rooms": "Explore rooms",
+      "restaurant": "Our restaurant"
     },
     "priceFrom": "from {{price}}",
     "signatureTitle": "Signature dishes",

@@ -43,7 +43,7 @@ export function Header({ site }: { site: SiteData }) {
   // Phones use the bottom tabs; at a table or in a room that bar is taken, so the menu button stays.
   const drawer = !!useActiveTable(site) || !!useActiveRoom(site);
   const scrolled = useScrolled();
-  const over = pathname === '/' && themeStyle(site).hero === 'fullbleed' && !!site.theme.cover && !scrolled && !open;
+  const over = pathname === '/' && ['fullbleed', 'royal'].includes(themeStyle(site).hero) && !!site.theme.cover && !scrolled && !open;
   const phone = site.content.contact.phone;
   const cta = site.ordering.enabled ? { to: '/menu', label: t('site.hero.order') } : site.reservations?.enabled ? { to: '/reserve', label: t('site.reserveTitle') } : site.has_menu ? { to: '/menu', label: t('site.viewMenu') } : null;
 

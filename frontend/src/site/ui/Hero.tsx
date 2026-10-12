@@ -21,8 +21,14 @@ export function useKicker(site: SiteData) {
 function useCtas(site: SiteData) {
   const { t } = useTranslation();
   const c = site.content.contact;
-  const primary = site.ordering.enabled ? { to: '/menu', label: t('site.hero.order') } : site.has_menu ? { to: '/menu', label: t('site.viewMenu') } : null;
+  const food = site.ordering.enabled ? { to: '/menu', label: t('site.hero.order') } : site.has_menu ? { to: '/menu', label: t('site.viewMenu') } : null;
   let secondary: { href: string; label: string; external?: boolean; internal?: boolean } | null = null;
+  // A hotel leads with its rooms; the restaurant comes second.
+  if (site.hotel?.has_rooms) {
+    secondary = food ? { href: food.to, label: site.ordering.enabled ? t('site.hero.order') : t('site.hero.restaurant'), internal: true } : null;
+    return { primary: { to: '/rooms', label: t('site.hero.rooms') }, secondary };
+  }
+  const primary = food;
   if (site.reservations?.enabled) secondary = { href: '/reserve', label: t('site.reserveTitle'), internal: true };
   else if (site.business_type !== 'cloud_kitchen' && c.phone) secondary = { href: telHref(c.phone), label: t('site.hero.book') };
   else if (c.whatsapp) secondary = { href: whatsappHref(c.whatsapp, t('site.whatsappHello', { name: site.name })), label: t('site.hero.whatsapp'), external: true };
@@ -30,13 +36,13 @@ function useCtas(site: SiteData) {
   return { primary, secondary };
 }
 
-function Ctas({ site, onPhoto = false }: { site: SiteData; onPhoto?: boolean }) {
+function Ctas({ site, onPhoto = false, gold = false }: { site: SiteData; onPhoto?: boolean; gold?: boolean }) {
   const { t } = useTranslation();
   const { primary, secondary } = useCtas(site);
   return (
     <div className="s-reveal flex flex-wrap gap-3" style={delay(3)}>
       {primary && (
-        <Link to={primary.to} className="s-btn s-btn-primary">
+        <Link to={primary.to} className={`s-btn ${gold ? 's-btn-gold' : 's-btn-primary'}`}>
           {primary.label}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
@@ -221,8 +227,45 @@ function Editorial({ site }: { site: SiteData }) {
   );
 }
 
+/** Heritage themes: the photo fills the screen, with an ornament, a gold call to action and the quick actions over its lower edge. */
+function Royal({ site }: { site: SiteData }) {
+  const { t } = useTranslation();
+  const l = useLocalized();
+  const kicker = useKicker(site);
+  const parallax = useParallax<HTMLDivElement>(0.25);
+  const tagline = l(site.content, 'tagline');
+  return (
+    <section className="s-hero-full s-hero-royal s-hero-pull" aria-labelledby="hero-title">
+      <div ref={parallax} className="s-hero-img">
+        <SiteImg image={site.theme.cover!} alt={t('site.coverAlt', { name: site.name })} sizes="100vw" priority className="h-full w-full" />
+      </div>
+      <div className="s-wrap w-full pb-24 pt-[calc(var(--s-header-h)+48px)] md:pb-36">
+        <div className="max-w-2xl">
+          <span className="s-reveal s-ornament" aria-hidden="true" />
+          <p className="s-reveal s-eyebrow s-hero-kicker mt-4" style={delay(1)}>{kicker}</p>
+          <h1 id="hero-title" className="s-reveal s-display mt-3 break-words" style={delay(1)}>
+            {site.name}
+          </h1>
+          {tagline && (
+            <p className="s-reveal mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg md:text-xl" style={delay(2)}>
+              {tagline}
+            </p>
+          )}
+          <div className="mt-7 flex flex-col items-start gap-5">
+            <Ctas site={site} onPhoto gold />
+            <div className="s-reveal" style={delay(4)}>
+              <OpenBadge site={site} className="s-status-glass" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function Hero({ site }: { site: SiteData }) {
   const hero = themeStyle(site).hero;
+  if (hero === 'royal' && site.theme.cover) return <Royal site={site} />;
   if (hero === 'fullbleed') return <FullBleed site={site} />;
   if (hero === 'editorial') return <Editorial site={site} />;
   return <Split site={site} />;

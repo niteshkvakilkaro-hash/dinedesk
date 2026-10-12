@@ -35,8 +35,8 @@ export interface ThemeTokens {
 /** Layout and detail choices that make each theme recognisable, on top of the shared page structure. */
 export interface ThemeStyle {
   dark: boolean;
-  /** fullbleed = photo behind the headline; split = text beside a (masked) photo; editorial = huge type + square photo. */
-  hero: 'fullbleed' | 'split' | 'editorial';
+  /** fullbleed = photo behind the headline; royal = fullbleed with an ornament, gold call to action and an icon bar over the photo's edge; split = text beside a (masked) photo; editorial = huge type + square photo. */
+  hero: 'fullbleed' | 'royal' | 'split' | 'editorial';
   /** flat = hairline border · soft = gentle shadow · glass = blurred translucent · sticker = thick border + hard shadow · rule = magazine 1px rules */
   card: 'flat' | 'soft' | 'glass' | 'sticker' | 'rule';
   /** arch = jharokha arch · square · rounded */
