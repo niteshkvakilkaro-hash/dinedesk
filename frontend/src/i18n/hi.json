@@ -2158,7 +2158,9 @@
     "subtitle": "कच्चा माल, स्टॉक लेवल और रेसिपी।",
     "tab": {
       "stock": "स्टॉक",
-      "recipes": "रेसिपी"
+      "recipes": "रेसिपी",
+      "purchases": "खरीद ऑर्डर",
+      "suppliers": "सप्लायर"
     },
     "units": {
       "kg": "किलो",
@@ -3474,5 +3476,53 @@
     "noRecipe": "रेसिपी नहीं",
     "missingCosts_one": "{{count}} सामग्री की लागत नहीं है",
     "missingCosts_other": "{{count}} सामग्रियों की लागत नहीं है"
+  },
+  "purchasing": {
+    "addSupplier": "सप्लायर जोड़ें",
+    "editSupplier": "{{name}} बदलें",
+    "supplierName": "सप्लायर का नाम",
+    "phone": "WhatsApp नंबर",
+    "phoneHint": "खरीद ऑर्डर आपके WhatsApp से इसी नंबर पर भेजे जाते हैं।",
+    "email": "ईमेल",
+    "notes": "नोट",
+    "active": "सक्रिय सप्लायर",
+    "noSuppliers": "अभी कोई सप्लायर नहीं",
+    "noSuppliersText": "जिनसे आप सामान खरीदते हैं — सब्ज़ी, डेयरी, किराना — उन्हें जोड़ें ताकि WhatsApp पर ऑर्डर भेज सकें।",
+    "newOrder": "नया खरीद ऑर्डर",
+    "editOrder": "{{code}} बदलें",
+    "supplier": "सप्लायर",
+    "pickSupplier": "सप्लायर चुनें",
+    "expectedOn": "कब तक चाहिए",
+    "items": "सामान",
+    "item": "सामान",
+    "pickItem": "सामान चुनें",
+    "qty": "मात्रा",
+    "rate": "रेट ₹",
+    "suggest": "कम स्टॉक से सुझाएँ",
+    "nothingLow": "अभी कुछ भी कम स्टॉक में नहीं है।",
+    "addLine": "सामान जोड़ें",
+    "noLines": "सामान जोड़ें, या जो कम है वह हम सुझा दें।",
+    "estimate": "अनुमानित कुल {{total}}",
+    "addSupplierFirst": "पहले एक सप्लायर जोड़ें।",
+    "noOrders": "अभी कोई खरीद ऑर्डर नहीं",
+    "noOrdersText": "ऑर्डर बनाएँ, सप्लायर को WhatsApp पर भेजें, और सामान आने पर स्टॉक में लें।",
+    "neededBy": "{{date}} तक चाहिए",
+    "sendWhatsapp": "WhatsApp पर भेजें",
+    "markSent": "भेजा गया",
+    "receive": "माल लें",
+    "cancel": "ऑर्डर रद्द करें",
+    "cancelConfirm": "{{code}} रद्द करें?",
+    "receiveTitle": "{{code}} का माल लें",
+    "receiveHint": "जो सच में आया और जो दाम दिया, वह डालें। यह स्टॉक में जुड़ेगा और यही दाम सामान की लागत बनेगा।",
+    "ordered": "ऑर्डर {{qty}} {{unit}}",
+    "arrived": "आया ({{unit}})",
+    "paidRate": "दिया ₹ प्रति {{unit}}",
+    "receivedToast": "स्टॉक में जोड़ दिया।",
+    "status": {
+      "draft": "ड्राफ्ट",
+      "sent": "भेजा",
+      "received": "मिल गया",
+      "cancelled": "रद्द"
+    }
   }
 }

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertTriangle, History, Package, Pencil, Plus, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatMoney } from '@/lib/format';
+import { PurchasesTab, SuppliersTab } from './PurchasingTabs';
 import { Alert, Badge, Dialog, EmptyState, ErrorState, Field, SkeletonRows, Spinner, toast, Toggle } from '@/components/ui';
 
 interface Item { id: number; name: string; unit: string; stock: string; low_stock_level: string; cost_per_unit: string | null; is_active: boolean; is_low: boolean; dishes?: number }
@@ -247,7 +248,7 @@ function RecipesTab() {
 
 export default function InventoryPage() {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<'stock' | 'recipes'>('stock');
+  const [tab, setTab] = useState<'stock' | 'recipes' | 'purchases' | 'suppliers'>('stock');
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -255,13 +256,13 @@ export default function InventoryPage() {
           <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight"><Package className="h-7 w-7" aria-hidden="true" /> {t('inventory.title')}</h1>
           <p className="text-muted">{t('inventory.subtitle')}</p>
         </div>
-        <div className="flex gap-1 rounded-full bg-ink/5 p-1" role="tablist">
-          {(['stock', 'recipes'] as const).map((k) => (
-            <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`rounded-full px-4 py-2 text-sm font-semibold ${tab === k ? 'bg-surface shadow' : 'text-muted'}`}>{t(`inventory.tab.${k}`)}</button>
+        <div className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-ink/5 p-1" role="tablist">
+          {(['stock', 'recipes', 'purchases', 'suppliers'] as const).map((k) => (
+            <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${tab === k ? 'bg-surface shadow' : 'text-muted'}`}>{t(`inventory.tab.${k}`)}</button>
           ))}
         </div>
       </div>
-      {tab === 'stock' ? <StockTab /> : <RecipesTab />}
+      {tab === 'stock' ? <StockTab /> : tab === 'recipes' ? <RecipesTab /> : tab === 'purchases' ? <PurchasesTab /> : <SuppliersTab />}
     </div>
   );
 }

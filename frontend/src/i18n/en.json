@@ -2158,7 +2158,9 @@
     "subtitle": "Raw materials, stock levels and recipes.",
     "tab": {
       "stock": "Stock",
-      "recipes": "Recipes"
+      "recipes": "Recipes",
+      "purchases": "Purchase orders",
+      "suppliers": "Suppliers"
     },
     "units": {
       "kg": "kg",
@@ -3474,5 +3476,53 @@
     "noRecipe": "No recipe",
     "missingCosts_one": "{{count}} ingredient has no cost price",
     "missingCosts_other": "{{count}} ingredients have no cost price"
+  },
+  "purchasing": {
+    "addSupplier": "Add supplier",
+    "editSupplier": "Edit {{name}}",
+    "supplierName": "Supplier name",
+    "phone": "WhatsApp number",
+    "phoneHint": "Purchase orders are sent here from your WhatsApp.",
+    "email": "Email",
+    "notes": "Notes",
+    "active": "Active supplier",
+    "noSuppliers": "No suppliers yet",
+    "noSuppliersText": "Add the people you buy from — vegetables, dairy, grocery — to send them orders on WhatsApp.",
+    "newOrder": "New purchase order",
+    "editOrder": "Edit {{code}}",
+    "supplier": "Supplier",
+    "pickSupplier": "Choose a supplier",
+    "expectedOn": "Needed by",
+    "items": "Items",
+    "item": "Item",
+    "pickItem": "Choose an item",
+    "qty": "Qty",
+    "rate": "Rate ₹",
+    "suggest": "Suggest from low stock",
+    "nothingLow": "Nothing is low on stock right now.",
+    "addLine": "Add item",
+    "noLines": "Add items, or let us suggest what is running low.",
+    "estimate": "Estimated total {{total}}",
+    "addSupplierFirst": "Add a supplier first.",
+    "noOrders": "No purchase orders yet",
+    "noOrdersText": "Make an order, send it to your supplier on WhatsApp, and receive it into stock when it arrives.",
+    "neededBy": "needed by {{date}}",
+    "sendWhatsapp": "Send on WhatsApp",
+    "markSent": "Mark sent",
+    "receive": "Receive",
+    "cancel": "Cancel order",
+    "cancelConfirm": "Cancel {{code}}?",
+    "receiveTitle": "Receive {{code}}",
+    "receiveHint": "Enter what actually arrived and the price you paid. It goes into stock, and the price becomes the item's cost.",
+    "ordered": "ordered {{qty}} {{unit}}",
+    "arrived": "Arrived ({{unit}})",
+    "paidRate": "Paid ₹ per {{unit}}",
+    "receivedToast": "Received into stock.",
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "received": "Received",
+      "cancelled": "Cancelled"
+    }
   }
 }
