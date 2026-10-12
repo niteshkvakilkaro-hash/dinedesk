@@ -709,6 +709,41 @@
     z-index: 2;
   }
 
+  /* ---------- Royal themes: short photo banner on the main pages ---------- */
+  .s-page-banner {
+    position: relative;
+    display: flex;
+    min-height: 200px;
+    align-items: flex-end;
+    margin-bottom: 24px;
+    overflow: hidden;
+    color: #fff;
+    background: var(--t-overlay);
+  }
+  .s-page-banner-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0 !important;
+  }
+  .s-page-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(to top, color-mix(in srgb, var(--t-overlay) 92%, transparent) 0%, color-mix(in srgb, var(--t-overlay) 45%, transparent) 60%, color-mix(in srgb, var(--t-overlay) 25%, transparent) 100%);
+  }
+  .s-page-banner .s-h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+  }
+  @media (min-width: 768px) {
+    .s-page-banner {
+      min-height: 300px;
+      margin-bottom: 40px;
+    }
+  }
+
   /* ---------- Royal themes: a shorter home page (less air between sections, smaller headings on phones) ---------- */
   [data-hero='royal'] .s-section {
     padding-block: clamp(44px, 6.5vw, 96px);
@@ -731,7 +766,7 @@
   .s-hero-royal::after {
     background:
       linear-gradient(to top, color-mix(in srgb, var(--t-overlay) 96%, transparent) 0%, color-mix(in srgb, var(--t-overlay) 70%, transparent) 38%, color-mix(in srgb, var(--t-overlay) 10%, transparent) 72%, color-mix(in srgb, var(--t-overlay) 55%, transparent) 100%),
-      linear-gradient(to right, color-mix(in srgb, var(--t-overlay) 55%, transparent), transparent 75%);
+      linear-gradient(to right, color-mix(in srgb, var(--t-overlay) 35%, transparent), transparent 70%);
   }
   .s-hero-royal .s-display {
     font-size: clamp(2.6rem, 8vw, 5.25rem);

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type ComponentType, type KeyboardEvent } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, BedDouble, ChevronRight, CalendarCheck, Car, MapPin, MessageCircle, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-react';
+import { ArrowRight, BedDouble, ChevronDown, ChevronRight, CalendarCheck, Clock, Car, MapPin, MessageCircle, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-react';
 import { useHotel } from '../hotel';
 import { useMoney } from '../ordering';
 import { formatPhone } from '@/lib/format';
@@ -10,7 +10,7 @@ import { FoodTypeMark, SiteImg } from '../components/bits';
 import { Lightbox, Paragraphs, useStory } from '../components/shared';
 import type { GalleryItem, SectionKey, SiteData } from '../types';
 import { DishCard, DishRow, useDishPrice } from './DishCard';
-import { Hours, MapFacade, SectionHead, themeStyle } from './primitives';
+import { Hours, MapFacade, SectionHead, themeStyle, useTodayHours } from './primitives';
 import { Reviews } from './Growth';
 
 const ext = { target: '_blank', rel: 'noopener noreferrer' } as const;
@@ -395,6 +395,7 @@ export function Visit({ site, showHours = true, showMap = true }: { site: SiteDa
   const { t } = useTranslation();
   const c = site.content.contact;
   const address = [c.address, site.city].filter(Boolean).join(', ');
+  const today = useTodayHours(site);
   return (
     <section className="s-section s-ruled" aria-labelledby="visit-title">
       <div className="s-wrap">
@@ -434,7 +435,24 @@ export function Visit({ site, showHours = true, showMap = true }: { site: SiteDa
                 )}
               </div>
             )}
-            {showHours && site.opening_hours && (
+            {showHours && site.opening_hours && isRoyal(site) && (
+              // Royal themes: today's hours, with the week one tap away.
+              <details className="s-reveal s-card group p-4" style={delay(1)}>
+                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                  <Clock className="h-5 w-5 shrink-0 text-t-link" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="s-small s-muted block">{t('site.hoursToday')}</span>
+                    <span className="font-semibold tabular-nums">{today.text}</span>
+                  </span>
+                  <span className="s-small s-link shrink-0">{t('site.allDays')}</span>
+                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="mt-3 border-t border-t-line pt-3">
+                  <Hours site={site} />
+                </div>
+              </details>
+            )}
+            {showHours && site.opening_hours && !isRoyal(site) && (
               <div className="s-reveal" style={delay(1)}>
                 <h3 className="s-h3 mb-3">{t('site.whenOpen')}</h3>
                 <Hours site={site} />
@@ -461,7 +479,8 @@ export function HomeSections({ site, sections, extra }: { site: SiteData; sectio
   sections.forEach((key, i) => {
     if (key === 'specials') out.push(<Signature key={key} site={site} extra={extra} />);
     if (key === 'story') out.push(<AboutSplit key={key} site={site} />);
-    if (key === 'menu_preview') out.push(<MenuPreview key={key} site={site} />);
+    // Royal themes already list signature dishes; the menu preview would repeat them.
+    if (key === 'menu_preview' && !(isRoyal(site) && sections.includes('specials'))) out.push(<MenuPreview key={key} site={site} />);
     if (key === 'gallery') out.push(<Ambience key={key} site={site} />);
     if (i === visitAt) {
       out.push(<Reserve key="reserve" site={site} />);

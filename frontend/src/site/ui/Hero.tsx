@@ -117,7 +117,7 @@ function FullBleed({ site }: { site: SiteData }) {
     <section className="s-hero-full s-hero-pull" aria-labelledby="hero-title">
       {cover && (
         <div ref={parallax} className="s-hero-img">
-          <SiteImg image={cover} alt={t('site.coverAlt', { name: site.name })} sizes="100vw" priority className="h-full w-full" />
+          <SiteImg image={cover} alt={t('site.coverAlt', { name: site.name })} sizes="(orientation: portrait) 260vw, 100vw" priority className="h-full w-full" />
         </div>
       )}
       <div className="s-wrap s-grid w-full items-end gap-y-8 pb-12 pt-[calc(var(--s-header-h)+96px)] md:pb-20">
@@ -237,7 +237,7 @@ function Royal({ site }: { site: SiteData }) {
   return (
     <section className="s-hero-full s-hero-royal s-hero-pull" aria-labelledby="hero-title">
       <div ref={parallax} className="s-hero-img">
-        <SiteImg image={site.theme.cover!} alt={t('site.coverAlt', { name: site.name })} sizes="100vw" priority className="h-full w-full" />
+        <SiteImg image={site.theme.cover!} alt={t('site.coverAlt', { name: site.name })} sizes="(orientation: portrait) 260vw, 100vw" priority className="h-full w-full" />
       </div>
       <div className="s-wrap w-full pb-24 pt-[calc(var(--s-header-h)+48px)] md:pb-36">
         <div className="max-w-2xl">

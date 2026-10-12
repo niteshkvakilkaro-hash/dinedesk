@@ -146,7 +146,7 @@ export function RoomsPage({ site }: { site: SiteData }) {
 
   return (
     <>
-      <PageHeader site={site} eyebrow={site.name} title={t('site.stay.title')} lead={t('site.stay.lead', { in: site.hotel.check_in_time, out: site.hotel.check_out_time })} />
+      <PageHeader site={site} banner image={h?.types.find((x) => x.photos[0])?.photos[0] ?? null} eyebrow={site.name} title={t('site.stay.title')} lead={t('site.stay.lead', { in: site.hotel.check_in_time, out: site.hotel.check_out_time })} />
       <div className="s-wrap space-y-10 pb-24">
         {h?.online_booking ? (
           <form className="s-card grid grid-cols-2 items-end gap-4 p-5 sm:p-6 md:grid-cols-5" onSubmit={find}>
@@ -636,7 +636,7 @@ export function EventsPage({ site }: { site: SiteData }) {
   );
   return (
     <>
-      <PageHeader site={site} eyebrow={site.name} title={t('site.events.title')} lead={t('site.events.lead')} />
+      <PageHeader site={site} banner eyebrow={site.name} title={t('site.events.title')} lead={t('site.events.lead')} />
       <div className="s-wrap s-grid gap-y-8 pb-24">
         {sent ? (
           <div className="s-card col-span-4 space-y-3 p-6 md:col-span-7" role="status">

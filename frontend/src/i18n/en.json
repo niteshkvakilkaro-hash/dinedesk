@@ -1012,7 +1012,9 @@
       "doneText": "Thank you! {{name}} will call you shortly to confirm your {{plan}} plan and the start date.",
       "whatsapp": "Message us on WhatsApp",
       "waText": "Hi, I requested the {{plan}} tiffin plan ({{code}})."
-    }
+    },
+    "hoursToday": "Open today",
+    "allDays": "All days"
   },
   "website": {
     "title": "Website",

@@ -5,7 +5,7 @@ import type { PageKey, PageProps } from '@/themes/types';
 import { useLocalized, useSiteGallery, useSiteMenu } from '../data';
 import { SiteImg } from '../components/bits';
 import { ContactList, Lightbox, Paragraphs, useGalleryFilter, useHomeSections, useMenuFilter, useStory } from '../components/shared';
-import type { SiteData } from '../types';
+import type { SiteData, SiteImage } from '../types';
 import { SiteDialog } from '../order/skin';
 import { DishRow } from './DishCard';
 import { Hero } from './Hero';
@@ -14,7 +14,29 @@ import { FeaturedRooms, HomeSections, QuickActions, Reserve } from './sections';
 
 const delay = (i: number) => ({ ['--i' as string]: i });
 
-export function PageHeader({ site, eyebrow, title, lead }: { site: SiteData; eyebrow?: string | null; title: string; lead?: React.ReactNode }) {
+export function PageHeader({ site, eyebrow, title, lead, banner = false, image }: { site: SiteData; eyebrow?: string | null; title: string; lead?: React.ReactNode; banner?: boolean; image?: SiteImage | null }) {
+  // Royal themes: the main pages open on a short photo banner, like the reference app.
+  const photo = image ?? site.theme.cover;
+  if (banner && themeStyle(site).hero === 'royal' && photo) {
+    return (
+      <header className="s-page-banner">
+        <div className="s-page-banner-img">
+          <SiteImg image={photo} alt="" sizes="(orientation: portrait) 200vw, 100vw" priority className="h-full w-full" />
+        </div>
+        <div className="s-wrap relative z-[2] w-full pb-7 pt-20 md:pb-10 md:pt-28">
+          {eyebrow && <p className="s-reveal s-eyebrow s-hero-kicker">{eyebrow}</p>}
+          <h1 className="s-reveal s-h1 mt-2 max-w-4xl" style={delay(1)}>
+            {title}
+          </h1>
+          {lead && (
+            <div className="s-reveal mt-2 max-w-2xl text-white/85" style={delay(2)}>
+              {lead}
+            </div>
+          )}
+        </div>
+      </header>
+    );
+  }
   return (
     <header className={`pb-10 pt-12 md:pb-14 md:pt-20 ${site.theme.key === 'haveli' ? 's-jaali' : ''}`}>
       <div className="s-wrap">
@@ -75,6 +97,8 @@ function Menu({ site }: PageProps) {
     <>
       <PageHeader
         site={site}
+        banner
+        image={(menu ?? []).flatMap((c) => c.items).find((i) => i.image)?.image ?? null}
         eyebrow={site.name}
         title={t('site.nav.menu')}
         lead={site.ordering.enabled ? (site.ordering.prices_include_tax ? t('site.pricesIncl') : t('site.pricesExcl')) : null}
@@ -204,7 +228,7 @@ function About({ site }: PageProps) {
   const style = themeStyle(site);
   return (
     <>
-      <PageHeader site={site} eyebrow={t('site.ourStory')} title={t('site.storyTitle', { name: site.name })} lead={tagline} />
+      <PageHeader site={site} banner eyebrow={t('site.ourStory')} title={t('site.storyTitle', { name: site.name })} lead={tagline} />
       <section className="s-wrap s-grid gap-y-12 pb-20">
         <div className="s-reveal col-span-4 md:col-span-7 lg:col-span-6">
           <div className="s-body space-y-5 text-lg">{about ? <Paragraphs text={about} /> : <p className="s-muted">{t('site.noStory', { name: site.name })}</p>}</div>
@@ -247,7 +271,7 @@ function Gallery({ site }: PageProps) {
   const [index, setIndex] = useState<number | null>(null);
   return (
     <>
-      <PageHeader site={site} eyebrow={site.name} title={t('site.galleryTitle')} />
+      <PageHeader site={site} banner eyebrow={site.name} title={t('site.galleryTitle')} />
       <div className="s-wrap pb-20">
         {available.length > 1 && (
           <div role="group" aria-label={t('site.filterPhotos')} className="s-tabs mb-8">
@@ -281,7 +305,7 @@ function Contact({ site }: PageProps) {
   const { t } = useTranslation();
   return (
     <>
-      <PageHeader site={site} eyebrow={site.name} title={t('site.contactTitle')} lead={t('site.contactLead')} />
+      <PageHeader site={site} banner eyebrow={site.name} title={t('site.contactTitle')} lead={t('site.contactLead')} />
       <div className="s-wrap s-grid gap-y-10 pb-12">
         <div className="col-span-4 space-y-10 md:col-span-5">
           <ContactList site={site} className="s-reveal grid gap-3" itemClassName="s-card s-card-hover flex min-h-16 items-center gap-4 p-4" iconClassName="h-5 w-5 text-t-link" />

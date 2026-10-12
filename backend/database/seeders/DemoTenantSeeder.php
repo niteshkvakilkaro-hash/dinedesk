@@ -81,10 +81,10 @@ class DemoTenantSeeder extends Seeder
         ],
         // Hotel with a restaurant (Pro plan): rooms, booking engine, front desk, room service by QR.
         [
-            'theme' => 'rajwada', 'cover' => 'haveli', 'name' => 'Hotel Demo', 'type' => 'hotel', 'city' => 'Udaipur', 'email' => 'demo-hotel@example.com', 'plan' => 'pro',
+            'theme' => 'rajwada', 'cover' => 'hotel', 'name' => 'Hotel Demo', 'type' => 'hotel', 'city' => 'Udaipur', 'email' => 'demo-hotel@example.com', 'plan' => 'pro',
             'hours' => ['07:00', '23:00'], 'location' => [24.5854, 73.7125], 'packaging' => 0,
             'zones' => [],
-            'gallery' => ['ambience-haveli-2', 'room-view', 'dal-makhani', 'room-twin', 'ambience-haveli-3'],
+            'gallery' => ['ambience-hotel-1', 'ambience-hotel-2', 'ambience-hotel-3', 'room-deluxe', 'laal-maas', 'room-royal-suite'],
         ],
     ];
 
@@ -212,9 +212,9 @@ class DemoTenantSeeder extends Seeder
     {
         $note = 'Sample room type for this demo; the photo is a freely licensed picture, not this hotel.';
         $types = [
-            ['haveli-room', 'Haveli Room', 'हवेली रूम', 'room-twin', 3200, 3800, 2, 3, 1, 600, '2 single beds or 1 double', 220, ['ac', 'wifi', 'tv', 'geyser', 'kettle', 'room_service']],
-            ['jharokha-deluxe', 'Jharokha Deluxe', 'झरोखा डीलक्स', 'room-view', 4800, 5600, 2, 3, 2, 900, '1 king bed', 320, ['ac', 'wifi', 'tv', 'geyser', 'view', 'kettle', 'workdesk', 'breakfast', 'room_service']],
-            ['maharaja-suite', 'Maharaja Suite', 'महाराजा सुइट', 'room-suite', 8500, null, 2, 2, 1, 0, '1 king bed and a sitting room', 520, ['ac', 'wifi', 'tv', 'geyser', 'view', 'minibar', 'bathtub', 'breakfast', 'room_service', 'non_smoking']],
+            ['haveli-room', 'Haveli Room', 'हवेली रूम', 'room-haveli', 3200, 3800, 2, 3, 1, 600, '2 single beds or 1 double', 220, ['ac', 'wifi', 'tv', 'geyser', 'kettle', 'room_service']],
+            ['jharokha-deluxe', 'Jharokha Deluxe', 'झरोखा डीलक्स', 'room-deluxe', 4800, 5600, 2, 3, 2, 900, '1 king bed', 320, ['ac', 'wifi', 'tv', 'geyser', 'view', 'kettle', 'workdesk', 'breakfast', 'room_service']],
+            ['maharaja-suite', 'Maharaja Suite', 'महाराजा सुइट', 'room-royal-suite', 8500, null, 2, 2, 1, 0, '1 king bed and a sitting room', 520, ['ac', 'wifi', 'tv', 'geyser', 'view', 'minibar', 'bathtub', 'breakfast', 'room_service', 'non_smoking']],
         ];
         $numbers = [['101', '102', '103', '104'], ['201', '202', '203'], ['301']];
         foreach ($types as $i => [$slug, $name, $nameHi, $photo, $price, $weekend, $base, $adults, $children, $extra, $bed, $size, $amenities]) {

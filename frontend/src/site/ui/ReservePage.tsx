@@ -180,7 +180,7 @@ export function ReservePage({ site }: { site: SiteData }) {
 
   return (
     <>
-      <PageHeader site={site} eyebrow={site.name} title={t('site.reserveTitle')} lead={r.auto_confirm ? t('site.res.leadInstant') : t('site.res.leadRequest')} />
+      <PageHeader site={site} banner eyebrow={site.name} title={t('site.reserveTitle')} lead={r.auto_confirm ? t('site.res.leadInstant') : t('site.res.leadRequest')} />
       <form className="s-wrap s-grid gap-y-8 pb-20" onSubmit={submit} noValidate>
         <div className="col-span-4 min-w-0 space-y-8 md:col-span-7">
           <fieldset className="s-card min-w-0 p-5 sm:p-6">

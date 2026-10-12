@@ -150,7 +150,7 @@ export function OffersPage({ site }: { site: SiteData }) {
   const list = coupons.data ?? [];
   return (
     <>
-      <PageHeader site={site} eyebrow={site.name} title={t('site.offers.title')} lead={t('site.offers.lead')} />
+      <PageHeader site={site} banner eyebrow={site.name} title={t('site.offers.title')} lead={t('site.offers.lead')} />
       <div className="s-wrap grid gap-5 pb-20 md:grid-cols-2">
         {cards.map((b, i) => (
           <article key={b.id} className="s-reveal s-card p-6" style={{ ['--i' as string]: i % 3 }}>

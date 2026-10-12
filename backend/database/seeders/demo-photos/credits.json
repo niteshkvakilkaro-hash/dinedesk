@@ -1,10 +1,11 @@
 {
   "paneer-tikka": {
-    "title": "Panir Tikka Indian cheese grilled.jpg",
-    "author": "Sonja Pauen -Stanhopea",
-    "license": "CC BY 2.0 de",
-    "license_url": "https://creativecommons.org/licenses/by/2.0/de/deed.en",
-    "source": "https://commons.wikimedia.org/wiki/File:Panir_Tikka_Indian_cheese_grilled.jpg"
+    "title": "Paneer Tikka Kabab.JPG",
+    "author": "Namitakhaire",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Paneer_Tikka_Kabab.JPG",
+    "alt": "Paneer tikka on skewers"
   },
   "hara-bhara-kabab": {
     "title": "Hara bhara kabab-.JPG",
@@ -519,25 +520,60 @@
     "source": "https://www.flickr.com/photos/111831288@N06/26618754485",
     "alt": "Peanuts roasting on a street cart"
   },
-  "room-twin": {
-    "title": "Double Room Style 2 beds",
-    "author": "toddwight1",
-    "license": "CC BY 2.0",
-    "license_url": "https://creativecommons.org/licenses/by/2.0/",
-    "source": "https://www.flickr.com/photos/35598032@N06/6077270322"
+  "cover-hotel": {
+    "title": "Samode Palace's inner courtyard by night - panoramio.jpg",
+    "author": "Walter Schärer",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Samode_Palace%27s_inner_courtyard_by_night_-_panoramio.jpg",
+    "alt": "A palace courtyard at night with lanterns and arches"
   },
-  "room-view": {
-    "title": "Hotel suite bedroom",
-    "author": "kcxd",
+  "room-haveli": {
+    "title": "Rajasthan (6373261481).jpg",
+    "author": "Christopher Michel",
     "license": "CC BY 2.0",
-    "license_url": "https://creativecommons.org/licenses/by/2.0/",
-    "source": "https://www.flickr.com/photos/26786061@N00/5668772114"
+    "license_url": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Rajasthan_(6373261481).jpg",
+    "alt": "Heritage room with a window seat"
   },
-  "room-suite": {
-    "title": "Hotel Room",
-    "author": "wwarby",
+  "room-deluxe": {
+    "title": "Deluxe Bedroom (15268161256).jpg",
+    "author": "David Brossard",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Deluxe_Bedroom_(15268161256).jpg",
+    "alt": "Bedroom with a carved wooden bed"
+  },
+  "room-royal-suite": {
+    "title": "Samode Lounge.jpg",
+    "author": "Meena Kadri",
     "license": "CC BY 2.0",
-    "license_url": "https://creativecommons.org/licenses/by/2.0/",
-    "source": "https://www.flickr.com/photos/26782864@N00/9638499309"
+    "license_url": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Samode_Lounge.jpg",
+    "alt": "Sitting room with painted walls"
+  },
+  "ambience-hotel-1": {
+    "title": "Courtyard of the Ranthambhore Heritage Haveli Hotel (54364280395).jpg",
+    "author": "Mustang Joe",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Courtyard_of_the_Ranthambhore_Heritage_Haveli_Hotel_(54364280395).jpg",
+    "alt": "Haveli courtyard with a fountain"
+  },
+  "ambience-hotel-2": {
+    "title": "Udaipur City Palace at Night.jpg",
+    "author": "Ashwin Geet Dsa",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Udaipur_City_Palace_at_Night.jpg",
+    "alt": "Udaipur City Palace lit up at night"
+  },
+  "ambience-hotel-3": {
+    "title": "Mandawa-Havelî 307-Private courtyard-20131007.jpg",
+    "author": "Daniel VILLAFRUELA.",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Mandawa-Havel%C3%AE_307-Private_courtyard-20131007.jpg",
+    "alt": "Painted haveli courtyard, Mandawa"
   }
 }

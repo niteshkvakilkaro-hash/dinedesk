@@ -89,7 +89,7 @@ export function TiffinPage({ site }: { site: SiteData }) {
   const list = plans.data ?? [];
   return (
     <>
-      <PageHeader site={site} eyebrow={site.name} title={t('site.tiffin.title')} lead={t('site.tiffin.lead')} />
+      <PageHeader site={site} banner eyebrow={site.name} title={t('site.tiffin.title')} lead={t('site.tiffin.lead')} />
       <div className="s-wrap pb-20">
         {plans.isLoading && <p className="s-muted"><Loader2 className="mr-2 inline h-4 w-4 animate-spin" aria-hidden="true" />{t('common.loading')}</p>}
         {!plans.isLoading && !list.length && <p className="s-muted">{t('site.tiffin.none')}</p>}
