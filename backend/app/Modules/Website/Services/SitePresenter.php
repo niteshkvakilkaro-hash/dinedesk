@@ -12,6 +12,7 @@ use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
+use App\Modules\Tiffin\Models\MealPlan;
 use App\Modules\Website\Models\GalleryImage;
 use App\Modules\Website\Models\ThemeSetting;
 use App\Modules\Website\Support\Themes;
@@ -56,6 +57,8 @@ class SitePresenter
             'open_status' => $hours ? OpeningHours::status($hours, $tenant->timezone, null, $holidays) : null,
             'has_menu' => $hasMenu,
             'has_gallery' => GalleryImage::exists(),
+            // Tiffin / meal plans on offer: the site shows a Tiffin page.
+            'has_tiffin' => MealPlan::where('is_active', true)->exists(),
             'ordering' => $this->ordering($tenant, $hasMenu),
             'features' => [
                 'online_ordering' => $this->features->enabled($tenant, 'online_ordering'),

@@ -34,6 +34,7 @@ const InventoryPage = lazy(() => import('@/features/inventory/InventoryPage'));
 const ReportsPage = lazy(() => import('@/features/reports/ReportsPage'));
 const FinancePage = lazy(() => import('@/features/finance/FinancePage'));
 const RotaPage = lazy(() => import('@/features/staff/RotaPage'));
+const TiffinPage = lazy(() => import('@/features/tiffin/TiffinPage'));
 const HotelPage = lazy(() => import('@/features/hotel/HotelPage'));
 const BillingPage = lazy(() => import('@/features/account/BillingPage'));
 const BranchesPage = lazy(() => import('@/features/account/BranchesPage'));
@@ -125,6 +126,7 @@ export default function PlatformApp() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="finance" element={<FinancePage />} />
         <Route path="rota" element={<RotaPage />} />
+        <Route path="tiffin" element={<TiffinPage />} />
         <Route path="hotel" element={<HotelPage />} />
         <Route path="billing" element={<BillingPage />} />
         <Route path="branches" element={<BranchesPage />} />

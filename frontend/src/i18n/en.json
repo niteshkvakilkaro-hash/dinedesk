@@ -207,7 +207,8 @@
       "domains": "Domain",
       "label": "Dashboard",
       "finance": "Profit & loss",
-      "rota": "Shifts & attendance"
+      "rota": "Shifts & attendance",
+      "tiffin": "Tiffin"
     },
     "welcome": "Namaste, {{name}}",
     "demoBanner": "This is a demo business. Its data is sample content.",
@@ -516,7 +517,8 @@
       "reserve": "Book a table",
       "offers": "Offers",
       "rooms": "Rooms",
-      "events": "Events"
+      "events": "Events",
+      "tiffin": "Tiffin"
     },
     "mainNav": "Main",
     "footerNav": "Footer",
@@ -979,6 +981,35 @@
         "completed": "Completed",
         "rejected": "Declined"
       }
+    },
+    "tiffin": {
+      "title": "Tiffin plans",
+      "lead": "Home-style meals delivered every day. Pick a plan and we'll call you to confirm.",
+      "none": "No tiffin plans right now. Please call us.",
+      "pick": "Choose a plan",
+      "slot": {
+        "lunch": "Lunch",
+        "dinner": "Dinner",
+        "both": "Lunch & dinner"
+      },
+      "veg": "Veg",
+      "nonVeg": "Non-veg",
+      "summary": "{{meals}} meals · valid {{days}} days · about {{per}} a meal",
+      "formTitle": "Join {{plan}}",
+      "name": "Your name",
+      "phone": "Mobile number",
+      "address": "Delivery address",
+      "startsOn": "Start from",
+      "meal": "Meals",
+      "notes": "Anything we should know",
+      "notesPlaceholder": "e.g. less spicy, no onion",
+      "payNote": "Nothing to pay now. We'll call to confirm, and you can pay by UPI or cash before the first meal.",
+      "send": "Send request",
+      "doneTitle": "Request received",
+      "requestId": "Request ID",
+      "doneText": "Thank you! {{name}} will call you shortly to confirm your {{plan}} plan and the start date.",
+      "whatsapp": "Message us on WhatsApp",
+      "waText": "Hi, I requested the {{plan}} tiffin plan ({{code}})."
     }
   },
   "website": {
@@ -3476,7 +3507,8 @@
     "marginCol": "Margin",
     "noRecipe": "No recipe",
     "missingCosts_one": "{{count}} ingredient has no cost price",
-    "missingCosts_other": "{{count}} ingredients have no cost price"
+    "missingCosts_other": "{{count}} ingredients have no cost price",
+    "tiffinSales": "Tiffin subscriptions (payments taken)"
   },
   "purchasing": {
     "addSupplier": "Add supplier",
@@ -3584,5 +3616,112 @@
     "in": "In",
     "out": "Out",
     "removeEntryConfirm": "Remove this entry?"
+  },
+  "tiffin": {
+    "title": "Tiffin",
+    "subtitle": "Meal plans, subscribers and each day's deliveries.",
+    "tab": {
+      "today": "Today",
+      "subscribers": "Subscribers",
+      "plans": "Plans"
+    },
+    "slot": {
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "both": "Lunch & dinner"
+    },
+    "status": {
+      "requested": "Requested",
+      "active": "Active",
+      "paused": "Paused",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "filter": {
+      "open": "Current",
+      "requested": "Requests",
+      "active": "Active",
+      "paused": "Paused",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "mark": {
+      "delivered": "Delivered",
+      "skipped": "Skipped"
+    },
+    "modes": {
+      "cash": "Cash",
+      "upi": "UPI",
+      "card": "Card",
+      "bank": "Bank transfer"
+    },
+    "date": "Date",
+    "meal": "Meal",
+    "counts": "{{delivered}} of {{total}} delivered · {{skipped}} skipped",
+    "shareList": "Send list on WhatsApp",
+    "noneToday": "No tiffins for this meal",
+    "noneTodayText": "Active subscribers for this meal show up here, with their address.",
+    "left_one": "{{count}} meal left",
+    "left_other": "{{count}} meals left",
+    "call": "Call {{name}}",
+    "delivered": "Delivered",
+    "skip": "Skip",
+    "undo": "Undo",
+    "todayHint": "Delivered uses one meal. Skip when the customer is on leave: no meal is used and the plan gets one more day.",
+    "newSub": "New subscriber",
+    "editSub": "Edit {{code}}",
+    "plan": "Plan",
+    "pickPlan": "Choose a plan",
+    "name": "Name",
+    "phone": "Phone",
+    "address": "Delivery address",
+    "notes": "Notes",
+    "notesHint": "e.g. less spicy, no onion, gate code",
+    "startsOn": "Starts on",
+    "amount": "Amount received ₹",
+    "mode": "Paid by",
+    "startSub": "Start subscription",
+    "started": "Subscription started.",
+    "renewed": "Renewed.",
+    "confirmTitle": "Confirm {{name}}",
+    "confirmHint": "Confirm once paid. The plan's meals and validity start from the date you pick.",
+    "renewTitle": "Renew for {{name}}",
+    "renewHint": "Adds the plan's meals again; validity runs on from today or the current end date.",
+    "confirm": "Confirm & start",
+    "renew": "Renew",
+    "pause": "Pause",
+    "resume": "Resume",
+    "cancel": "Cancel",
+    "cancelConfirm": "Cancel {{name}}'s subscription?",
+    "chat": "WhatsApp {{name}}",
+    "fromWebsite": "from website",
+    "wantsFrom": "Wants to start {{date}} · call {{phone}} to confirm and take payment.",
+    "used": "{{used}} of {{total}} meals used",
+    "validTill": "valid till {{date}}",
+    "paid": "Paid {{amount}}",
+    "pausedSince": "paused since {{date}}",
+    "endingSoon_one": "{{count}} subscription ends within 3 days or 3 meals — a good time to remind them to renew.",
+    "endingSoon_other": "{{count}} subscriptions end within 3 days or 3 meals — a good time to remind them to renew.",
+    "noSubs": "No subscribers here",
+    "noSubsText": "Add a subscriber at the counter, or share your website's Tiffin page so customers can ask to join.",
+    "addPlan": "Add plan",
+    "editPlan": "Edit {{name}}",
+    "planName": "Plan name",
+    "planNamePlaceholder": "e.g. Monthly veg lunch",
+    "planDescription": "What's in it",
+    "planDescriptionHint": "e.g. 4 roti, dal, sabzi, rice, salad. Shown on your website.",
+    "diet": "Food type",
+    "veg": "Veg",
+    "nonVeg": "Non-veg",
+    "meals": "Meals",
+    "mealsHint": "Each lunch or dinner delivered is one meal.",
+    "daysValid": "Valid for (days)",
+    "price": "Price ₹",
+    "perMeal": "{{price}} per meal",
+    "planActive": "Show on website and for new subscribers",
+    "planSummary": "{{meals}} meals · valid {{days}} days · {{per}}/meal",
+    "hidden": "Hidden",
+    "noPlans": "No tiffin plans yet",
+    "noPlansText": "Add a plan — say 26 lunches in 30 days — and it appears on your website's Tiffin page."
   }
 }

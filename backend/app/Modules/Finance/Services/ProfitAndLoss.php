@@ -13,12 +13,14 @@ use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Ordering\Support\Money;
 use App\Modules\Reports\Services\Analytics;
 use App\Modules\Tenancy\Models\Tenant;
+use App\Modules\Tiffin\Models\MealPayment;
 use Carbon\CarbonImmutable;
 
 /**
  * Profit and loss from the business's own records, all before GST (GST is collected for the
  * government, not earned):
  *   revenue  = orders that count as sales (after discounts, without GST) + room nights sold
+ *              + tiffin subscription payments taken
  *   food cost = ingredients used by recipes when orders were cooked (minus returns), at cost price
  *   expenses = what the owner recorded (rent, salaries, gas ...)
  * Food cost is only as complete as the recipes and ingredient costs entered: the result says so.
@@ -53,6 +55,12 @@ class ProfitAndLoss
                 }
             }
         }
+        // Tiffin: subscription payments taken in the period.
+        $tiffin = 0;
+        foreach (MealPayment::where('paid_at', '>=', $a)->where('paid_at', '<', $b)->get() as $pay) {
+            $tiffin += Money::toPaise($pay->amount);
+            $days[CarbonImmutable::parse($pay->paid_at)->setTimezone($tz)->format('Y-m-d')]['revenue'] += Money::toPaise($pay->amount);
+        }
 
         // Food cost: stock taken by recipes (sale) less what came back (return), at cost price.
         $costs = InventoryItem::pluck('cost_per_unit', 'id');
@@ -72,13 +80,13 @@ class ProfitAndLoss
             $days[$e->date->format('Y-m-d')]['expenses'] += Money::toPaise($e->amount);
         }
         $exp = (int) $expenses->sum(fn ($e) => Money::toPaise($e->amount));
-        $revenue = $food + $rooms;
+        $revenue = $food + $rooms + $tiffin;
         $gross = $revenue - $cogs;
 
         return [
             'from' => $from,
             'to' => $to,
-            'revenue' => ['total' => Money::toRupees($revenue), 'restaurant' => Money::toRupees($food), 'rooms' => Money::toRupees($rooms)],
+            'revenue' => ['total' => Money::toRupees($revenue), 'restaurant' => Money::toRupees($food), 'rooms' => Money::toRupees($rooms), 'tiffin' => Money::toRupees($tiffin)],
             'food_cost' => Money::toRupees($cogs),
             'food_cost_percent' => $food > 0 ? round($cogs / $food * 100, 1) : null,
             'gross_profit' => Money::toRupees($gross),

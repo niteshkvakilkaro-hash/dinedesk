@@ -14,7 +14,7 @@ const MODES = ['cash', 'upi', 'card', 'bank'] as const;
 interface Pnl {
   from: string;
   to: string;
-  revenue: { total: string; restaurant: string; rooms: string };
+  revenue: { total: string; restaurant: string; rooms: string; tiffin?: string };
   food_cost: string;
   food_cost_percent: number | null;
   gross_profit: string;
@@ -128,6 +128,7 @@ function PnlTab() {
               {[
                 [t('finance.restaurantSales'), r.revenue.restaurant],
                 ...(Number(r.revenue.rooms) > 0 ? [[t('finance.roomSales'), r.revenue.rooms]] : []),
+                ...(Number(r.revenue.tiffin ?? 0) > 0 ? [[t('finance.tiffinSales'), r.revenue.tiffin!]] : []),
                 [t('finance.foodCost'), `−${r.food_cost}`],
                 [t('finance.grossProfit'), r.gross_profit, true],
                 ...r.expenses.by_category.map((e) => [t(`finance.cat.${e.category}`), `−${e.amount}`]),

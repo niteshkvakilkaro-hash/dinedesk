@@ -17,6 +17,7 @@ import { PhotoCredits, WhatsAppButton } from './order/extras';
 import CheckoutPage from './order/CheckoutPage';
 import { ReservationLookupPage, ReservePage } from './ui/ReservePage';
 import { OffersPage, UnsubscribePage } from './ui/Growth';
+import { TiffinPage } from './ui/TiffinPage';
 import { TableLanding, TablePage } from './ui/TablePages';
 import TrackPage from './order/TrackPage';
 import { setUpSiteApp } from './app';
@@ -298,6 +299,7 @@ export default function SiteApp() {
             <Route path="/t/:token" element={<TableLanding site={site} />} />
             <Route path="/table" element={<TablePage site={site} />} />
             <Route path="/offers" element={<OffersPage site={site} />} />
+            <Route path="/tiffin" element={<TiffinPage site={site} />} />
             <Route path="/unsubscribe" element={<UnsubscribePage site={site} />} />
             <Route
               path="/style-guide"

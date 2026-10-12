@@ -59,6 +59,8 @@ export interface SiteData {
   open_status: (OpenStatus & { timezone: string }) | null;
   has_menu: boolean;
   has_gallery: boolean;
+  /** Tiffin / meal plans on offer. */
+  has_tiffin?: boolean;
   features: { online_ordering: boolean; reservations: boolean; qr_ordering: boolean; hotel?: boolean };
   /** Hotel pages (rooms, room-service QR, event enquiries); null when the plan has no hotel module. */
   hotel?: HotelInfo | null;

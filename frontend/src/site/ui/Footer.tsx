@@ -1,6 +1,6 @@
 import { Link, NavLink, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { BedDouble, CalendarCheck, House, Images, Info, MapPin, PartyPopper, ShoppingBag, Tag, UserRound, UtensilsCrossed } from 'lucide-react';
+import { BedDouble, CalendarCheck, CookingPot, House, Images, Info, MapPin, PartyPopper, ShoppingBag, Tag, UserRound, UtensilsCrossed } from 'lucide-react';
 import { formatPhone } from '@/lib/format';
 import { cartCount, useCart } from '../cart';
 import { mapHref, telHref, useLocalized } from '../data';
@@ -128,6 +128,7 @@ const TAB_ICONS: Record<NavKey, typeof House> = {
   rooms: BedDouble,
   reserve: CalendarCheck,
   offers: Tag,
+  tiffin: CookingPot,
   about: Info,
   gallery: Images,
   events: PartyPopper,

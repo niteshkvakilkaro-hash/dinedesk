@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { BedDouble, CalendarCheck, ChevronRight, Download, Images, Info, LogOut, MapPin, MessageCircle, Navigation, PartyPopper, Phone, ReceiptText, Share, Tag, type LucideIcon } from 'lucide-react';
+import { BedDouble, CalendarCheck, ChevronRight, CookingPot, Download, Images, Info, LogOut, MapPin, MessageCircle, Navigation, PartyPopper, Phone, ReceiptText, Share, Tag, type LucideIcon } from 'lucide-react';
 import { formatPhone } from '@/lib/format';
 import { mapHref, telHref, whatsappHref } from '../data';
 import { ReduceMotionToggle, SiteLanguageToggle } from '../components/bits';
@@ -26,6 +26,7 @@ export default function ProfilePage({ site }: { site: SiteData }) {
     { to: '/bookings', icon: CalendarCheck, label: t('site.profile.bookings'), show: hasBookings },
     { to: '/rooms', icon: BedDouble, label: t('site.nav.rooms'), show: !!site.hotel?.has_rooms },
     { to: '/offers', icon: Tag, label: t('site.nav.offers'), show: !!site.growth?.has_offers },
+    { to: '/tiffin', icon: CookingPot, label: t('site.nav.tiffin'), show: !!site.has_tiffin },
     { to: '/events', icon: PartyPopper, label: t('site.nav.events'), show: !!site.hotel?.banquets },
     { to: '/gallery', icon: Images, label: t('site.nav.gallery'), show: site.has_gallery },
     { to: '/about', icon: Info, label: t('site.nav.about'), show: true },

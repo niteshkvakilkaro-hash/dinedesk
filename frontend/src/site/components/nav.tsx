@@ -7,7 +7,7 @@ import type { SiteData } from '../types';
 export const NAV_PATHS: Record<PageKey, string> = { home: '/', menu: '/menu', about: '/about', gallery: '/gallery', contact: '/contact' };
 
 /** Pages to show in navigation (gallery only once there are photos, menu only with dishes, booking when it's on). */
-export type NavKey = PageKey | 'reserve' | 'offers' | 'rooms' | 'events';
+export type NavKey = PageKey | 'reserve' | 'offers' | 'rooms' | 'events' | 'tiffin';
 
 export function useNavItems(site: SiteData): { key: NavKey; to: string; label: string }[] {
   const { t } = useTranslation();
@@ -19,6 +19,7 @@ export function useNavItems(site: SiteData): { key: NavKey; to: string; label: s
   if (site.reservations?.enabled) items.splice(items.length - 1, 0, { key: 'reserve', to: '/reserve', label: t('site.nav.reserve') });
   if (site.hotel?.banquets) items.splice(items.length - 1, 0, { key: 'events', to: '/events', label: t('site.nav.events') });
   if (site.growth?.has_offers) items.splice(items.length - 1, 0, { key: 'offers', to: '/offers', label: t('site.nav.offers') });
+  if (site.has_tiffin) items.splice(items.length - 1, 0, { key: 'tiffin', to: '/tiffin', label: t('site.nav.tiffin') });
   return items;
 }
 
