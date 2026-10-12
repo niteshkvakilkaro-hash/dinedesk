@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Bell, BellOff, Check, Maximize, RotateCcw, Wifi, WifiOff } from 'lucide-react';
+import { ArrowLeft, Bell, BellOff, Check, Maximize, Printer, RotateCcw, Wifi, WifiOff } from 'lucide-react';
+import { kotSlip, printerPrefs, printSlip, slipDocument } from '@/lib/print';
+import { PrinterButton } from '@/components/PrinterSettings';
 import { api, ApiError } from '@/lib/api';
 import { useLive, useLiveStatus, usePollInterval } from '@/lib/realtime';
 import { useCan, useFeature, useSession } from '@/hooks/useSession';
@@ -37,8 +39,16 @@ function useNow(ms = 15_000) {
   return now;
 }
 
-function TicketCard({ ticket, now }: { ticket: Ticket; now: number }) {
-  const { t } = useTranslation();
+function TicketCard({ ticket, now, business }: { ticket: Ticket; now: number; business: string }) {
+  const { t, i18n } = useTranslation();
+  const print = () =>
+    printSlip(
+      slipDocument(
+        kotSlip({ business, kot: ticket.number, order: ticket.order_number, type: ticket.order_type, table: ticket.table_label, at: new Date(ticket.created_at), notes: ticket.notes, items: ticket.items.map((i) => ({ quantity: i.quantity, name: i.name, detail: [i.variant_name, i.addons].filter(Boolean).join(' · '), notes: i.notes })) }, t, i18n.language ?? 'en'),
+        printerPrefs().width,
+        `K-${ticket.number}`,
+      ),
+    );
   const qc = useQueryClient();
   // Never negative if the server clock is a little ahead of this screen.
   const mins = Math.max(0, Math.floor((now - new Date(ticket.created_at).getTime()) / 60000));
@@ -65,9 +75,14 @@ function TicketCard({ ticket, now }: { ticket: Ticket; now: number }) {
             {ticket.table_label && ` · ${t(`order.type.${ticket.order_type}`)}`}
           </p>
         </div>
-        <p className="text-2xl font-extrabold tabular-nums" aria-label={t('kds.minutes', { count: mins })}>
-          {mins}′
-        </p>
+        <span className="flex items-center gap-1">
+          <button type="button" onClick={print} className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-white/10" aria-label={t('print.printKot', { number: ticket.number })}>
+            <Printer className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <span className="text-2xl font-extrabold tabular-nums" aria-label={t('kds.minutes', { count: mins })}>
+            {mins}′
+          </span>
+        </span>
       </div>
       <ul className="flex-1 divide-y divide-[#3a342e] px-2 py-1">
         {ticket.items.map((i) => (
@@ -162,6 +177,7 @@ export default function KitchenDisplay() {
         </span>
         <div className="ml-auto flex items-center gap-2">
           <span className="text-lg font-bold tabular-nums">{new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit' }).format(now)}</span>
+          <PrinterButton business={session?.tenant?.name ?? ''} showKot={false} showBill={false} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-white/10" />
           <button type="button" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-white/10" onClick={() => setRecall(!recall)} aria-expanded={recall}>
             <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('kds.recall')}
           </button>
@@ -202,7 +218,7 @@ export default function KitchenDisplay() {
                   {list.length === 0 && <p className="rounded-2xl border border-dashed border-[#3a342e] p-6 text-center text-sm text-[#8c8377]">{t('kds.empty')}</p>}
                   <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                     {list.map((k) => (
-                      <TicketCard key={k.id} ticket={k} now={now} />
+                      <TicketCard key={k.id} ticket={k} now={now} business={session?.tenant?.name ?? ''} />
                     ))}
                   </ul>
                 </section>

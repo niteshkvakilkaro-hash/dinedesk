@@ -3111,5 +3111,39 @@
         ]
       }
     }
+  },
+  "print": {
+    "printer": "Printer",
+    "settings": "Receipt printer (this device)",
+    "paper": "Paper width",
+    "autoKot": "Print a kitchen ticket (KOT) when sending",
+    "autoKotHint": "Each time this device sends an order to the kitchen.",
+    "autoBill": "Print the receipt when a bill is paid",
+    "autoBillHint": "As soon as the full amount is taken on this device.",
+    "howTo": "Works with any 58 mm or 80 mm thermal printer that is installed on this computer. Choose it in the print window once. To print with one click, open Chrome with --kiosk-printing and make the thermal printer the default.",
+    "test": "Print a test slip",
+    "testLine": "Test print",
+    "print": "Print",
+    "printKot": "Print kitchen ticket K-{{number}}",
+    "kot": "KITCHEN ORDER TICKET",
+    "table": "Table {{table}}",
+    "note": "Note",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} items",
+    "phone": "Ph",
+    "billNo": "Bill no.",
+    "date": "Date",
+    "tableLabel": "Table",
+    "orders": "Orders",
+    "buyer": "Billed to",
+    "itemsTotal": "Items total",
+    "discount": "Discount",
+    "taxable": "Taxable value",
+    "charges": "Charges",
+    "roundOff": "Round off",
+    "total": "TOTAL",
+    "due": "Due",
+    "void": "VOID",
+    "thanks": "Thank you! Visit again."
   }
 }

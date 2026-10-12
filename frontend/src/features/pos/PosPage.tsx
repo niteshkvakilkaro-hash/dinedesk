@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { BarChart3, Minus, Plus, ReceiptText, Send, ShoppingBag, Trash2, UtensilsCrossed } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatMoney as formatINR } from '@/lib/format';
-import { useCan, useFeature } from '@/hooks/useSession';
+import { useCan, useFeature, useSession } from '@/hooks/useSession';
+import { kotSlip, printerPrefs, printSlip, slipDocument } from '@/lib/print';
+import { PrinterButton } from '@/components/PrinterSettings';
 import { Alert, Badge, EmptyState, ErrorState, SkeletonRows, Spinner, toast } from '@/components/ui';
 import { FoodTypeMark } from '@/site/components/bits';
 import { useLiveTables } from '@/features/tables/api';
@@ -20,8 +22,9 @@ function useAgo() {
 
 /** The order being built: lines, table / takeaway, then send to the kitchen or charge now. */
 function Ticket({ lines, setLines, onBill }: { lines: TicketLine[]; setLines: (l: TicketLine[]) => void; onBill: (t: BillTarget) => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
+  const business = useSession().data?.tenant?.name ?? '';
   const hasTables = useFeature('qr_ordering');
   const tables = useLiveTables(hasTables);
   const [type, setType] = useState<'takeaway' | 'dine_in'>('takeaway');
@@ -44,6 +47,13 @@ function Ticket({ lines, setLines, onBill }: { lines: TicketLine[]; setLines: (l
       }),
     onSuccess: (res, mode) => {
       toast.success(t('pos.sent', { number: res.data.number }));
+      // This counter's printer: a kitchen ticket for what was just sent.
+      const prefs = printerPrefs();
+      if (prefs.autoKot) {
+        const table = type === 'dine_in' ? (tables.data ?? []).find((x) => x.id === tableId)?.label ?? null : null;
+        const slip = kotSlip({ business, order: res.data.number, type, table, at: new Date(), notes, items: lines.map((l) => ({ quantity: l.quantity, name: l.name, detail: l.detail, notes: l.notes })) }, t, i18n.language ?? 'en');
+        printSlip(slipDocument(slip, prefs.width, `KOT #${res.data.number}`));
+      }
       setLines([]);
       setNotes('');
       setCustomer({ name: '', phone: '' });
@@ -200,6 +210,7 @@ function OpenBillsList({ onBill }: { onBill: (t: BillTarget) => void }) {
 }
 
 export default function PosPage() {
+  const session = useSession();
   const { t } = useTranslation();
   const menu = usePosMenu();
   const canPos = useCan('pos.use');
@@ -232,6 +243,7 @@ export default function PosPage() {
               {t('pos.openBills')} {openCount > 0 && <span className="ml-1 rounded-full bg-brand px-1.5 text-xs text-white">{openCount}</span>}
             </button>
           </div>
+          <PrinterButton business={session.data?.tenant?.name ?? ''} />
           <Link to="/dashboard/day-end" className="btn-ghost !min-h-10 text-sm">
             <BarChart3 className="h-4 w-4" aria-hidden="true" /> {t('pos.dayEnd')}
           </Link>

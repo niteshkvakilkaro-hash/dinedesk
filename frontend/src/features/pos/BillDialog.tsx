@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, Download, Plus, Trash2 } from 'lucide-react';
+import { CheckCircle2, Download, Plus, Printer, Trash2 } from 'lucide-react';
+import { printerPrefs, printSlip, receiptSlip, slipDocument } from '@/lib/print';
 import { api, ApiError, downloadFile } from '@/lib/api';
 import { formatMoney as formatINR } from '@/lib/format';
 import { Alert, Badge, Dialog, Field, Spinner, toast } from '@/components/ui';
@@ -46,7 +47,7 @@ function Totals({ bill }: { bill: Bill }) {
 
 /** Make the bill (discount, buyer GSTIN), take payment (split / mixed, cash change), print the invoice. */
 export function BillDialog({ target, onClose, onDone }: { target: BillTarget | null; onClose: () => void; onDone?: (bill: Bill) => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [billId, setBillId] = useState<number | null>(null);
   const [disc, setDisc] = useState<{ type: 'none' | 'percent' | 'amount'; value: string; reason: string }>({ type: 'none', value: '', reason: '' });
@@ -107,6 +108,7 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
     onSuccess: (res) => {
       qc.setQueryData(['bill', billId], res.data);
       toast.success(t('pos.paid', { number: res.data.number }));
+      if (printerPrefs().autoBill) printReceipt(res.data);
       setError('');
       refresh();
       onDone?.(res.data);
@@ -135,6 +137,7 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
     const share = Math.floor((due / n) * 100) / 100;
     setRows(Array.from({ length: n }, (_, i) => ({ mode: rows[i]?.mode ?? 'cash', amount: (i === n - 1 ? r2(due - share * (n - 1)) : share).toFixed(2), reference: '' })));
   };
+  const printReceipt = (bill: Bill) => printSlip(slipDocument(receiptSlip(bill, t, i18n.language ?? 'en'), printerPrefs().width, bill.number));
   const download = () => b && void downloadFile(`/tenant/bills/${b.id}/pdf`, `${b.number.replace(/\//g, '-')}.pdf`).catch((e: Error) => toast.error(e.message));
 
   return (
@@ -264,6 +267,9 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
                 <button type="button" className="btn-primary flex-1" disabled={pay.isPending || short > 0} onClick={() => pay.mutate()}>
                   {pay.isPending ? <Spinner /> : t('pos.confirmPayment')}
                 </button>
+                <button type="button" className="btn-outline" onClick={() => printReceipt(b)}>
+                  <Printer className="h-4 w-4" aria-hidden="true" /> {t('print.print')}
+                </button>
                 <button type="button" className="btn-outline" onClick={download}>
                   <Download className="h-4 w-4" aria-hidden="true" /> PDF
                 </button>
@@ -286,6 +292,9 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
             <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-success-soft p-4 text-success">
               <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
               <p className="flex-1 font-bold">{t('pos.paidFull')}</p>
+              <button type="button" className="btn-outline !min-h-10 bg-surface text-sm text-ink" onClick={() => printReceipt(b)}>
+                <Printer className="h-4 w-4" aria-hidden="true" /> {t('print.print')}
+              </button>
               <button type="button" className="btn-outline !min-h-10 bg-surface text-sm text-ink" onClick={download}>
                 <Download className="h-4 w-4" aria-hidden="true" /> {t('pos.downloadInvoice')}
               </button>
