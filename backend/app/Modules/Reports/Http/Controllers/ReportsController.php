@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Hotel\Models\RoomBooking;
 use App\Modules\Ordering\Models\Customer;
 use App\Modules\Reports\Services\Analytics;
+use App\Modules\Reports\Services\Dashboard;
 use App\Modules\Reservations\Models\Reservation;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Support\ApiException;
@@ -21,6 +22,11 @@ class ReportsController extends Controller
     public const EXPORTS = ['orders', 'sales', 'dishes', 'categories', 'customers', 'reservations', 'stays'];
 
     public function __construct(private readonly TenantContext $context, private readonly Analytics $analytics) {}
+
+    public function dashboard(Request $request, Dashboard $dashboard): JsonResponse
+    {
+        return $this->ok($dashboard->build($this->context->require(), $request->user()));
+    }
 
     public function overview(Request $request): JsonResponse
     {

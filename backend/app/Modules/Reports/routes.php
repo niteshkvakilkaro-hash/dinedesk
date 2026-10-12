@@ -7,3 +7,6 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api', 'tenant.can:re
     Route::get('overview', [ReportsController::class, 'overview']);
     Route::get('export/{type}', [ReportsController::class, 'export']);
 });
+
+// Dashboard home: every signed-in staff member; each block is filtered by their role.
+Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api'])->get('tenant/dashboard', [ReportsController::class, 'dashboard']);

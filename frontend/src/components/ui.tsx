@@ -133,6 +133,12 @@ const BADGE: Record<string, string> = {
   failed: 'bg-danger-soft text-danger',
   refund_due: 'bg-danger-soft text-danger',
   refunded: 'bg-ink/5 text-ink',
+  // Bookings and stays
+  seated: 'bg-success-soft text-success',
+  checked_in: 'bg-success-soft text-success',
+  checked_out: 'bg-ink/5 text-ink',
+  no_show: 'bg-danger-soft text-danger',
+  rejected: 'bg-danger-soft text-danger',
 };
 
 export function Badge({ tone, children }: { tone: string; children: ReactNode }) {

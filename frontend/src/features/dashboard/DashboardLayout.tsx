@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, CalendarDays, ChefHat, Contact, CreditCard, Globe, Globe2, Hotel, Images, Network, LayoutDashboard, LineChart, LogOut, Megaphone, Moon, MoreHorizontal, Package, PanelLeftClose, PanelLeftOpen, QrCode, ReceiptText, Settings2, Smartphone, Store, Sun, UtensilsCrossed, Users, Wifi } from 'lucide-react';
+import { Building2, CalendarDays, ChefHat, Contact, CreditCard, Globe, Globe2, Hotel, Images, Network, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, PanelLeftClose, PanelLeftOpen, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wifi } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { disconnectLive, useLive, useLiveStatus } from '@/lib/realtime';
 import { useCan, useFeature, useSession, useSignOut } from '@/hooks/useSession';
 import { Alert, Dialog, DemoBadge, toast } from '@/components/ui';
 import { LanguageToggle, Logo } from '@/components/Brand';
 import { useAdminTheme } from '@/lib/adminTheme';
+import { Appearance } from './Appearance';
 import { useOrderAlerts } from '@/features/orders/alerts';
 import { useReservationAlerts } from '@/features/reservations/api';
 import { useTableAlerts } from '@/features/tables/api';
@@ -62,7 +63,7 @@ export default function DashboardLayout() {
   useLive(tenantKey, 'reservations', canReservations, () => refresh('reservations', 'reservations-feed'));
   useLive(tenantKey, 'tables', canRunTables && hasQr, () => refresh('tables-live', 'tables-feed', 'pos-open'));
   const [more, setMore] = useState(false);
-  const [theme, setTheme] = useAdminTheme();
+  const [theme] = useAdminTheme();
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem('dd_sidebar') === 'collapsed';
@@ -189,9 +190,7 @@ export default function DashboardLayout() {
                 <Wifi className="h-3.5 w-3.5" aria-hidden="true" /> {t('kds.live')}
               </span>
             )}
-            <button type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="btn-ghost !min-h-10 !px-2.5" aria-pressed={theme === 'dark'} aria-label={t('dashboard.darkMode')} title={theme === 'dark' ? t('dashboard.lightMode') : t('dashboard.darkMode')}>
-              {theme === 'dark' ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
-            </button>
+            <Appearance theme={theme} />
             <LanguageToggle />
             <button type="button" onClick={() => { disconnectLive(); void signOut(); }} className="btn-ghost !min-h-10 !px-3" aria-label={t('common.signOut')}>
               <LogOut className="h-5 w-5" aria-hidden="true" />
@@ -203,12 +202,12 @@ export default function DashboardLayout() {
 
       <div className="lg:flex">
         {/* Desktop: grouped sidebar; it can shrink to icons to give big screens (POS, previews) more room. */}
-        <aside className={`sticky top-16 hidden h-[calc(100vh-4rem)] shrink-0 flex-col border-r border-line bg-surface/60 transition-[width] duration-200 lg:flex ${collapsed ? 'w-[4.5rem]' : 'w-60'}`}>
+        <aside className={`sticky top-16 hidden h-[calc(100vh-4rem)] shrink-0 flex-col border-r border-side-line bg-side text-side-ink transition-[width] duration-200 lg:flex ${collapsed ? 'w-[4.5rem]' : 'w-60'}`}>
           <nav ref={sideNav} aria-label={t('dashboard.nav.label')} className="flex-1 overflow-y-auto px-3 py-4">
             {groups.map((g) => (
               <div key={g.key} className="mb-3 last:mb-0">
-                {showHeadings && !collapsed && <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">{t(`dashboard.groups.${g.key}`)}</p>}
-                {showHeadings && collapsed && <div className="mx-3 mb-2 border-t border-line" aria-hidden="true" />}
+                {showHeadings && !collapsed && <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-side-heading">{t(`dashboard.groups.${g.key}`)}</p>}
+                {showHeadings && collapsed && <div className="mx-3 mb-2 border-t border-side-line" aria-hidden="true" />}
                 <ul className="space-y-0.5">
                   {g.items.map(({ to, label, icon: Icon, end, badge: n }) => (
                     <li key={to}>
@@ -217,7 +216,7 @@ export default function DashboardLayout() {
                         end={end}
                         title={collapsed ? label : undefined}
                         aria-label={collapsed ? label : undefined}
-                        className={({ isActive }) => `relative flex min-h-9 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition-colors ${isActive ? 'bg-ink text-paper' : 'text-muted hover:bg-ink/5 hover:text-ink'} ${collapsed ? 'justify-center' : ''}`}
+                        className={({ isActive }) => `relative flex min-h-9 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition-colors ${isActive ? 'bg-side-active text-side-active-ink' : 'text-side-muted hover:bg-side-hover hover:text-side-ink'} ${collapsed ? 'justify-center' : ''}`}
                       >
                         <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
                         {!collapsed && <span className="truncate">{label}</span>}
@@ -229,13 +228,13 @@ export default function DashboardLayout() {
               </div>
             ))}
           </nav>
-          <button type="button" onClick={toggleCollapsed} className="flex min-h-11 items-center gap-2 border-t border-line px-6 text-sm font-semibold text-muted hover:text-ink" aria-label={collapsed ? t('dashboard.expandMenu') : t('dashboard.collapseMenu')} aria-expanded={!collapsed}>
+          <button type="button" onClick={toggleCollapsed} className="flex min-h-11 items-center gap-2 border-t border-side-line px-6 text-sm font-semibold text-side-muted hover:text-side-ink" aria-label={collapsed ? t('dashboard.expandMenu') : t('dashboard.collapseMenu')} aria-expanded={!collapsed}>
             {collapsed ? <PanelLeftOpen className="h-[18px] w-[18px]" aria-hidden="true" /> : <><PanelLeftClose className="h-[18px] w-[18px]" aria-hidden="true" /> {t('dashboard.collapseMenu')}</>}
           </button>
         </aside>
 
         <main className="min-w-0 flex-1">
-          <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
             {session && <BillingBanner session={session} />}
             {tenant?.is_demo && (
               <div className="mb-5">

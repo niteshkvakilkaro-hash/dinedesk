@@ -30,7 +30,84 @@
   --dd-danger-soft: #fee2e2;
   --dd-radius: 14px;
   --dd-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Accent hues for stat cards (blue, purple) next to success / brand. */
+  --dd-sky: #0369a1;
+  --dd-violet: #6d28d9;
+  /* Sidebar: follows the page in the classic palette, its own colour in the others. */
+  --dd-side: color-mix(in srgb, var(--dd-surface) 60%, transparent);
+  --dd-side-ink: var(--dd-ink);
+  --dd-side-muted: var(--dd-muted);
+  --dd-side-heading: var(--dd-muted);
+  --dd-side-active: var(--dd-ink);
+  --dd-side-active-ink: var(--dd-paper);
+  --dd-side-line: var(--dd-line);
+  --dd-side-hover: color-mix(in srgb, var(--dd-ink) 6%, transparent);
   color-scheme: light;
+}
+
+/*
+ * Dashboard palettes (useAdminPalette, saved per browser). Each sets the page tint, the
+ * accent and the sidebar; dark mode below keeps its own neutrals and takes the palette's
+ * accent and sidebar. Contrast is checked in adminTheme.test.ts.
+ */
+/* Haveli: forest green and antique gold on cream. */
+:root[data-dd-palette='haveli'] {
+  --dd-paper: #f6efe3;
+  --dd-surface: #fffcf6;
+  --dd-line: #e5d8c0;
+  --dd-ink: #1c2a21;
+  --dd-muted: #5a6252;
+  --dd-brand: #7c5a1c;
+  --dd-brand-strong: #634614;
+  --dd-brand-soft: #f3e6c8;
+  --dd-gold: #e3bf73;
+  --dd-side: #1f3328;
+  --dd-side-ink: #f4ecdc;
+  --dd-side-muted: #b9c3b2;
+  --dd-side-heading: #d4b26a;
+  --dd-side-active: #e3bf73;
+  --dd-side-active-ink: #1f3328;
+  --dd-side-line: rgb(244 236 220 / 0.12);
+  --dd-side-hover: rgb(244 236 220 / 0.08);
+}
+/* Royal: deep maroon and gold. */
+:root[data-dd-palette='royal'] {
+  --dd-paper: #fbf5f0;
+  --dd-surface: #ffffff;
+  --dd-line: #eadbd3;
+  --dd-ink: #1f1214;
+  --dd-muted: #6a5550;
+  --dd-brand: #8c1d2e;
+  --dd-brand-strong: #6e1522;
+  --dd-brand-soft: #f8e3e5;
+  --dd-gold: #e2b357;
+  --dd-side: #3e0f18;
+  --dd-side-ink: #fbefe8;
+  --dd-side-muted: #d9b8b5;
+  --dd-side-heading: #e2b357;
+  --dd-side-active: #e2b357;
+  --dd-side-active-ink: #3e0f18;
+  --dd-side-line: rgb(251 239 232 / 0.12);
+  --dd-side-hover: rgb(251 239 232 / 0.08);
+}
+/* Ocean: navy and teal. */
+:root[data-dd-palette='ocean'] {
+  --dd-paper: #f3f7fa;
+  --dd-surface: #ffffff;
+  --dd-line: #dce5ec;
+  --dd-ink: #0f1e2c;
+  --dd-muted: #4a5b6a;
+  --dd-brand: #0e7490;
+  --dd-brand-strong: #155e75;
+  --dd-brand-soft: #ddf3f8;
+  --dd-side: #10263b;
+  --dd-side-ink: #eaf2f8;
+  --dd-side-muted: #a9bccb;
+  --dd-side-heading: #7dd3fc;
+  --dd-side-active: #5eead4;
+  --dd-side-active-ink: #10263b;
+  --dd-side-line: rgb(234 242 248 / 0.12);
+  --dd-side-hover: rgb(234 242 248 / 0.08);
 }
 
 /*
@@ -52,7 +129,45 @@
   --dd-warn-soft: #382a0b;
   --dd-danger: #f87171;
   --dd-danger-soft: #3d1717;
+  --dd-sky: #7dd3fc;
+  --dd-violet: #c4b5fd;
   color-scheme: dark;
+}
+/* Palettes in dark mode: the shared dark neutrals, the palette's accent and sidebar. */
+:root[data-dd-theme='dark'][data-dd-palette='haveli'] {
+  --dd-brand: #e3bf73;
+  --dd-brand-strong: #edd39b;
+  --dd-brand-soft: #2e2716;
+  --dd-side: #12201a;
+  --dd-side-ink: #ede6d6;
+  --dd-side-muted: #9fae9f;
+  --dd-side-active: #e3bf73;
+  --dd-side-active-ink: #12201a;
+}
+:root[data-dd-theme='dark'][data-dd-palette='royal'] {
+  --dd-brand: #f2a1ac;
+  --dd-brand-strong: #f7c3ca;
+  --dd-brand-soft: #3a1519;
+  --dd-side: #250910;
+  --dd-side-ink: #f6e6e2;
+  --dd-side-muted: #c9a7a4;
+  --dd-side-active: #e2b357;
+  --dd-side-active-ink: #250910;
+}
+:root[data-dd-theme='dark'][data-dd-palette='ocean'] {
+  --dd-brand: #67d3e8;
+  --dd-brand-strong: #a5e6f3;
+  --dd-brand-soft: #0f2e36;
+  --dd-side: #0b1826;
+  --dd-side-ink: #e2edf5;
+  --dd-side-muted: #9bb1c2;
+  --dd-side-active: #5eead4;
+  --dd-side-active-ink: #0b1826;
+}
+
+/* Extra breakpoint for wide dashboards (four stat cards in a row). */
+@theme {
+  --breakpoint-wide: 87.5rem;
 }
 
 @theme inline {
@@ -71,6 +186,16 @@
   --color-warn-soft: var(--dd-warn-soft);
   --color-danger: var(--dd-danger);
   --color-danger-soft: var(--dd-danger-soft);
+  --color-sky: var(--dd-sky);
+  --color-violet: var(--dd-violet);
+  --color-side: var(--dd-side);
+  --color-side-ink: var(--dd-side-ink);
+  --color-side-muted: var(--dd-side-muted);
+  --color-side-heading: var(--dd-side-heading);
+  --color-side-active: var(--dd-side-active);
+  --color-side-active-ink: var(--dd-side-active-ink);
+  --color-side-line: var(--dd-side-line);
+  --color-side-hover: var(--dd-side-hover);
   --radius-card: var(--dd-radius);
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
   --ease-dd: var(--dd-ease);
