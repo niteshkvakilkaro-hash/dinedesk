@@ -138,6 +138,18 @@ class PublicOrderController extends Controller
         return $this->ok($this->presenter->forCustomer($this->find($publicId, (string) $request->query('t'))));
     }
 
+    /** The guest paid the restaurant's UPI ID and gives the reference (UTR) shown in their UPI app. */
+    public function upiReference(Request $request, string $publicId): JsonResponse
+    {
+        $data = $request->validate([
+            't' => ['required', 'string'],
+            'reference' => ['required', 'string', 'regex:/^[A-Za-z0-9]{6,30}$/'],
+        ], ['reference.regex' => 'Enter the UPI reference (UTR) from your UPI app: 6 to 30 letters or digits.']);
+        $order = $this->flow->upiReference($this->find($publicId, $data['t']), $data['reference']);
+
+        return $this->ok($this->presenter->forCustomer($order->fresh(['items', 'events'])), 'Thanks! The restaurant will confirm your payment.');
+    }
+
     /** Razorpay Checkout success handler: accepted only with a valid signature. */
     public function verifyPayment(Request $request, string $publicId, \App\Modules\Ordering\Services\Razorpay $razorpay): JsonResponse
     {

@@ -33,6 +33,8 @@ export interface Bill {
   issued_at: string;
   business_date: string;
   amount_in_words: string;
+  /** The restaurant's UPI ID (for a QR with the amount due), when set. */
+  upi: { vpa: string; payee: string } | null;
 }
 
 export interface OpenBills {

@@ -126,6 +126,8 @@ class SitePresenter
             'prices_include_tax' => $s['prices_include_tax'],
             'default_tax_rate' => $s['default_tax_rate'],
             'has_delivery_zones' => DeliveryZone::where('is_active', true)->exists(),
+            // Where UPI payments go (the payee name defaults to the business name).
+            'upi' => $s['payments']['upi'] && $s['upi']['vpa'] ? ['vpa' => $s['upi']['vpa'], 'payee' => $s['upi']['payee'] ?: $tenant->name] : null,
         ];
     }
 

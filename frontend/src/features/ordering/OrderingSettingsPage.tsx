@@ -9,7 +9,8 @@ import { Alert, Badge, DemoBadge, Dialog, ErrorState, Field, SkeletonRows, Spinn
 interface OrderingSettings {
   accepting_orders: boolean;
   types: { delivery: boolean; takeaway: boolean; dine_in: boolean };
-  payments: { online: boolean; cod: boolean; counter: boolean };
+  payments: { online: boolean; cod: boolean; counter: boolean; upi: boolean };
+  upi: { vpa: string | null; payee: string | null };
   default_tax_rate: number;
   prices_include_tax: boolean;
   packaging_fee: number;
@@ -183,7 +184,14 @@ export default function OrderingSettingsPage() {
           <Toggle checked={s.payments.cod} onChange={(v) => up({ payments: { ...s.payments, cod: v } })} label={t('order.pay.cod')} hint={t('orderingAdmin.codHint')} />
           <Toggle checked={s.payments.counter} onChange={(v) => up({ payments: { ...s.payments, counter: v } })} label={t('order.pay.counter')} hint={t('orderingAdmin.counterHint')} />
           <Toggle checked={s.payments.online} onChange={(v) => up({ payments: { ...s.payments, online: v } })} label={t('order.pay.online')} hint={t('orderingAdmin.onlineHint')} />
+          <Toggle checked={s.payments.upi} onChange={(v) => up({ payments: { ...s.payments, upi: v } })} label={t('order.pay.upi')} hint={t('orderingAdmin.upiHint')} />
         </div>
+        {s.payments.upi && (
+          <div className="mt-3 grid grid-cols-1 gap-3 rounded-xl bg-paper p-4 sm:grid-cols-2">
+            <Field label={t('orderingAdmin.upiId')} hint={t('orderingAdmin.upiIdHint')}>{(a) => <input {...a} className="field-input font-mono" placeholder="yourname@okicici" value={s.upi.vpa ?? ''} onChange={(e) => up({ upi: { ...s.upi, vpa: e.target.value.trim() || null } })} autoComplete="off" autoCapitalize="none" />}</Field>
+            <Field label={t('orderingAdmin.upiPayee')} hint={t('orderingAdmin.upiPayeeHint')}>{(a) => <input {...a} className="field-input" value={s.upi.payee ?? ''} onChange={(e) => up({ upi: { ...s.upi, payee: e.target.value || null } })} maxLength={60} />}</Field>
+          </div>
+        )}
         {onlineWithoutKeys && <Alert tone="warn">{t('orderingAdmin.needKeys')}</Alert>}
 
         <div className="mt-4 space-y-4 rounded-xl bg-paper p-4">

@@ -406,6 +406,35 @@ class OrderFlow
         return app(Loyalty::class);
     }
 
+    /**
+     * UPI to the restaurant's own UPI ID has no gateway to confirm it: the guest adds the
+     * reference (UTR) from their UPI app, staff match it in their bank app and confirm.
+     */
+    public function upiReference(Order $order, string $reference): Order
+    {
+        if ($order->payment_method !== 'upi' || $order->status === 'cancelled' || ! in_array($order->payment_status, ['unpaid', 'pending'], true)) {
+            throw new ApiException('This order is not waiting for a UPI payment.', 422, 'not_awaiting_upi');
+        }
+        $reference = strtoupper($reference);
+        $order->update(['payment_reference' => $reference, 'payment_status' => 'pending']);
+        $this->event($order, 'upi_reference', "UPI reference {$reference}", null);
+
+        return $order;
+    }
+
+    /** Staff saw the UPI money arrive. */
+    public function confirmUpi(Order $order, User $by): Order
+    {
+        if ($order->payment_method !== 'upi' || $order->status === 'cancelled' || ! in_array($order->payment_status, ['unpaid', 'pending'], true)) {
+            throw new ApiException('This order is not waiting for a UPI payment.', 422, 'not_awaiting_upi');
+        }
+        $order->update(['payment_status' => 'paid']);
+        $this->event($order, 'payment_received', 'UPI payment received', $by->id);
+        AuditLog::record('order.upi_received', $order, ['number' => $order->number, 'total' => $order->total, 'reference' => $order->payment_reference]);
+
+        return $order;
+    }
+
     /** Payment captured (checkout callback or webhook). Safe to call twice. */
     public function markPaid(Payment $payment, string $providerPaymentId, ?string $method = null): void
     {
@@ -470,7 +499,8 @@ class OrderFlow
                     $changes['payment_status'] = 'refund_due';
                 }
             }
-            if ($to === 'completed' && in_array($order->payment_method, ['cod', 'counter'], true)) {
+            // Cash, counter and UPI payments are settled by the time staff complete the order.
+            if ($to === 'completed' && in_array($order->payment_method, ['cod', 'counter', 'upi'], true)) {
                 $changes['payment_status'] = 'paid';
             }
             $order->update($changes);

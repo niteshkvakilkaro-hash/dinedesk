@@ -75,6 +75,14 @@ class OrdersController extends Controller
         return $this->ok($this->presenter->forStaff($order), 'Order updated.');
     }
 
+    /** Staff saw the guest's UPI payment arrive. */
+    public function upiReceived(Request $request, int $id, OrderFlow $flow): JsonResponse
+    {
+        $order = $flow->confirmUpi(Order::findOrFail($id), $request->user());
+
+        return $this->ok($this->presenter->forStaff($order->fresh(['items', 'events'])), 'Payment marked as received.');
+    }
+
     /**
      * Polled every few seconds by the dashboard: new orders since the last id seen
      * (to play the alert sound) plus the live counts.

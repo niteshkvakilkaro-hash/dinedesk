@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, Download, Plus, Printer, Trash2 } from 'lucide-react';
+import { CheckCircle2, Download, Plus, Printer, QrCode, Trash2 } from 'lucide-react';
 import { printerPrefs, printSlip, receiptSlip, slipDocument } from '@/lib/print';
+import { upiLink, useQrCode } from '@/lib/upi';
 import { api, ApiError, downloadFile } from '@/lib/api';
 import { formatMoney as formatINR } from '@/lib/format';
 import { Alert, Badge, Dialog, Field, Spinner, toast } from '@/components/ui';
@@ -42,6 +43,31 @@ function Totals({ bill }: { bill: Bill }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+/** A QR the guest scans to pay the amount due to the restaurant's UPI ID. */
+function UpiQrPanel({ bill, onUse }: { bill: Bill; onUse: () => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const link = open && bill.upi ? upiLink({ vpa: bill.upi.vpa, payee: bill.upi.payee, amount: bill.due, note: bill.number }) : null;
+  const qr = useQrCode(link, 280);
+  if (!bill.upi) return null;
+  if (!open) {
+    return (
+      <button type="button" className="btn-outline w-full" onClick={() => { setOpen(true); onUse(); }}>
+        <QrCode className="h-4 w-4" aria-hidden="true" /> {t('pos.upiQr', { amount: formatINR(Number(bill.due)) })}
+      </button>
+    );
+  }
+  return (
+    <div className="flex flex-col items-center gap-2 rounded-2xl border border-line bg-white p-4 text-center text-[#14110f]">
+      {qr && <img src={qr} alt={t('pos.upiQr', { amount: formatINR(Number(bill.due)) })} width={280} height={280} />}
+      <p className="text-2xl font-extrabold tabular-nums">{formatINR(Number(bill.due))}</p>
+      <p className="text-sm">{bill.upi.payee} · <span className="font-mono">{bill.upi.vpa}</span></p>
+      <p className="text-xs text-[#5f574e]">{t('pos.upiQrHint')}</p>
+      <button type="button" className="text-sm font-semibold underline" onClick={() => setOpen(false)}>{t('common.close')}</button>
+    </div>
   );
 }
 
@@ -263,6 +289,7 @@ export function BillDialog({ target, onClose, onDone }: { target: BillTarget | n
                 {short > 0 ? t('pos.short', { amount: formatINR(short) }) : change > 0 ? t('pos.change', { amount: formatINR(change) }) : t('pos.exact')}
               </p>
               {error && <Alert>{error}</Alert>}
+              {b.upi && <UpiQrPanel bill={b} onUse={() => setRows([{ mode: 'upi', amount: b.due, reference: '' }])} />}
               <div className="flex flex-wrap gap-2">
                 <button type="button" className="btn-primary flex-1" disabled={pay.isPending || short > 0} onClick={() => pay.mutate()}>
                   {pay.isPending ? <Spinner /> : t('pos.confirmPayment')}

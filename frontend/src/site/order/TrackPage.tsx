@@ -7,6 +7,7 @@ import { FoodTypeMark } from '../components/bits';
 import { STATUS_FLOW, useMoney, useNow, useTrackedOrder } from '../ordering';
 import { orderEstimate } from './eta';
 import { OrderAgain } from './OrderAgain';
+import { UpiPay } from './UpiPay';
 import { FeedbackForm } from '../ui/Growth';
 import type { OrderStatus, SiteData } from '../types';
 import { BillSummary } from './Cart';
@@ -74,6 +75,8 @@ export default function TrackPage({ site }: { site: SiteData }) {
         {cancelled && order.cancel_reason && <p className="mt-1 text-t-muted">{t('order.reason', { reason: order.cancel_reason })}</p>}
         {order.payment_status === 'refund_due' && <p className="mt-1 text-t-muted">{t('order.refundDue')}</p>}
       </div>
+
+      <UpiPay site={site} order={order} token={token} />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
         <section className={`p-5 ${skin.card}`} aria-labelledby="progress-h">

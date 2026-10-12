@@ -27,7 +27,10 @@ class OrderingSettingsController extends Controller
 
     public function update(Request $request): JsonResponse
     {
-        $data = $request->validate(OrderingSettings::rules());
+        $data = $request->validate(OrderingSettings::rules(), [
+            'upi.vpa.regex' => 'Enter a UPI ID like yourname@okicici.',
+            'upi.vpa.required_if_accepted' => 'Add the UPI ID guests should pay.',
+        ]);
         $before = $this->settings->get();
         $saved = $this->settings->save($data);
         AuditLog::record('ordering.settings_updated', $this->context->require(), [

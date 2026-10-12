@@ -20,8 +20,9 @@ interface OrderRow {
   customer_phone: string;
   items_count: number;
   total: string;
-  payment_method: 'online' | 'cod' | 'counter';
+  payment_method: 'online' | 'cod' | 'counter' | 'room' | 'upi';
   payment_status: string;
+  payment_reference?: string | null;
   scheduled_for: string | null;
   placed_at: string;
   table_label: string | null;
@@ -139,6 +140,33 @@ function CancelDialog({ order, onClose }: { order: { id: number; number: number 
   );
 }
 
+/** A UPI payment to the restaurant's own UPI ID: staff check their UPI / bank app, then confirm. */
+function UpiCheck({ order }: { order: OrderDetail }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const canManage = useCan('orders.manage');
+  const confirm = useMutation<unknown, ApiError>({
+    mutationFn: () => api.post(`/tenant/orders/${order.internal_id}/upi-received`),
+    onSuccess: () => {
+      toast.success(t('orders.upiConfirmed'));
+      for (const k of ['order-detail', 'orders']) void qc.invalidateQueries({ queryKey: [k] });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-xl bg-warn-soft p-4 text-warn">
+      <p className="min-w-0 flex-1 text-sm font-semibold">
+        {order.payment_reference ? t('orders.upiWithRef', { amount: formatINR(order.total), reference: order.payment_reference }) : t('orders.upiNoRef', { amount: formatINR(order.total) })}
+      </p>
+      {canManage && (
+        <button type="button" className="btn-primary !min-h-10 text-sm" disabled={confirm.isPending} onClick={() => confirm.mutate()}>
+          {confirm.isPending ? <Spinner /> : t('orders.upiReceived')}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function OrderDetailDialog({ id, onClose, onCancel }: { id: number | null; onClose: () => void; onCancel: (o: { id: number; number: number }) => void }) {
   const { t } = useTranslation();
   const query = useQuery({ queryKey: ['order-detail', id], queryFn: async () => (await api.get<OrderDetail>(`/tenant/orders/${id}`)).data, enabled: !!id, refetchInterval: 15_000 });
@@ -155,7 +183,7 @@ function OrderDetailDialog({ id, onClose, onCancel }: { id: number | null; onClo
             <Badge tone={o.status}>{t(`order.status.${o.status}`)}</Badge>
             <Badge tone="neutral">{t(`order.type.${o.type}`)}</Badge>
             <Badge tone={o.payment_status}>
-              {t(`order.pay.${o.payment_method}`)} · {t(`order.paymentStatus.${o.payment_status}`)}
+              {t(`order.payShort.${o.payment_method}`)} · {t(`order.paymentStatus.${o.payment_status}`)}
             </Badge>
             {o.scheduled_for && (
               <Badge tone="pending">
@@ -166,6 +194,7 @@ function OrderDetailDialog({ id, onClose, onCancel }: { id: number | null; onClo
           </div>
           {o.payment_method === 'online' && o.payment_status !== 'paid' && o.status !== 'cancelled' && <Alert tone="warn">{t('orders.awaitingPayment')}</Alert>}
           {o.payment_status === 'refund_due' && <Alert tone="danger">{t('orders.refundDue')}</Alert>}
+          {o.payment_method === 'upi' && ['unpaid', 'pending'].includes(o.payment_status) && o.status !== 'cancelled' && <UpiCheck order={o} />}
 
           <section className="grid grid-cols-1 gap-3 rounded-xl bg-paper p-4 sm:grid-cols-2">
             <div>
@@ -258,7 +287,7 @@ function OrderCard({ o, onOpen, onCancel }: { o: OrderRow; onOpen: () => void; o
         </p>
         <div className="mt-2 flex flex-wrap gap-1.5">
           <Badge tone={o.status}>{t(`order.status.${o.status}`)}</Badge>
-          <Badge tone={o.payment_status}>{t(`order.pay.${o.payment_method}`)}</Badge>
+          <Badge tone={o.payment_status}>{t(`order.payShort.${o.payment_method}`)}</Badge>
           {o.scheduled_for && <Badge tone="pending">{t('orders.forTime', { time: new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', day: 'numeric', month: 'short' }).format(new Date(o.scheduled_for)) })}</Badge>}
         </div>
       </button>

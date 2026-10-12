@@ -1094,12 +1094,14 @@
       "online": "Pay online (UPI, card, netbanking)",
       "cod": "Cash on delivery",
       "counter": "Pay at the counter",
-      "room": "Charged to your room"
+      "room": "Charged to your room",
+      "upi": "Pay by UPI app (GPay, PhonePe, Paytm…)"
     },
     "payHint": {
       "online": "Secure payment by Razorpay. We never see your card or UPI details.",
       "cod": "Pay the delivery partner by cash or UPI.",
-      "counter": "Pay when you collect or after your meal."
+      "counter": "Pay when you collect or after your meal.",
+      "upi": "Pay the restaurant's UPI ID on the next screen. No extra fee."
     },
     "notesForKitchen": "Anything else?",
     "summary_one": "Summary · {{count}} item",
@@ -1138,7 +1140,9 @@
       "ready": "Ready",
       "out_for_delivery": "Out for delivery",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "upi_reference": "UPI reference sent",
+      "payment_received": "Payment received"
     },
     "statusLong": {
       "pending": "Waiting for the restaurant to confirm.",
@@ -1210,6 +1214,27 @@
       "lead": "Orders placed from this phone or browser.",
       "empty": "No orders from this device yet.",
       "track": "View order"
+    },
+    "upi": {
+      "title": "Pay {{amount}} by UPI",
+      "qrAlt": "UPI QR code for {{amount}}",
+      "open": "Open UPI app",
+      "phoneHint": "Choose GPay, PhonePe, Paytm or any UPI app. The amount is filled in.",
+      "scanHint": "Scan with any UPI app on your phone. The amount is filled in.",
+      "to": "To",
+      "copy": "Copy",
+      "copied": "Copied",
+      "sent": "Thanks! You sent reference {{reference}}. The restaurant will confirm your payment.",
+      "refLabel": "Paid? Add the UPI reference",
+      "refHint": "The 12-digit UPI reference (UTR) in your UPI app. It helps the restaurant find your payment.",
+      "send": "Send"
+    },
+    "payShort": {
+      "online": "Paid online",
+      "cod": "Cash on delivery",
+      "counter": "At counter",
+      "room": "To room",
+      "upi": "UPI"
     }
   },
   "orders": {
@@ -1275,7 +1300,11 @@
     "liveNote": "Updates every few seconds. Real-time push arrives with the kitchen display (next release).",
     "newToast": "New order #{{number}} from {{name}}",
     "pendingCount_one": "{{count}} new order",
-    "pendingCount_other": "{{count}} new orders"
+    "pendingCount_other": "{{count}} new orders",
+    "upiWithRef": "UPI payment of {{amount}}: the guest gave reference {{reference}}. Check your UPI or bank app.",
+    "upiNoRef": "UPI payment of {{amount}}: check your UPI or bank app before handing the order over.",
+    "upiReceived": "Payment received",
+    "upiConfirmed": "Payment marked as received"
   },
   "menuAdmin": {
     "title": "Menu",
@@ -1489,7 +1518,12 @@
     "email": "Email (when the customer gives one)",
     "providerHint": "Sent through the messaging provider set up by DineDesk.",
     "saved": "Ordering settings saved.",
-    "smsHint": "SMS rules in India (DLT) allow only fixed templates, so SMS is used for one-time codes. Order updates go by WhatsApp and email."
+    "smsHint": "SMS rules in India (DLT) allow only fixed templates, so SMS is used for one-time codes. Order updates go by WhatsApp and email.",
+    "upiHint": "Guests pay your UPI ID from their own UPI app. No gateway fee; you confirm each payment.",
+    "upiId": "Your UPI ID",
+    "upiIdHint": "Shown to guests and in the QR code, e.g. yourshop@okicici.",
+    "upiPayee": "Name shown in the UPI app",
+    "upiPayeeHint": "Leave empty to use your business name."
   },
   "reservationsAdmin": {
     "title": "Bookings",
@@ -1833,7 +1867,9 @@
     "guestHas_one": "{{name}} has {{count}} point. Use:",
     "guestHas_other": "{{name}} has {{count}} points. Use:",
     "usePoints": "Points",
-    "giftCardCode": "Gift card code"
+    "giftCardCode": "Gift card code",
+    "upiQr": "Show UPI QR for {{amount}}",
+    "upiQrHint": "The guest scans with any UPI app. Check the money has arrived, then confirm the payment."
   },
   "dayEnd": {
     "title": "Day-end",

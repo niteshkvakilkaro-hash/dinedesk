@@ -12,6 +12,7 @@ Route::middleware(['tenant.host', 'feature:online_ordering'])->prefix('site/orde
     Route::post('/', [PublicOrderController::class, 'store'])->middleware('throttle:orders');
     Route::get('{publicId}', [PublicOrderController::class, 'show'])->middleware('throttle:api');
     Route::post('{publicId}/payment', [PublicOrderController::class, 'verifyPayment'])->middleware('throttle:api');
+    Route::post('{publicId}/upi-reference', [PublicOrderController::class, 'upiReference'])->middleware('throttle:otp-verify');
 });
 
 // Razorpay → us (signature-verified per business)
@@ -26,6 +27,7 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api'])->prefix('tena
         Route::post('notifications/read', [OrdersController::class, 'markNotificationsRead']);
     });
     Route::post('orders/{id}/status', [OrdersController::class, 'transition'])->whereNumber('id')->middleware('tenant.can:orders.manage');
+    Route::post('orders/{id}/upi-received', [OrdersController::class, 'upiReceived'])->whereNumber('id')->middleware('tenant.can:orders.manage');
 
     Route::middleware('tenant.can:business.manage')->prefix('ordering')->group(function () {
         Route::get('/', [OrderingSettingsController::class, 'show']);

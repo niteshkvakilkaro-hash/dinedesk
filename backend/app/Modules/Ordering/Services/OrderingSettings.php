@@ -24,7 +24,9 @@ class OrderingSettings
             'accepting_orders' => false,
             'types' => ['delivery' => false, 'takeaway' => true, 'dine_in' => false],
             // cod = cash on delivery (delivery orders), counter = pay at the counter (takeaway / dine-in).
-            'payments' => ['online' => false, 'cod' => true, 'counter' => true],
+            'payments' => ['online' => false, 'cod' => true, 'counter' => true, 'upi' => false],
+            // Guests pay this UPI ID from their own UPI app (no gateway, no fee); staff confirm it.
+            'upi' => ['vpa' => null, 'payee' => null],
             'default_tax_rate' => 5.0,
             'prices_include_tax' => false,
             'packaging_fee' => 0.0,
@@ -48,6 +50,10 @@ class OrderingSettings
             'payments.online' => ['required', 'boolean'],
             'payments.cod' => ['required', 'boolean'],
             'payments.counter' => ['required', 'boolean'],
+            'payments.upi' => ['sometimes', 'boolean'],
+            'upi' => ['sometimes', 'array'],
+            'upi.vpa' => ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z0-9._-]{2,256}@[a-zA-Z][a-zA-Z0-9]{1,63}$/', 'required_if_accepted:payments.upi'],
+            'upi.payee' => ['nullable', 'string', 'max:60'],
             'default_tax_rate' => ['required', 'numeric', 'in:0,5,12,18,28'],
             'prices_include_tax' => ['required', 'boolean'],
             'packaging_fee' => ['required', 'numeric', 'min:0', 'max:1000'],
@@ -76,6 +82,8 @@ class OrderingSettings
         $clean = array_replace_recursive(self::defaults(), array_intersect_key($data, self::defaults()));
         $clean['default_tax_rate'] = (float) $clean['default_tax_rate'];
         $clean['packaging_fee'] = round((float) $clean['packaging_fee'], 2);
+        $clean['upi']['vpa'] = $clean['upi']['vpa'] ? strtolower(trim((string) $clean['upi']['vpa'])) : null;
+        $clean['upi']['payee'] = $clean['upi']['payee'] ? trim(strip_tags((string) $clean['upi']['payee'])) : null;
         $this->settings->set(self::KEY, $clean);
 
         return $clean;
@@ -144,6 +152,9 @@ class OrderingSettings
         }
         if ($type !== 'delivery' && $s['payments']['counter']) {
             $methods[] = 'counter';
+        }
+        if ($s['payments']['upi'] && $s['upi']['vpa']) {
+            $methods[] = 'upi';
         }
 
         return $methods;

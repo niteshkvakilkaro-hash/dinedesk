@@ -140,7 +140,7 @@ export interface GalleryItem {
 
 export type OrderType = 'delivery' | 'takeaway' | 'dine_in' | 'room_service';
 /** room = charged to the guest's room (paid at check-out). */
-export type PaymentMethod = 'online' | 'cod' | 'counter' | 'room';
+export type PaymentMethod = 'online' | 'cod' | 'counter' | 'room' | 'upi';
 
 export interface HotelInfo {
   has_rooms: boolean;
@@ -194,6 +194,8 @@ export interface OrderingInfo {
   prices_include_tax: boolean;
   default_tax_rate: number;
   has_delivery_zones: boolean;
+  /** The restaurant's UPI ID, when guests may pay it directly. */
+  upi: { vpa: string; payee: string } | null;
 }
 
 export interface QuoteLine {
@@ -254,6 +256,8 @@ export interface CustomerOrder {
   prices_include_tax: boolean;
   payment_method: PaymentMethod;
   payment_status: 'unpaid' | 'pending' | 'paid' | 'failed' | 'refund_due' | 'refunded';
+  /** UPI reference (UTR) the guest gave for a UPI payment. */
+  payment_reference?: string | null;
   cancel_reason: string | null;
   timeline: { status: OrderStatus; at: string }[];
 }

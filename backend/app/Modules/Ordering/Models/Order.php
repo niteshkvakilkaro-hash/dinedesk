@@ -17,13 +17,14 @@ class Order extends Model
     public const STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'completed', 'cancelled'];
 
     // room = charged to the guest's room folio (paid at check-out).
-    public const PAYMENT_METHODS = ['online', 'cod', 'counter', 'room'];
+    /** upi = straight to the restaurant's UPI ID (confirmed by staff, see payment_reference). */
+    public const PAYMENT_METHODS = ['online', 'cod', 'counter', 'room', 'upi'];
 
     protected $fillable = [
         'tenant_id', 'tracking_token', 'number', 'customer_id', 'type', 'status', 'scheduled_for', 'stock_deducted_at', 'discount_label', 'marketing_opt_in',
         'customer_name', 'customer_phone', 'customer_email', 'address', 'delivery_zone_id', 'table_label', 'dining_table_id', 'table_session_id', 'room_booking_id', 'source', 'created_by', 'notes',
         'subtotal', 'tax_total', 'delivery_fee', 'packaging_fee', 'discount_total', 'total', 'prices_include_tax',
-        'payment_method', 'payment_status', 'cancel_reason', 'locale', 'placed_at',
+        'payment_method', 'payment_status', 'payment_reference', 'cancel_reason', 'locale', 'placed_at',
     ];
 
     protected $hidden = ['tracking_token'];

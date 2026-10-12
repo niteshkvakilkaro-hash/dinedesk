@@ -3,6 +3,7 @@
 namespace App\Modules\Billing\Services;
 
 use App\Modules\Billing\Models\Invoice;
+use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Ordering\Support\Money;
 use App\Support\AmountInWords;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -46,7 +47,16 @@ class BillPresenter
             'issued_at' => $i->issued_at->toIso8601String(),
             'business_date' => $i->business_date->format('Y-m-d'),
             'amount_in_words' => AmountInWords::rupees(Money::toPaise($i->total)),
+            // The restaurant's UPI ID, so the counter can show a QR for the amount due.
+            'upi' => $this->upi($i->seller['name'] ?? ''),
         ];
+    }
+
+    private function upi(string $seller): ?array
+    {
+        $u = app(OrderingSettings::class)->get()['upi'];
+
+        return $u['vpa'] ? ['vpa' => $u['vpa'], 'payee' => $u['payee'] ?: $seller] : null;
     }
 
     public function pdf(Invoice $i, string $timezone, bool $demo): \Barryvdh\DomPDF\PDF
