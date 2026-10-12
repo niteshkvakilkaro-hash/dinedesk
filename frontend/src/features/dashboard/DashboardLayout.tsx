@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, CalendarDays, ChefHat, Contact, CreditCard, Globe, Globe2, Hotel, Images, Network, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, PanelLeftClose, PanelLeftOpen, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wallet, Wifi } from 'lucide-react';
+import { Building2, CalendarClock, CalendarDays, ChefHat, Contact, CreditCard, Globe, Globe2, Hotel, Images, Network, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, PanelLeftClose, PanelLeftOpen, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wallet, Wifi } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { disconnectLive, useLive, useLiveStatus } from '@/lib/realtime';
 import { useCan, useFeature, useSession, useSignOut } from '@/hooks/useSession';
@@ -21,6 +21,7 @@ export default function DashboardLayout() {
   const { data: session } = useSession();
   const signOut = useSignOut();
   const canStaff = useCan('staff.manage');
+  const canSchedule = useCan('staff.schedule');
   const canBusiness = useCan('business.manage');
   const canTheme = useCan('theme.manage');
   const canMenu = useCan('menu.manage');
@@ -146,6 +147,7 @@ export default function DashboardLayout() {
       items: [
         { to: '/dashboard/ordering', label: t('dashboard.nav.ordering'), icon: Settings2, show: canBusiness },
         { to: '/dashboard/team', label: t('dashboard.nav.team'), icon: Users, show: canStaff },
+        { to: '/dashboard/rota', label: t('dashboard.nav.rota'), icon: CalendarClock, show: canSchedule },
         { to: '/dashboard/business', label: t('dashboard.nav.business'), icon: Building2, show: canBusiness },
         { to: '/dashboard/branches', label: t('dashboard.nav.branches'), icon: Network, show: canBusiness && (hasBranches || (session?.branches.length ?? 0) > 1) },
         { to: '/dashboard/billing', label: t('dashboard.nav.billing'), icon: CreditCard, show: canBilling || canBusiness },

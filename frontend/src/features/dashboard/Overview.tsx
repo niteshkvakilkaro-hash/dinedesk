@@ -11,6 +11,7 @@ import { tenantSiteUrl } from '@/lib/host';
 import { useThemeColors } from '@/lib/adminTheme';
 import { useCan, useFeature, useSession } from '@/hooks/useSession';
 import { Badge, SkeletonRows } from '@/components/ui';
+import ClockCard from '@/features/staff/ClockCard';
 
 const SETUP = ['account', 'type', 'details', 'theme', 'branding', 'menu', 'live'] as const;
 // Where each finished step can be revisited.
@@ -82,6 +83,9 @@ export default function Overview() {
       )}
 
       {tenant.status === 'onboarding' && <SetupChecklist step={tenant.onboarding_step} />}
+
+      {/* Staff clock in here; the owner doesn't need to. */}
+      {tenant.status !== 'onboarding' && session.role !== 'owner' && !session.support && <ClockCard />}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 space-y-6">
