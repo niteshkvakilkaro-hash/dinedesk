@@ -1,14 +1,65 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { PLATFORM_DOMAIN } from '@/lib/host';
 import ogImage from './assets/site-desktop.webp';
+import { featureBySlug } from './content';
 
 /** The marketing site's public address (https on the real domain, the dev server locally). */
 export function siteOrigin() {
-  return PLATFORM_DOMAIN === 'localhost' ? window.location.origin : `https://${PLATFORM_DOMAIN}`;
+  if (PLATFORM_DOMAIN === 'localhost' && typeof window !== 'undefined') return window.location.origin;
+  return `https://${PLATFORM_DOMAIN}`;
 }
 
-function setMeta(attr: 'name' | 'property', key: string, value: string) {
+export interface PageHead {
+  title: string;
+  description: string;
+  path: string;
+  jsonLd: object[];
+}
+
+/**
+ * Title, description and JSON-LD for each marketing page. Used by the pages in the browser
+ * and by the build-time pre-render (scripts/prerender.mjs), so both always agree.
+ * Everything describes only what DineDesk really does: no ratings, reviews or customer counts.
+ */
+export function marketingHead(path: string, t: TFunction): PageHead {
+  const faq = t('mk.faq.items', { returnObjects: true }) as { q: string; a: string }[];
+  const crumbs = (name: string) => breadcrumbJsonLd([{ name: 'DineDesk', path: '/' }, { name, path }]);
+  if (path === '/pricing') return { title: t('mk.seo.pricingTitle'), description: t('mk.seo.pricingDesc'), path, jsonLd: [orgJsonLd()[0], faqJsonLd(faq), crumbs(t('mk.nav.pricing'))] };
+  if (path === '/themes') return { title: t('mk.seo.themesTitle'), description: t('mk.seo.themesDesc'), path, jsonLd: [orgJsonLd()[0], crumbs(t('mk.nav.themes'))] };
+  const feature = path.startsWith('/features/') ? featureBySlug(path.slice('/features/'.length)) : undefined;
+  if (feature) {
+    const k = `mk.f.${feature.key}`;
+    const ffaq = t(`${k}.faq`, { returnObjects: true }) as { q: string; a: string }[];
+    return { title: t(`${k}.metaTitle`), description: t(`${k}.metaDesc`), path, jsonLd: [orgJsonLd()[0], faqJsonLd(ffaq), crumbs(t(`${k}.eyebrow`))] };
+  }
+  return { title: t('mk.seo.homeTitle'), description: t('mk.seo.homeDesc'), path: '/', jsonLd: [...orgJsonLd(), faqJsonLd(faq)] };
+}
+
+/** Meta and link tags as [tag, attributes] pairs (rendered into <head> by the browser hook and the pre-render). */
+export function headTags(head: PageHead, lang: string): { meta: [string, string, string][]; canonical: string; image: string } {
+  const url = siteOrigin() + head.path;
+  const image = new URL(ogImage, siteOrigin() + '/').href;
+  return {
+    canonical: url,
+    image,
+    meta: [
+      ['name', 'description', head.description],
+      ['name', 'robots', 'index, follow'],
+      ['property', 'og:type', 'website'],
+      ['property', 'og:site_name', 'DineDesk'],
+      ['property', 'og:title', head.title],
+      ['property', 'og:description', head.description],
+      ['property', 'og:url', url],
+      ['property', 'og:image', image],
+      ['property', 'og:locale', lang.startsWith('hi') ? 'hi_IN' : 'en_IN'],
+      ['name', 'twitter:card', 'summary_large_image'],
+    ],
+  };
+}
+
+function setMeta(attr: string, key: string, value: string) {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
   if (!el) {
     el = document.createElement('meta');
@@ -19,41 +70,43 @@ function setMeta(attr: 'name' | 'property', key: string, value: string) {
 }
 
 /**
- * Title, description, canonical, Open Graph / Twitter tags and JSON-LD for a marketing page.
- * Everything describes only what DineDesk really does: no ratings, reviews or customer counts.
+ * The page arrived pre-rendered: the HTML stayed on screen (in #prerender) while the app
+ * loaded. Now that the app shows the same page, swap it in.
  */
-export function usePageMeta({ title, description, path, jsonLd }: { title: string; description: string; path: string; jsonLd?: object[] }) {
+export function showApp() {
+  if (typeof document === 'undefined') return;
+  document.getElementById('prerender')?.remove();
+  const root = document.getElementById('root');
+  if (root) root.style.display = '';
+}
+
+/** Keeps <head> in step with the page as people move around the marketing site. */
+export function usePageMeta(head: PageHead) {
   const { i18n } = useTranslation();
-  const ld = JSON.stringify(jsonLd ?? []);
+  const ld = JSON.stringify(head.jsonLd);
   useEffect(() => {
-    const url = siteOrigin() + path;
-    document.title = title;
-    document.documentElement.lang = i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN';
-    setMeta('name', 'description', description);
-    setMeta('name', 'robots', 'index, follow');
-    setMeta('property', 'og:type', 'website');
-    setMeta('property', 'og:site_name', 'DineDesk');
-    setMeta('property', 'og:title', title);
-    setMeta('property', 'og:description', description);
-    setMeta('property', 'og:url', url);
-    setMeta('property', 'og:image', new URL(ogImage, window.location.origin).href);
-    setMeta('property', 'og:locale', i18n.language?.startsWith('hi') ? 'hi_IN' : 'en_IN');
-    setMeta('name', 'twitter:card', 'summary_large_image');
+    showApp();
+    const lang = i18n.language ?? 'en';
+    const tags = headTags(head, lang);
+    document.title = head.title;
+    document.documentElement.lang = lang.startsWith('hi') ? 'hi-IN' : 'en-IN';
+    tags.meta.forEach(([attr, key, value]) => setMeta(attr, key, value));
     let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
       canonical.rel = 'canonical';
       document.head.appendChild(canonical);
     }
-    canonical.href = url;
+    canonical.href = tags.canonical;
+    document.head.querySelectorAll('script[data-page="marketing"]').forEach((s) => s.remove());
     const script = document.createElement('script');
     script.type = 'application/ld+json';
     script.dataset.page = 'marketing';
     script.textContent = ld;
-    document.head.querySelectorAll('script[data-page="marketing"]').forEach((s) => s.remove());
-    if (ld !== '[]') document.head.appendChild(script);
+    document.head.appendChild(script);
     return () => script.remove();
-  }, [title, description, path, ld, i18n.language]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [head.title, head.description, head.path, ld, i18n.language]);
 }
 
 /** DineDesk as an organisation and as a web application (no ratings or offers invented). */

@@ -19,7 +19,8 @@ function loadHindi() {
 }
 
 i18n.on('languageChanged', (lng) => {
-  document.documentElement.lang = lng === 'hi' ? 'hi-IN' : 'en-IN';
+  // Also runs at build time when marketing pages are pre-rendered (no document there).
+  if (typeof document !== 'undefined') document.documentElement.lang = lng === 'hi' ? 'hi-IN' : 'en-IN';
   if (lng === 'hi' && !i18n.hasResourceBundle('hi', 'translation')) {
     void loadHindi().then(() => i18n.changeLanguage('hi'));
   }

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowRight, Check, ChevronRight } from 'lucide-react';
 import { featureBySlug, FEATURE_PAGES } from './content';
 import { CtaBand, Faq, Heading, useTrialNote } from './parts';
-import { breadcrumbJsonLd, faqJsonLd, orgJsonLd, usePageMeta } from './seo';
+import { marketingHead, usePageMeta } from './seo';
 
 /** /features/<slug>: one page per product area, written for the searches owners make. */
 export default function FeaturePage() {
@@ -20,13 +20,7 @@ function Feature({ featureKey, slug }: { featureKey: string; slug: string }) {
   const points = t(`${k}.points`, { returnObjects: true }) as { title: string; text: string }[];
   const faq = t(`${k}.faq`, { returnObjects: true }) as { q: string; a: string }[];
   const Icon = FEATURE_PAGES.find((f) => f.key === featureKey)!.icon;
-  const path = `/features/${slug}`;
-  usePageMeta({
-    title: t(`${k}.metaTitle`),
-    description: t(`${k}.metaDesc`),
-    path,
-    jsonLd: [orgJsonLd()[0], faqJsonLd(faq), breadcrumbJsonLd([{ name: 'DineDesk', path: '/' }, { name: t(`${k}.eyebrow`), path }])],
-  });
+  usePageMeta(marketingHead(`/features/${slug}`, t));
 
   return (
     <>

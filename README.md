@@ -22,7 +22,9 @@ dinedesk/
 | Phones | Bottom tabs on business sites; nothing on any page is wider than the phone (map, combo builder and admin grids fixed). Dashboard dark mode |
 | Marketing site | DineDesk's own pages on the platform domain: home (real product screenshots, modules, themes with live demos, steps, plans, FAQ), `/pricing`, `/themes`, and five feature pages under `/features/…` written for owner searches. Each has its own title, description, canonical, Open Graph tags and JSON-LD (Organization, SoftwareApplication, FAQPage, BreadcrumbList; no ratings or customer counts). `robots.txt` and `sitemap.xml` on the platform domain now allow and list these pages (before, the platform domain answered `Disallow: /`) |
 
-**To bring traffic:** pre-render the marketing pages (or serve them from a static build) so search engines get the HTML without running JavaScript, add the domain to Google Search Console and submit `/sitemap.xml`, and create a Google Business Profile. Each restaurant should link its site from its own Google Business Profile and Instagram.
+**Pre-rendered:** `npm run build` also renders every marketing page to HTML (`src/prerender.tsx` built with `vite build --ssr`, written by `scripts/prerender.mjs` to `dist/_marketing/…`). Search engines and people without JavaScript get the full page; in the browser the HTML stays on screen until the app shows the same page, then the app takes over (no blank spinner). Nginx serves these files on the platform domain only (docs/DEPLOYMENT.md), so business websites are unaffected.
+
+**To bring traffic:** add the domain to Google Search Console and submit `/sitemap.xml`, and create a Google Business Profile. Each restaurant should link its site from its own Google Business Profile and Instagram.
 
 ### Phase 8
 

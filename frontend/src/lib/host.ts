@@ -31,6 +31,8 @@ export function resolveSurface(hostname = window.location.hostname): Surface {
 
 /** Public URL of a tenant's site, e.g. http://haveli.localhost:5173 */
 export function tenantSiteUrl(slug: string) {
+  // Pre-rendering at build time has no window: use the public https address.
+  if (typeof window === 'undefined') return `https://${slug}.${PLATFORM_DOMAIN}`;
   const { protocol, port } = window.location;
   return `${protocol}//${slug}.${PLATFORM_DOMAIN}${port ? `:${port}` : ''}`;
 }

@@ -121,14 +121,26 @@ VITE_REVERB_HOST=dinedesk.in
 VITE_REVERB_PORT=443
 VITE_REVERB_SCHEME=https
 EOF
-npm ci && npm run build      # → frontend/dist
+npm ci && PRERENDER_API_URL=https://dinedesk.in/api/v1 npm run build      # → frontend/dist
 ```
+
+The build also pre-renders DineDesk's own marketing pages (home, pricing, themes, feature
+pages) into `dist/_marketing/…/index.html`, so search engines get real HTML. With
+`PRERENDER_API_URL` the plan cards are filled in too (run it once the API is up; without it
+they load in the browser). Nginx below serves those files on the platform domain only.
 
 ## 5. Nginx (behind Caddy, plain HTTP on 127.0.0.1:8081)
 
 `/etc/nginx/sites-available/dinedesk`:
 
 ```nginx
+# The platform domain gets the pre-rendered marketing pages; business sites never do.
+map $host $marketing {
+    dinedesk.in      /_marketing;
+    www.dinedesk.in  /_marketing;
+    default          "";
+}
+
 server {
     listen 127.0.0.1:8081 default_server;
     server_name _;
@@ -161,9 +173,12 @@ server {
     }
     # The React app (business websites, dashboard, platform panel)
     location /assets/ { expires 1y; add_header Cache-Control "public, immutable"; }
-    location / { try_files $uri /index.html; }
+    location / { try_files $marketing$uri/index.html $uri /index.html; }
 }
 ```
+
+Check: `curl -s https://dinedesk.in/pricing | grep -o '<h1[^<]*'` shows the page heading
+(pre-rendered), and `curl -s https://<any-business>.dinedesk.in/ | grep -c prerender` prints 0.
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/dinedesk /etc/nginx/sites-enabled/ && sudo rm -f /etc/nginx/sites-enabled/default

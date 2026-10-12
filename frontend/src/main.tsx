@@ -30,7 +30,18 @@ setUnauthorizedHandler(() => {
   queryClient.clear();
 });
 
-createRoot(document.getElementById('root')!).render(
+// A pre-rendered marketing page keeps its HTML on screen until the app shows the same page
+// (features/marketing/seo.ts → showApp); never longer than 10 s, whatever happens.
+const rootEl = document.getElementById('root')!;
+if (document.getElementById('prerender')) {
+  rootEl.style.display = 'none';
+  setTimeout(() => {
+    document.getElementById('prerender')?.remove();
+    rootEl.style.display = '';
+  }, 10_000);
+}
+
+createRoot(rootEl).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

@@ -5,10 +5,13 @@ import { ArrowRight, BellRing, Check, CheckCircle2, Palette, QrCode, ReceiptText
 import { PLATFORM_DOMAIN } from '@/lib/host';
 import { featurePath, MODULES } from './content';
 import { CtaBand, Faq, Heading, Plans, ThemeGrid, useTrialNote } from './parts';
-import { faqJsonLd, orgJsonLd, usePageMeta } from './seo';
+import { marketingHead, usePageMeta } from './seo';
 import siteDesktop from './assets/site-desktop.webp';
 import sitePhone from './assets/site-phone.webp';
 import dashboardPos from './assets/dashboard-pos.webp';
+
+/** True when this visit started from the pre-rendered HTML (see scripts/prerender.mjs). */
+const PRERENDERED = typeof document !== 'undefined' && !!document.getElementById('prerender');
 
 /** A screenshot in a simple browser window frame. */
 export function BrowserFrame({ src, alt, url, className = '', eager = false }: { src: string; alt: string; url: string; className?: string; eager?: boolean }) {
@@ -33,8 +36,9 @@ export default function Landing() {
   const steps = t('mk.how.steps', { returnObjects: true }) as { title: string; text: string }[];
   const india = t('mk.india.items', { returnObjects: true }) as string[];
   const points = t('mk.hero.points', { returnObjects: true }) as string[];
-  usePageMeta({ title: t('mk.seo.homeTitle'), description: t('mk.seo.homeDesc'), path: '/', jsonLd: [...orgJsonLd(), faqJsonLd(faq)] });
-  const rise = (i: number) => (reduce ? {} : { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay: 0.07 * i, ease: [0.22, 1, 0.36, 1] as const } });
+  usePageMeta(marketingHead('/', t));
+  // No intro animation when the page was pre-rendered (its content is already on screen) or while pre-rendering.
+  const rise = (i: number) => (reduce || PRERENDERED || import.meta.env.SSR ? {} : { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay: 0.07 * i, ease: [0.22, 1, 0.36, 1] as const } });
 
   return (
     <>
