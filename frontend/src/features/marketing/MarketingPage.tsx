@@ -5,6 +5,7 @@ import { Copy, Gift, Megaphone, Pencil, Plus, Send, Trash2 } from 'lucide-react'
 import { api, ApiError } from '@/lib/api';
 import { formatMoney } from '@/lib/format';
 import { useFeature } from '@/hooks/useSession';
+import { AutomationsTab } from './AutomationsTab';
 import { Alert, Badge, Dialog, EmptyState, Field, SkeletonRows, Spinner, toast, Toggle } from '@/components/ui';
 
 interface Coupon { id: number; code: string; description: string | null; type: 'flat' | 'percent'; value: string; max_discount: string | null; min_order: string; starts_at: string | null; ends_at: string | null; usage_limit: number | null; per_customer_limit: number | null; used_count: number; online: boolean; pos: boolean; is_public: boolean; is_active: boolean; discount_given?: string }
@@ -338,7 +339,7 @@ export default function MarketingPage() {
   const { t } = useTranslation();
   const hasCoupons = useFeature('coupons');
   const hasLoyalty = useFeature('loyalty');
-  const tabs = [...(hasCoupons ? ['coupons'] : []), ...(hasLoyalty ? ['loyalty', 'cards'] : []), ...(hasCoupons ? ['banners', 'campaigns'] : [])] as const;
+  const tabs = [...(hasCoupons ? ['coupons'] : []), ...(hasLoyalty ? ['loyalty', 'cards'] : []), ...(hasCoupons ? ['banners', 'campaigns', 'automations'] : [])] as const;
   const [tab, setTab] = useState<string>(tabs[0] ?? 'coupons');
   return (
     <div className="space-y-5">
@@ -357,6 +358,7 @@ export default function MarketingPage() {
       {tab === 'cards' && hasLoyalty && <GiftCardsTab />}
       {tab === 'banners' && hasCoupons && <BannersTab />}
       {tab === 'campaigns' && hasCoupons && <CampaignsTab />}
+      {tab === 'automations' && hasCoupons && <AutomationsTab />}
     </div>
   );
 }

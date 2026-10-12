@@ -28,7 +28,7 @@ export interface SiteContent {
   about_hi: string | null;
   milestones: Milestone[];
   contact: { phone: string | null; whatsapp: string | null; email: string | null; address: string | null; map_url: string | null; parking?: string | null };
-  socials: { instagram: string | null; facebook: string | null; youtube: string | null; google_maps: string | null };
+  socials: { instagram: string | null; facebook: string | null; youtube: string | null; google_maps: string | null; google_review?: string | null };
   seo: { description: string | null; description_hi: string | null };
   legal?: { fssai: string | null; show_gstin: boolean };
 }

@@ -243,7 +243,7 @@ function ContentTab() {
           {t('website.content.socialTitle')}
         </h2>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          {(['instagram', 'facebook', 'youtube', 'google_maps'] as const).map((k) => (
+          {(['instagram', 'facebook', 'youtube', 'google_maps', 'google_review'] as const).map((k) => (
             <Field key={k} label={t(`website.content.social.${k}`)} optional error={errors[`socials.${k}`]}>
               {(a) => <input {...a} type="url" placeholder="https://" className="field-input" value={form.socials[k] ?? ''} onChange={(e) => social(k, e.target.value)} />}
             </Field>

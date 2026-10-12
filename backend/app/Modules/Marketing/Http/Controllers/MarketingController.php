@@ -7,7 +7,9 @@ use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Marketing\Models\Banner;
 use App\Modules\Marketing\Models\Campaign;
 use App\Modules\Marketing\Models\Coupon;
+use App\Modules\Marketing\Models\AutomationSend;
 use App\Modules\Marketing\Models\CouponRedemption;
+use App\Modules\Marketing\Services\Automations;
 use App\Modules\Marketing\Services\Campaigns;
 use App\Modules\Tenancy\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
@@ -152,6 +154,29 @@ class MarketingController extends Controller
     }
 
     // ---------- Campaigns ----------
+
+    /** Automatic messages: settings, who would get each today, and how many went out in 30 days. */
+    public function automations(Automations $automations): JsonResponse
+    {
+        return $this->ok($this->automationsPayload($automations));
+    }
+
+    public function updateAutomations(Request $request, Automations $automations): JsonResponse
+    {
+        $automations->save($request->validate(Automations::rules()));
+        AuditLog::record('automations.updated', null, ['enabled' => collect(Automations::KINDS)->filter(fn ($k) => $request->boolean("{$k}.enabled"))->values()->all()]);
+
+        return $this->ok($this->automationsPayload($automations), 'Saved.');
+    }
+
+    private function automationsPayload(Automations $automations): array
+    {
+        return [
+            'settings' => $automations->get(),
+            'due_today' => $automations->due($this->context->require()),
+            'sent_30_days' => AutomationSend::where('sent_on', '>=', now()->subDays(30)->format('Y-m-d'))->get()->countBy('kind'),
+        ];
+    }
 
     public function campaigns(): JsonResponse
     {

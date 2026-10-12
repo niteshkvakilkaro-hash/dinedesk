@@ -262,7 +262,22 @@ export function FeedbackForm({ orderId, token, site }: { orderId: string; token:
   const [error, setError] = useState('');
   if (!status.data) return null;
   if (done || status.data.rating) {
-    return <p className="s-card p-5 font-semibold" role="status">{t('site.feedback.thanks')}</p>;
+    // The same invitation for every guest, whatever they rated (Google doesn't allow asking only happy guests).
+    const review = site.content.socials.google_review;
+    return (
+      <div className="s-card space-y-3 p-5" role="status">
+        <p className="font-semibold">{t('site.feedback.thanks')}</p>
+        {review && (
+          <>
+            <p className="s-small s-muted">{t('site.feedback.googleAsk', { name: site.name })}</p>
+            <a href={review} target="_blank" rel="noopener noreferrer" className="s-btn s-btn-secondary">
+              <Star className="h-4 w-4" aria-hidden="true" /> {t('site.feedback.google')}
+              <span className="sr-only"> ({t('common.opensInNewTab')})</span>
+            </a>
+          </>
+        )}
+      </div>
+    );
   }
   if (!status.data.can_rate) return null;
   const submit = async (e: React.FormEvent) => {

@@ -18,4 +18,7 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api', 'feature:coupo
     Route::get('campaigns', [MarketingController::class, 'campaigns']);
     Route::post('campaigns/audience', [MarketingController::class, 'audience']);
     Route::post('campaigns', [MarketingController::class, 'send'])->middleware('throttle:campaigns');
+
+    Route::get('automations', [MarketingController::class, 'automations']);
+    Route::put('automations', [MarketingController::class, 'updateAutomations']);
 });

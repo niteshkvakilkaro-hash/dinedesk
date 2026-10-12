@@ -14,7 +14,7 @@ class SiteContent
 {
     public const KEY = 'site_content';
 
-    public const SOCIALS = ['instagram', 'facebook', 'youtube', 'google_maps'];
+    public const SOCIALS = ['instagram', 'facebook', 'youtube', 'google_maps', 'google_review'];
 
     public function __construct(private readonly TenantSettings $settings) {}
 

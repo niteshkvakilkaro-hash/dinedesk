@@ -775,7 +775,9 @@
       "comment": "Anything to share? (optional)",
       "consent": "You may show my rating and comment on the website",
       "send": "Send feedback",
-      "thanks": "Thank you for your feedback!"
+      "thanks": "Thank you for your feedback!",
+      "googleAsk": "Would you also share your experience of {{name}} on Google? It helps other guests find us.",
+      "google": "Write a Google review"
     },
     "unsub": {
       "title": "Unsubscribe",
@@ -1031,7 +1033,8 @@
         "instagram": "Instagram",
         "facebook": "Facebook",
         "youtube": "YouTube",
-        "google_maps": "Google Business profile"
+        "google_maps": "Google Business profile",
+        "google_review": "Google review link"
       },
       "seoTitle": "Search engines",
       "seoHint": "The short description Google may show under your name. Up to 160 characters.",
@@ -2178,7 +2181,8 @@
       "loyalty": "Loyalty",
       "cards": "Gift cards",
       "banners": "Banners",
-      "campaigns": "Messages"
+      "campaigns": "Messages",
+      "automations": "Automatic"
     },
     "newCoupon": "New coupon",
     "editCoupon": "Edit {{code}}",
@@ -3298,5 +3302,28 @@
     "due": "Due",
     "void": "VOID",
     "thanks": "Thank you! Visit again."
+  },
+  "automations": {
+    "intro": "Switch these on once. Every morning at 10 they go to customers who said yes to offers (and, for birthdays and anniversaries, shared their dates). Each message has an unsubscribe link and nobody gets the same one twice.",
+    "channel": "Send by",
+    "channelHint": "SMS can't carry these in India (DLT rules), so WhatsApp or email.",
+    "email": "Email",
+    "birthday": {
+      "title": "Birthday wish",
+      "hint": "On the customer's birthday."
+    },
+    "anniversary": {
+      "title": "Anniversary wish",
+      "hint": "On the customer's anniversary."
+    },
+    "winback": {
+      "title": "We miss you",
+      "hint": "When a regular hasn't ordered for a while (once each time).",
+      "days": "Days without an order"
+    },
+    "on": "Send automatically",
+    "stats": "Would go to {{today}} today · {{sent}} sent in the last 30 days",
+    "message": "Message",
+    "messageHint": "{name} becomes the customer's first name. Add a coupon code if you like, e.g. use BDAY10."
   }
 }

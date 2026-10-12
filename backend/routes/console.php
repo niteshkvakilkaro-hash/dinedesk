@@ -90,6 +90,22 @@ Artisan::command('exports:purge', function () {
 
 Schedule::command('exports:purge')->dailyAt('04:00');
 
+// Automatic messages (birthday, anniversary, "we miss you") for live businesses that switched them on.
+Artisan::command('marketing:automations', function (TenantContext $context) {
+    $features = app(\App\Modules\Plans\Services\FeatureService::class);
+    $total = 0;
+    foreach (Tenant::where('status', 'live')->where('is_demo', false)->get() as $tenant) {
+        if (! $features->enabled($tenant, 'coupons')) {
+            continue;
+        }
+        $sent = $context->run($tenant, fn () => app(\App\Modules\Marketing\Services\Automations::class)->run($tenant));
+        $total += array_sum($sent);
+    }
+    $this->info("Sent {$total} automatic message(s).");
+})->purpose('Send birthday, anniversary and win-back messages to opted-in customers');
+
+Schedule::command('marketing:automations')->dailyAt('10:00')->timezone('Asia/Kolkata')->withoutOverlapping();
+
 // Nightly database backup (gzip) under storage/app/private/backups, older ones removed.
 // Copy them off the server too (see docs/DEPLOYMENT.md).
 Artisan::command('backup:database', function () {
