@@ -13,15 +13,16 @@ const errorsOf = (e: unknown) => (e instanceof ApiError && e.errors ? Object.fro
 
 /* ───────── Section ───────── */
 
-export function SectionEditor({ category, open, onClose }: { category: AdminCategory | null; open: boolean; onClose: () => void }) {
+export function SectionEditor({ category, open, onClose, stations = [] }: { category: AdminCategory | null; open: boolean; onClose: () => void; stations?: string[] }) {
   const { t } = useTranslation();
   const [name, setName] = useState(category?.name ?? '');
   const [nameHi, setNameHi] = useState(category?.name_hi ?? '');
   const [tax, setTax] = useState(category?.tax_rate ? String(Number(category.tax_rate)) : '');
   const [active, setActive] = useState(category?.is_active ?? true);
+  const [station, setStation] = useState(category?.station ?? '');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const save = useMenuMutation(async () => {
-    const body = { name, name_hi: nameHi || null, tax_rate: tax || null, is_active: active };
+    const body = { name, name_hi: nameHi || null, tax_rate: tax || null, station: station.trim() || null, is_active: active };
     return category ? api.put(`/tenant/menu/categories/${category.id}`, body) : api.post('/tenant/menu/categories', body);
   });
   return (
@@ -49,6 +50,16 @@ export function SectionEditor({ category, open, onClose }: { category: AdminCate
                 </option>
               ))}
             </select>
+          )}
+        </Field>
+        <Field label={t('menuAdmin.station')} hint={t('menuAdmin.stationHint')} optional error={errors.station}>
+          {(a) => (
+            <>
+              <input {...a} className="field-input" list="kitchen-stations" value={station} maxLength={30} placeholder={t('menuAdmin.stationPlaceholder')} onChange={(e) => setStation(e.target.value)} />
+              <datalist id="kitchen-stations">
+                {stations.map((s) => <option key={s} value={s} />)}
+              </datalist>
+            </>
           )}
         </Field>
         <label className="flex items-center gap-2 text-sm font-semibold">

@@ -74,6 +74,7 @@ class MenuPresenter
                 'name_hi' => $c->name_hi,
                 'slug' => $c->slug,
                 'tax_rate' => $c->tax_rate,
+                'station' => $c->station,
                 'is_active' => $c->is_active,
                 'is_demo' => $c->is_demo,
                 'items' => $c->items->map(fn ($i) => $this->item($i, true))->values(),

@@ -10,7 +10,7 @@ class MenuCategory extends Model
 {
     use BelongsToTenant;
 
-    protected $fillable = ['tenant_id', 'name', 'name_hi', 'slug', 'tax_rate', 'sort_order', 'is_active', 'is_demo'];
+    protected $fillable = ['tenant_id', 'name', 'name_hi', 'slug', 'tax_rate', 'station', 'sort_order', 'is_active', 'is_demo'];
 
     protected function casts(): array
     {

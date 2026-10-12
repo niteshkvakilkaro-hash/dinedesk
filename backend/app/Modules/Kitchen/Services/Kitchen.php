@@ -4,7 +4,10 @@ namespace App\Modules\Kitchen\Services;
 
 use App\Models\User;
 use App\Modules\Kitchen\Models\Kot;
+use App\Modules\Inventory\Services\Stock;
 use App\Modules\Kitchen\Models\KotItem;
+use App\Modules\Menu\Models\MenuCategory;
+use App\Modules\Menu\Models\MenuItem;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Services\OrderFlow;
 use App\Support\ApiException;
@@ -24,43 +27,56 @@ class Kitchen
     /** Ticket status → the order status it implies. */
     private const ORDER_FOR = ['preparing' => 'preparing', 'ready' => 'ready'];
 
-    /** Creates the ticket for an order (once). */
+    /**
+     * Creates the order's tickets (once): one per kitchen station, by each dish's menu section
+     * (sections without a station go to the main kitchen).
+     */
     public function createFor(Order $order): ?Kot
     {
         if (Kot::where('order_id', $order->id)->exists()) {
             return null;
         }
-        $kot = DB::transaction(function () use ($order) {
-            $last = Kot::lockForUpdate()->max('number');
-            $order->loadMissing('items');
-            $kot = Kot::create([
-                'order_id' => $order->id,
-                'number' => (int) $last + 1,
-                'status' => 'new',
-                'order_type' => $order->type,
-                'table_label' => $order->table_label,
-                'notes' => $order->notes,
-            ]);
-            foreach ($order->items as $item) {
-                KotItem::create([
-                    'kot_id' => $kot->id,
-                    'order_item_id' => $item->id,
-                    'name' => $item->name,
-                    'variant_name' => $item->variant_name,
-                    'addons' => $item->addons ? implode(', ', array_column($item->addons, 'name')) : null,
-                    'food_type' => $item->food_type,
-                    'quantity' => $item->quantity,
-                    'notes' => $item->notes,
+        $order->loadMissing('items');
+        $stationOf = MenuItem::whereIn('id', $order->items->pluck('menu_item_id')->filter())->with('category:id,station')->get()
+            ->mapWithKeys(fn (MenuItem $m) => [$m->id => $m->category?->station ?: null]);
+        $groups = $order->items->groupBy(fn ($i) => (string) ($stationOf[$i->menu_item_id] ?? ''));
+        $kots = DB::transaction(function () use ($order, $groups) {
+            $last = (int) Kot::lockForUpdate()->max('number');
+            $made = [];
+            foreach ($groups->sortKeys() as $station => $items) {
+                $kot = Kot::create([
+                    'order_id' => $order->id,
+                    'number' => ++$last,
+                    'status' => 'new',
+                    'order_type' => $order->type,
+                    'station' => $station === '' ? null : $station,
+                    'table_label' => $order->table_label,
+                    'notes' => $order->notes,
                 ]);
+                foreach ($items as $item) {
+                    KotItem::create([
+                        'kot_id' => $kot->id,
+                        'order_item_id' => $item->id,
+                        'name' => $item->name,
+                        'variant_name' => $item->variant_name,
+                        'addons' => $item->addons ? implode(', ', array_column($item->addons, 'name')) : null,
+                        'food_type' => $item->food_type,
+                        'quantity' => $item->quantity,
+                        'notes' => $item->notes,
+                    ]);
+                }
+                $made[] = $kot;
             }
 
-            return $kot;
+            return $made;
         });
-        $this->emit($kot, 'kot.created');
+        foreach ($kots as $kot) {
+            $this->emit($kot, 'kot.created');
+        }
         // Raw materials leave the store when the kitchen gets the order.
-        app(\App\Modules\Inventory\Services\Stock::class)->consume($order);
+        app(Stock::class)->consume($order);
 
-        return $kot;
+        return $kots[0] ?? null;
     }
 
     /** Kitchen moves a ticket on (the order follows). */
@@ -85,9 +101,16 @@ class Kitchen
                 return; // serving / recalling doesn't change the order
             }
             $order = Order::whereKey($kot->order_id)->first();
-            if ($order && $order->isActive()) {
-                $this->advanceOrder($order, self::ORDER_FOR[$to], $by);
+            if (! $order || ! $order->isActive()) {
+                return;
             }
+            // With several stations the order is ready only when every station's ticket is.
+            if ($to === 'ready' && Kot::where('order_id', $order->id)->whereIn('status', ['new', 'preparing'])->exists()) {
+                $this->advanceOrder($order, 'preparing', $by);
+
+                return;
+            }
+            $this->advanceOrder($order, self::ORDER_FOR[$to], $by);
         });
         $this->emit($kot->fresh(), 'kot.changed');
 
@@ -108,10 +131,6 @@ class Kitchen
      */
     public function syncFromOrder(Order $order): void
     {
-        $kot = Kot::where('order_id', $order->id)->first();
-        if (! $kot) {
-            return;
-        }
         $target = match ($order->status) {
             'preparing' => 'preparing',
             'ready', 'out_for_delivery' => 'ready',
@@ -120,9 +139,11 @@ class Kitchen
             default => null,
         };
         $rank = ['new' => 0, 'preparing' => 1, 'ready' => 2, 'served' => 3, 'cancelled' => 4];
-        if ($target && $rank[$target] > $rank[$kot->status]) {
-            $this->setStatus($kot, $target);
-            $this->emit($kot, 'kot.changed');
+        foreach (Kot::where('order_id', $order->id)->get() as $kot) {
+            if ($target && $rank[$target] > $rank[$kot->status]) {
+                $this->setStatus($kot, $target);
+                $this->emit($kot, 'kot.changed');
+            }
         }
     }
 
@@ -133,6 +154,8 @@ class Kitchen
         $served = Kot::with('items')->where('status', 'served')->where('served_at', '>', now()->subMinutes(30))->orderByDesc('served_at')->limit(12)->get();
 
         return [
+            // Every station named on the menu, for the screen's station picker.
+            'stations' => MenuCategory::whereNotNull('station')->distinct()->orderBy('station')->pluck('station')->values(),
             'tickets' => $active->map(fn (Kot $k) => $this->present($k))->values(),
             'served' => $served->map(fn (Kot $k) => $this->present($k))->values(),
         ];
@@ -146,6 +169,7 @@ class Kitchen
             'order_id' => $k->order_id,
             'status' => $k->status,
             'order_type' => $k->order_type,
+            'station' => $k->station,
             'table_label' => $k->table_label,
             'notes' => $k->notes,
             'created_at' => $k->created_at->toIso8601String(),

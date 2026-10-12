@@ -18,6 +18,8 @@ interface Ticket {
   order_number: number | null;
   status: 'new' | 'preparing' | 'ready' | 'served' | 'cancelled';
   order_type: 'dine_in' | 'takeaway' | 'delivery';
+  /** Kitchen station (Tandoor, Bar …); null = the main kitchen. */
+  station: string | null;
   table_label: string | null;
   notes: string | null;
   created_at: string;
@@ -26,6 +28,8 @@ interface Ticket {
   served_at: string | null;
   items: { id: number; name: string; variant_name: string | null; addons: string | null; food_type: 'veg' | 'non_veg' | 'egg'; quantity: number; notes: string | null; done: boolean }[];
 }
+
+const MAIN = '__main';
 
 const NEXT: Record<string, 'preparing' | 'ready' | 'served' | null> = { new: 'preparing', preparing: 'ready', ready: 'served' };
 const DOT = { veg: 'bg-[#2E9A55]', non_veg: 'bg-[#C0392B]', egg: 'bg-[#D69E2E]' };
@@ -73,6 +77,7 @@ function TicketCard({ ticket, now, business }: { ticket: Ticket; now: number; bu
             K-{ticket.number}
             {ticket.order_number && ` · #${ticket.order_number}`}
             {ticket.table_label && ` · ${t(`order.type.${ticket.order_type}`)}`}
+            {ticket.station && ` · ${ticket.station}`}
           </p>
         </div>
         <span className="flex items-center gap-1">
@@ -133,7 +138,7 @@ export default function KitchenDisplay() {
   const [recall, setRecall] = useState(false);
   const board = useQuery({
     queryKey: ['kds'],
-    queryFn: async () => (await api.get<{ tickets: Ticket[]; served: Ticket[] }>('/tenant/kitchen/tickets')).data,
+    queryFn: async () => (await api.get<{ stations: string[]; tickets: Ticket[]; served: Ticket[] }>('/tenant/kitchen/tickets')).data,
     enabled: can && hasKds,
     refetchInterval: interval,
     refetchIntervalInBackground: true,
@@ -156,7 +161,25 @@ export default function KitchenDisplay() {
     onError: (e) => toast.error(e.message),
   });
 
-  const tickets = board.data?.tickets ?? [];
+  // This screen's station (saved on the device): '' = every ticket, MAIN = the main kitchen.
+  const [station, setStationState] = useState(() => {
+    try {
+      return localStorage.getItem('dd_kds_station') ?? '';
+    } catch {
+      return '';
+    }
+  });
+  const setStation = (v: string) => {
+    setStationState(v);
+    try {
+      localStorage.setItem('dd_kds_station', v);
+    } catch {
+      /* private mode */
+    }
+  };
+  const stations = board.data?.stations ?? [];
+  const mine = (k: Ticket) => station === '' || (station === MAIN ? !k.station : k.station === station);
+  const tickets = (board.data?.tickets ?? []).filter(mine);
   const columns: { key: Ticket['status']; title: string }[] = [
     { key: 'new', title: t('kds.col.new') },
     { key: 'preparing', title: t('kds.col.preparing') },
@@ -177,6 +200,17 @@ export default function KitchenDisplay() {
         </span>
         <div className="ml-auto flex items-center gap-2">
           <span className="text-lg font-bold tabular-nums">{new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit' }).format(now)}</span>
+          {stations.length > 0 && (
+            <select className="min-h-11 rounded-lg border border-[#3a342e] bg-[#1c1916] px-3 text-sm font-semibold" value={station} onChange={(e) => setStation(e.target.value)} aria-label={t('kds.station')}>
+              <option value="">{t('kds.allStations')}</option>
+              <option value={MAIN}>{t('kds.mainKitchen')}</option>
+              {stations.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          )}
           <PrinterButton business={session?.tenant?.name ?? ''} showKot={false} showBill={false} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-white/10" />
           <button type="button" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-white/10" onClick={() => setRecall(!recall)} aria-expanded={recall}>
             <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('kds.recall')}
@@ -199,7 +233,7 @@ export default function KitchenDisplay() {
               <p className="mb-2 text-sm text-[#bfb6ab]">{t('kds.recallHint')}</p>
               <div className="flex flex-wrap gap-2">
                 {(board.data?.served ?? []).length === 0 && <span className="text-sm">{t('kds.nothingServed')}</span>}
-                {(board.data?.served ?? []).map((k) => (
+                {(board.data?.served ?? []).filter(mine).map((k) => (
                   <button key={k.id} type="button" className="rounded-lg bg-[#2a2520] px-3 py-2 text-sm font-semibold hover:bg-[#3a342e]" onClick={() => recallMutation.mutate(k.id)}>
                     K-{k.number} · {k.table_label ?? t(`order.type.${k.order_type}`)}
                   </button>

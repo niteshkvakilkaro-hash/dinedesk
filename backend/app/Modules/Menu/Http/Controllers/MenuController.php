@@ -279,6 +279,7 @@ class MenuController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'name_hi' => ['nullable', 'string', 'max:100'],
             'tax_rate' => ['nullable', Rule::in(self::TAX_RATES)],
+            'station' => ['nullable', 'string', 'max:30'],
             'is_active' => ['required', 'boolean'],
         ];
     }
@@ -289,6 +290,8 @@ class MenuController extends Controller
             'name' => strip_tags($d['name']),
             'name_hi' => isset($d['name_hi']) ? strip_tags($d['name_hi']) : null,
             'tax_rate' => $d['tax_rate'] ?? null,
+            // Kitchen station for this section's dishes (blank = the main kitchen).
+            'station' => isset($d['station']) && trim($d['station']) !== '' ? mb_substr(strip_tags(trim($d['station'])), 0, 30) : null,
             'is_active' => $d['is_active'],
         ];
     }

@@ -236,7 +236,7 @@ export default function MenuPage() {
         </div>
       )}
 
-      {section.open && <SectionEditor key={section.category?.id ?? 'new'} category={section.category} open onClose={() => setSection({ open: false, category: null })} />}
+      {section.open && <SectionEditor key={section.category?.id ?? 'new'} category={section.category} stations={[...new Set(data.categories.map((c) => c.station).filter((s): s is string => !!s))]} open onClose={() => setSection({ open: false, category: null })} />}
       {dish.open && <DishEditor key={dish.item?.id ?? `new-${dish.categoryId}`} menu={data} allergens={meta.allergens} item={dish.item} categoryId={dish.categoryId} open onClose={() => setDish({ open: false, item: null, categoryId: 0 })} />}
       {group.open && <GroupEditor key={group.group?.id ?? 'new'} group={group.group} open onClose={() => setGroup({ open: false, group: null })} />}
       {importing && <ImportDialog open onClose={() => setImporting(false)} />}

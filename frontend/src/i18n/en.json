@@ -1598,7 +1598,10 @@
     "importNow_other": "Import {{count}} dishes",
     "imported": "{{count}} dishes imported.",
     "diets": "Diet labels",
-    "dietsHint": "Shown on the dish and used by the menu filters. Jain, vegan and no onion/garlic are for veg dishes only. Only tick what is true for this dish."
+    "dietsHint": "Shown on the dish and used by the menu filters. Jain, vegan and no onion/garlic are for veg dishes only. Only tick what is true for this dish.",
+    "station": "Kitchen station",
+    "stationHint": "Dishes in this section get their own ticket for this station (e.g. Tandoor, Bar). Leave empty for the main kitchen.",
+    "stationPlaceholder": "Main kitchen"
   },
   "orderingAdmin": {
     "title": "Online ordering",
@@ -1933,7 +1936,10 @@
       "served": "Served"
     },
     "minutes_one": "{{count}} minute",
-    "minutes_other": "{{count}} minutes"
+    "minutes_other": "{{count}} minutes",
+    "station": "Station",
+    "allStations": "All stations",
+    "mainKitchen": "Main kitchen"
   },
   "pos": {
     "title": "POS",

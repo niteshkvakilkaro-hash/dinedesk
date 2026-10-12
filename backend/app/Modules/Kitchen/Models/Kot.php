@@ -15,7 +15,7 @@ class Kot extends Model
 
     public const ACTIVE = ['new', 'preparing', 'ready'];
 
-    protected $fillable = ['tenant_id', 'order_id', 'number', 'status', 'order_type', 'table_label', 'notes', 'started_at', 'ready_at', 'served_at'];
+    protected $fillable = ['tenant_id', 'order_id', 'number', 'status', 'order_type', 'station', 'table_label', 'notes', 'started_at', 'ready_at', 'served_at'];
 
     protected function casts(): array
     {

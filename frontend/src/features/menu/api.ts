@@ -43,6 +43,8 @@ export interface AdminCategory {
   name_hi: string | null;
   slug: string;
   tax_rate: string | null;
+  /** Kitchen station for this section (null = main kitchen). */
+  station: string | null;
   is_active: boolean;
   is_demo: boolean;
   items: AdminItem[];
