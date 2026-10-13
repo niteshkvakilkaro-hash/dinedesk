@@ -26,6 +26,7 @@ import BookingsPage from './order/BookingsPage';
 import MyOrdersPage from './order/MyOrdersPage';
 import { EventsPage, RoomCheckout, RoomLanding, RoomsPage, StayLookupPage, StayPage } from './ui/HotelPages';
 import { useActiveRoom } from './hotel';
+import { showApp } from '@/lib/prerender';
 import { useOpenLabel } from './components/bits';
 import type { SectionKey, SiteData } from './types';
 
@@ -260,10 +261,20 @@ export default function SiteApp() {
     );
   }
 
+  return <SiteBody site={site} def={def} module={module} style={style} reduce={reduce} />;
+}
+
+/**
+ * The website itself, once its data and theme are ready. The browser app and the server-side
+ * renderer (src/prerender-site.tsx) both use it, so the HTML sent first is the page the app shows.
+ */
+export function SiteBody({ site, def, module, style, reduce, helmetContext }: { site: SiteData; def: ReturnType<typeof getTheme>; module: ThemeModule; style: CSSProperties; reduce: boolean; helmetContext?: object }) {
+  // Server-rendered HTML stays on screen until this first paint, then the app takes over.
+  useEffect(() => showApp(), []);
   const { pages } = module;
   const look = def.style;
   return (
-    <HelmetProvider>
+    <HelmetProvider context={helmetContext}>
       <div
         style={style}
         className={`site-root theme-${def.key} min-h-screen bg-t-bg font-body text-t-text`}

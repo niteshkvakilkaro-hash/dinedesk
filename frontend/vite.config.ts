@@ -12,6 +12,8 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
+    // dist/.vite/manifest.json: the site SSR server links a theme's font CSS in the first HTML.
+    build: { manifest: true },
     server: {
       port: 5173,
       host: true,

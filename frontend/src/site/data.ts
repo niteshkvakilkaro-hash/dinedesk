@@ -5,6 +5,12 @@ import { api, ApiError } from '@/lib/api';
 import { openStatus } from '@/lib/openStatus';
 import type { GalleryItem, MenuCategory, MenuItem, SiteData } from './types';
 
+/** Data the server-side renderer already used for this page (window.__ddSsr), so the app starts with it. */
+function ssr<T>(key: 'site' | 'menu' | 'gallery' | 'hotel'): T | undefined {
+  if (typeof window === 'undefined') return undefined;
+  return (window.__ddSsr?.[key] ?? undefined) as T | undefined;
+}
+
 const noRetryOn404 = (count: number, e: unknown) => !(e instanceof ApiError && e.status === 404) && count < 1;
 
 export function useSite() {
@@ -17,6 +23,7 @@ export function useSite() {
       // On any problem fall back to a normal request, which reports errors properly.
       return res?.data ? (res.data as SiteData) : (await api.get<SiteData>('/site')).data;
     },
+    initialData: () => ssr<SiteData>('site'),
     retry: noRetryOn404,
     staleTime: 60_000,
   });
@@ -26,6 +33,7 @@ export function useSiteMenu() {
   return useQuery({
     queryKey: ['site', 'menu'],
     queryFn: async () => (await api.get<MenuCategory[]>('/site/menu')).data,
+    initialData: () => ssr<MenuCategory[]>('menu'),
     retry: noRetryOn404,
     staleTime: 5 * 60_000,
   });
@@ -35,6 +43,7 @@ export function useSiteGallery(enabled = true) {
   return useQuery({
     queryKey: ['site', 'gallery'],
     queryFn: async () => (await api.get<GalleryItem[]>('/site/gallery')).data,
+    initialData: () => ssr<GalleryItem[]>('gallery'),
     retry: noRetryOn404,
     staleTime: 5 * 60_000,
     enabled,

@@ -14,6 +14,8 @@
         if (d.charAt(0) === '%') d = 'localhost';
         if (api.charAt(0) === '%') api = '';
         if ([d, 'app.' + d, 'www.' + d, '127.0.0.1'].indexOf(h) !== -1) return;
+        // Server-rendered page: its data is already in window.__ddSsr.
+        if (window.__ddSsr) return;
         window.__ddSite = fetch(api.replace(/\/$/, '') + '/api/v1/site', { headers: { Accept: 'application/json', 'X-Tenant-Host': location.host } })
           .then(function (r) { return r.ok ? r.json() : null; })
           .catch(function () { return null; });

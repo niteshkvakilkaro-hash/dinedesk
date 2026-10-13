@@ -466,6 +466,15 @@
     opacity: 1;
     transform: none;
   }
+  /* Server-rendered visit: the first HTML is already the page, so nothing waits to fade in
+     (no hidden content before the app loads, no jump when it takes over). */
+  html[data-ssr] .s-reveal,
+  html[data-ssr] .s-reveal .s-media img,
+  html[data-ssr] .s-media.s-reveal img {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
   [data-reduce-motion] .s-reveal,
   [data-reduce-motion] .s-reveal .s-media img,
   [data-reduce-motion] .s-media.s-reveal img {

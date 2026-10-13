@@ -129,7 +129,14 @@ export interface GuestStay {
 }
 
 export function useHotel(enabled = true) {
-  return useQuery({ queryKey: ['site', 'hotel'], queryFn: async () => (await api.get<HotelPublic>('/site/hotel')).data, enabled, staleTime: 60_000 });
+  return useQuery({
+    queryKey: ['site', 'hotel'],
+    queryFn: async () => (await api.get<HotelPublic>('/site/hotel')).data,
+    // Server-rendered pages already have it.
+    initialData: () => (typeof window !== 'undefined' ? (window.__ddSsr?.hotel as HotelPublic | undefined) : undefined),
+    enabled,
+    staleTime: 60_000,
+  });
 }
 
 export function useStayAvailability(search: { check_in: string; check_out: string; adults: number; children: number } | null) {

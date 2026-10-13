@@ -129,6 +129,14 @@ pages) into `dist/_marketing/…/index.html`, so search engines get real HTML. W
 `PRERENDER_API_URL` the plan cards are filled in too (run it once the API is up; without it
 they load in the browser). Nginx below serves those files on the platform domain only.
 
+It also builds the **server-side renderer for business websites** (`dist-site-ssr/`). The small
+Node server `scripts/site-server.mjs` (run by Supervisor, section 7) renders each business's public
+pages (home, menu, about, gallery, contact, rooms, events, offers, tiffin, book a table) to HTML
+from the API, keeps each page for 60 seconds, and Nginx sends business-site pages to it. Visitors
+see the page before any JavaScript runs (much faster first paint on phones, and real HTML for
+search engines); the app then takes over the same page. If the renderer is down or a page can't be
+rendered, the normal app is served, so websites keep working.
+
 ## 5. Nginx (behind Caddy, plain HTTP on 127.0.0.1:8081)
 
 `/etc/nginx/sites-available/dinedesk`:
@@ -173,12 +181,33 @@ server {
     }
     # The React app (business websites, dashboard, platform panel)
     location /assets/ { expires 1y; add_header Cache-Control "public, immutable"; }
-    location / { try_files $marketing$uri/index.html $uri /index.html; }
+    location / { try_files $marketing$uri/index.html $uri @page; }
+    # Pages: the platform gets the app; business websites go through the server-side renderer,
+    # and fall back to the app if it is down.
+    location @page {
+        if ($platform) { rewrite ^ /index.html break; }
+        proxy_pass http://127.0.0.1:3005;
+        proxy_set_header Host $host;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout 8s;
+        error_page 502 503 504 = /index.html;
+    }
+}
+```
+
+Add next to the `$marketing` map:
+
+```nginx
+map $host $platform {
+    dinedesk.in      1;
+    www.dinedesk.in  1;
+    app.dinedesk.in  1;
+    default          0;
 }
 ```
 
 Check: `curl -s https://dinedesk.in/pricing | grep -o '<h1[^<]*'` shows the page heading
-(pre-rendered), and `curl -s https://<any-business>.dinedesk.in/ | grep -c prerender` prints 0.
+(pre-rendered), and `curl -sI https://<any-business>.dinedesk.in/ | grep -i x-ssr` shows `X-SSR: hit` (server-rendered business page).
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/dinedesk /etc/nginx/sites-enabled/ && sudo rm -f /etc/nginx/sites-enabled/default
@@ -245,7 +274,19 @@ user=www-data
 autostart=true
 autorestart=true
 stdout_logfile=/var/log/dinedesk-reverb.log
+
+[program:site-ssr]
+command=node /var/www/dinedesk/frontend/scripts/site-server.mjs
+directory=/var/www/dinedesk/frontend
+environment=SITE_SSR_API="http://127.0.0.1:8081/api/v1",SITE_SSR_PORT="3005"
+user=www-data
+autostart=true
+autorestart=true
+stdout_logfile=/var/log/dinedesk-site-ssr.log
 ```
+
+After every frontend build, `sudo supervisorctl restart site-ssr` (it loads the new build).
+Check: `curl -sI https://<any-business>.dinedesk.in/ | grep -i x-ssr` shows `X-SSR: hit`.
 
 Without Horizon, use `command=php artisan queue:work redis --sleep=1 --tries=3 --max-time=3600` with `numprocs=2`.
 
@@ -289,7 +330,7 @@ Each business connects its **own** Razorpay account for customer payments (Dashb
 cd /var/www/dinedesk && git pull
 cd backend && composer install --no-dev --optimize-autoloader && php artisan migrate --force
 php artisan config:cache && php artisan route:cache && php artisan view:cache
-php artisan horizon:terminate && sudo supervisorctl restart reverb
+php artisan horizon:terminate && sudo supervisorctl restart reverb site-ssr
 cd ../frontend && npm ci && npm run build
 ```
 

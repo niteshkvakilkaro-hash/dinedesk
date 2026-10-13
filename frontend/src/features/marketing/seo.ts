@@ -1,3 +1,4 @@
+import { showApp } from '@/lib/prerender';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -73,12 +74,7 @@ function setMeta(attr: string, key: string, value: string) {
  * The page arrived pre-rendered: the HTML stayed on screen (in #prerender) while the app
  * loaded. Now that the app shows the same page, swap it in.
  */
-export function showApp() {
-  if (typeof document === 'undefined') return;
-  document.getElementById('prerender')?.remove();
-  const root = document.getElementById('root');
-  if (root) root.style.display = '';
-}
+export { showApp };
 
 /** Keeps <head> in step with the page as people move around the marketing site. */
 export function usePageMeta(head: PageHead) {
