@@ -9,7 +9,8 @@ class BillPayment extends Model
 {
     use BelongsToTenant;
 
-    public const MODES = ['cash', 'upi', 'card', 'gift_card', 'online', 'other'];
+    // app = paid to Swiggy / Zomato, who settle with the restaurant later.
+    public const MODES = ['cash', 'upi', 'card', 'gift_card', 'online', 'other', 'app'];
 
     public $timestamps = false;
 

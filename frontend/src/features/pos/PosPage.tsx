@@ -18,6 +18,8 @@ import { OfflineBar, OfflineCharge } from './OfflinePanel';
 import { useAutoSync, type OfflinePack } from './offline';
 import { registerDashboardWorker } from '@/lib/push';
 
+const APP_NAMES = { swiggy: 'Swiggy', zomato: 'Zomato' } as const;
+
 function useAgo() {
   const { t } = useTranslation();
   return (iso: string) => t('orders.minutesAgo', { count: Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000)) });
@@ -37,8 +39,35 @@ function Ticket({ lines, setLines, onBill, online, tenant, pack }: { lines: Tick
   const [error, setError] = useState('');
   // No connection: counter sales are paid and kept on this device.
   const [offlineCharge, setOfflineCharge] = useState(false);
+  // Swiggy / Zomato: the order came through an app (paid there), entered here for the kitchen and the books.
+  const apps = online && type === 'takeaway' ? (pack?.apps ?? []) : [];
+  const [channel, setChannel] = useState<'' | 'swiggy' | 'zomato'>('');
+  const [channelRef, setChannelRef] = useState('');
+  const viaApp = channel !== '' && apps.includes(channel);
   const subtotal = lines.reduce((n, l) => n + l.unit * l.quantity, 0);
   const count = lines.reduce((n, l) => n + l.quantity, 0);
+  const appOrder = useMutation<{ data: { number: number; bill: string }; message: string | null }, ApiError>({
+    mutationFn: () =>
+      api.post('/tenant/pos/app-orders', {
+        channel,
+        channel_ref: channelRef.trim() || null,
+        customer: customer.name || customer.phone ? { name: customer.name || null, phone: customer.phone || null } : null,
+        notes: notes || null,
+        items: lines.map((l) => ({ item_id: l.item_id, variant_id: l.variant_id, addon_ids: l.addon_ids, quantity: l.quantity, notes: l.notes || null })),
+      }),
+    onSuccess: (res) => {
+      toast.success(t('pos.apps.saved', { app: APP_NAMES[channel as 'swiggy'], number: res.data.number, bill: res.data.bill }));
+      const prefs = printerPrefs();
+      if (prefs.autoKot) {
+        const slip = kotSlip({ business, order: res.data.number, type: 'takeaway', table: null, at: new Date(), notes: [APP_NAMES[channel as 'swiggy'], channelRef.trim(), notes].filter(Boolean).join(' · '), items: lines.map((l) => ({ quantity: l.quantity, name: l.name, detail: l.detail, notes: l.notes })) }, t, i18n.language ?? 'en');
+        printSlip(slipDocument(slip, prefs.width, `KOT #${res.data.number}`));
+      }
+      clear();
+      setChannelRef('');
+      for (const k of ['pos-open', 'orders']) void qc.invalidateQueries({ queryKey: [k] });
+    },
+    onError: (e) => setError(e.errors ? Object.values(e.errors)[0][0] : e.message),
+  });
 
   const place = useMutation<{ data: { id: number; number: number } }, ApiError, 'kot' | 'charge'>({
     mutationFn: () =>
@@ -104,6 +133,18 @@ function Ticket({ lines, setLines, onBill, online, tenant, pack }: { lines: Tick
           </select>
         </label>
       )}
+      {apps.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={t('pos.apps.label')}>
+            {(['', ...apps] as const).map((c) => (
+              <button key={c || 'counter'} type="button" role="radio" aria-checked={channel === c} onClick={() => setChannel(c)} className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${channel === c ? 'border-ink bg-ink text-paper' : 'border-line'}`}>
+                {c ? APP_NAMES[c] : t('pos.apps.counter')}
+              </button>
+            ))}
+          </div>
+          {viaApp && <input className="field-input !py-2" placeholder={t('pos.apps.ref', { app: APP_NAMES[channel as 'swiggy'] })} aria-label={t('pos.apps.ref', { app: APP_NAMES[channel as 'swiggy'] })} maxLength={40} value={channelRef} onChange={(e) => setChannelRef(e.target.value)} />}
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-2">
         <input className="field-input !py-2" placeholder={t('pos.customerName')} aria-label={t('pos.customerName')} value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} />
         <input className="field-input !py-2" type="tel" placeholder={t('pos.customerPhone')} aria-label={t('pos.customerPhone')} value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} />
@@ -141,6 +182,11 @@ function Ticket({ lines, setLines, onBill, online, tenant, pack }: { lines: Tick
       </div>
       <p className="-mt-3 text-right text-xs text-muted">{t('pos.gstOnBill')}</p>
       {error && <Alert>{error}</Alert>}
+      {viaApp ? (
+        <button type="button" className="btn-primary" disabled={!lines.length || appOrder.isPending} onClick={() => appOrder.mutate()}>
+          {appOrder.isPending ? <Spinner /> : t('pos.apps.save', { app: APP_NAMES[channel as 'swiggy'] })}
+        </button>
+      ) : (
       <div className="grid grid-cols-2 gap-2">
         <button type="button" className="btn-outline" disabled={!lines.length || place.isPending || (type === 'dine_in' && !tableId) || !online} title={online ? undefined : t('pos.offline.kotNeedsNet')} onClick={() => place.mutate('kot')}>
           <Send className="h-4 w-4" aria-hidden="true" /> {t('pos.sendKot')}
@@ -149,6 +195,8 @@ function Ticket({ lines, setLines, onBill, online, tenant, pack }: { lines: Tick
           {place.isPending ? <Spinner /> : t('pos.charge')}
         </button>
       </div>
+      )}
+      {viaApp && <p className="-mt-2 text-center text-xs text-muted">{t('pos.apps.hint')}</p>}
       {offlineCharge && tenant && (
         <OfflineCharge tenant={tenant} business={business} lines={lines} pack={pack} customer={customer} notes={notes} onDone={clear} onClose={() => setOfflineCharge(false)} />
       )}

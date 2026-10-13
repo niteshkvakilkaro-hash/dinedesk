@@ -40,10 +40,19 @@ class ProfitAndLoss
 
         // Restaurant: paid / payable orders, without GST.
         $food = 0;
+        // Swiggy / Zomato: their share of the sales, and the commission they keep (an expense).
+        $apps = [];
+        $commission = 0;
         foreach ($this->analytics->orders($tenant, $from, $to)->filter(fn (Order $o) => Analytics::counts($o)) as $o) {
             $p = Money::toPaise($o->total) - Money::toPaise($o->tax_total);
             $food += $p;
-            $days[CarbonImmutable::parse($o->placed_at)->setTimezone($tz)->format('Y-m-d')]['revenue'] += $p;
+            $day = CarbonImmutable::parse($o->placed_at)->setTimezone($tz)->format('Y-m-d');
+            $days[$day]['revenue'] += $p;
+            if ($o->channel) {
+                $apps[$o->channel] = ($apps[$o->channel] ?? 0) + $p;
+                $commission += Money::toPaise($o->commission);
+                $days[$day]['expenses'] += Money::toPaise($o->commission);
+            }
         }
         // Rooms: each night sold in the period at its own price (before GST).
         $rooms = 0;
@@ -79,7 +88,11 @@ class ProfitAndLoss
         foreach ($expenses as $e) {
             $days[$e->date->format('Y-m-d')]['expenses'] += Money::toPaise($e->amount);
         }
-        $exp = (int) $expenses->sum(fn ($e) => Money::toPaise($e->amount));
+        $byCategory = $expenses->groupBy('category')->map(fn ($rows, $k) => ['category' => $k, 'amount' => Money::toRupees((int) $rows->sum(fn ($e) => Money::toPaise($e->amount)))]);
+        if ($commission > 0) {
+            $byCategory->put('app_commission', ['category' => 'app_commission', 'amount' => Money::toRupees($commission)]);
+        }
+        $exp = (int) $expenses->sum(fn ($e) => Money::toPaise($e->amount)) + $commission;
         $revenue = $food + $rooms + $tiffin;
         $gross = $revenue - $cogs;
 
@@ -92,8 +105,10 @@ class ProfitAndLoss
             'gross_profit' => Money::toRupees($gross),
             'expenses' => [
                 'total' => Money::toRupees($exp),
-                'by_category' => $expenses->groupBy('category')->map(fn ($rows, $k) => ['category' => $k, 'amount' => Money::toRupees((int) $rows->sum(fn ($e) => Money::toPaise($e->amount)))])->sortByDesc(fn ($r) => (float) $r['amount'])->values(),
+                'by_category' => $byCategory->sortByDesc(fn ($r) => (float) $r['amount'])->values(),
             ],
+            // Sales through each delivery app (before GST), within restaurant sales.
+            'apps' => collect($apps)->map(fn ($p, $k) => ['app' => $k, 'sales' => Money::toRupees($p)])->values(),
             'net_profit' => Money::toRupees($gross - $exp),
             'margin_percent' => $revenue > 0 ? round(($gross - $exp) / $revenue * 100, 1) : null,
             'series' => array_values(array_map(fn ($d) => ['date' => $d['date'], 'revenue' => Money::toRupees($d['revenue']), 'food_cost' => Money::toRupees($d['food_cost']), 'expenses' => Money::toRupees($d['expenses']), 'profit' => Money::toRupees($d['revenue'] - $d['food_cost'] - $d['expenses'])], $days)),

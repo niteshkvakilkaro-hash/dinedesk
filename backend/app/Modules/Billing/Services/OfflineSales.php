@@ -41,6 +41,8 @@ class OfflineSales
             'prices_include_tax' => (bool) $s['prices_include_tax'],
             'packaging_fee' => Money::toPaise($s['packaging_fee']),
             'rates' => $rates,
+            // Delivery apps the counter can enter orders for (Swiggy, Zomato).
+            'apps' => array_keys(array_filter($s['apps'] ?? [], fn ($a) => $a['enabled'])),
             'at' => now()->toIso8601String(),
         ];
     }

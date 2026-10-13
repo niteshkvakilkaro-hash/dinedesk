@@ -20,6 +20,7 @@ interface OrderingSettings {
   location: { lat: number | null; lng: number | null };
   notifications: { email: boolean; whatsapp: boolean; sms: boolean };
   whatsapp_orders?: boolean;
+  apps?: Record<'swiggy' | 'zomato', { enabled: boolean; commission: number }>;
 }
 
 interface Zone {
@@ -173,6 +174,24 @@ export default function OrderingSettingsPage() {
       <section className="card p-5">
         <Toggle checked={!!s.whatsapp_orders} onChange={(v) => up({ whatsapp_orders: v })} label={t('orderingAdmin.waOrders')} hint={s.accepting_orders ? t('orderingAdmin.waOrdersOnline') : t('orderingAdmin.waOrdersHint')} />
         {s.whatsapp_orders && !data.whatsapp_number && <div className="mt-3"><Alert tone="warn">{t('orderingAdmin.waOrdersNoNumber')}</Alert></div>}
+      </section>
+
+      <section className="card space-y-3 p-5" aria-labelledby="apps-h">
+        <h2 id="apps-h" className="text-lg font-bold">{t('orderingAdmin.apps')}</h2>
+        <p className="text-sm text-muted">{t('orderingAdmin.appsHint')}</p>
+        {(['swiggy', 'zomato'] as const).map((k) => {
+          const a = s.apps?.[k] ?? { enabled: false, commission: 0 };
+          const set = (patch: Partial<typeof a>) => up({ apps: { swiggy: s.apps?.swiggy ?? { enabled: false, commission: 0 }, zomato: s.apps?.zomato ?? { enabled: false, commission: 0 }, [k]: { ...a, ...patch } } });
+          return (
+            <div key={k} className="flex flex-wrap items-center gap-4">
+              <div className="min-w-48 flex-1"><Toggle checked={a.enabled} onChange={(v) => set({ enabled: v })} label={k === 'swiggy' ? 'Swiggy' : 'Zomato'} /></div>
+              <label className="flex items-center gap-2 text-sm">
+                {t('orderingAdmin.commission')}
+                <input type="number" min={0} max={60} step="0.5" className="field-input !w-24 !py-2" value={a.commission} disabled={!a.enabled} onChange={(e) => set({ commission: Number(e.target.value) })} /> %
+              </label>
+            </div>
+          );
+        })}
       </section>
 
       <section className="card p-5" aria-labelledby="types-h">

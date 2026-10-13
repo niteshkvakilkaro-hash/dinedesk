@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Billing\Http\Controllers\AppOrdersController;
 use App\Modules\Billing\Http\Controllers\BillingController;
 use App\Modules\Billing\Http\Controllers\DayEndController;
 use App\Modules\Billing\Http\Controllers\OfflinePosController;
@@ -17,6 +18,8 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api'])->prefix('tena
         // Offline POS: pricing kept on the device, and the sales it saved while offline.
         Route::get('pos/offline-pack', [OfflinePosController::class, 'pack']);
         Route::post('pos/offline-sync', [OfflinePosController::class, 'sync']);
+        // Swiggy / Zomato orders entered at the counter.
+        Route::post('pos/app-orders', [AppOrdersController::class, 'store']);
         Route::get('bills', [BillingController::class, 'index']);
         Route::post('bills', [BillingController::class, 'store']);
         Route::get('bills/{id}', [BillingController::class, 'show'])->whereNumber('id');

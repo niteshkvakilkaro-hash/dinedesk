@@ -37,6 +37,8 @@ class OrderingSettings
             'notifications' => ['email' => true, 'whatsapp' => false, 'sms' => false],
             // Guests send their cart to the business's WhatsApp (no online payment or checkout).
             'whatsapp_orders' => false,
+            // Delivery apps whose orders are entered at the POS, and their commission (% of the food value before GST).
+            'apps' => ['swiggy' => ['enabled' => false, 'commission' => 0.0], 'zomato' => ['enabled' => false, 'commission' => 0.0]],
         ];
     }
 
@@ -72,6 +74,9 @@ class OrderingSettings
             'notifications.whatsapp' => ['required', 'boolean'],
             'notifications.sms' => ['required', 'boolean'],
             'whatsapp_orders' => ['sometimes', 'boolean'],
+            'apps' => ['sometimes', 'array'],
+            'apps.*.enabled' => ['required_with:apps', 'boolean'],
+            'apps.*.commission' => ['required_with:apps', 'numeric', 'min:0', 'max:60'],
         ];
     }
 
@@ -84,6 +89,8 @@ class OrderingSettings
     {
         $clean = array_replace_recursive(self::defaults(), array_intersect_key($data, self::defaults()));
         $clean['default_tax_rate'] = (float) $clean['default_tax_rate'];
+        // Only the apps we know, with a plain number for the commission.
+        $clean['apps'] = array_map(fn ($a) => ['enabled' => (bool) $a['enabled'], 'commission' => round((float) $a['commission'], 2)], array_intersect_key($clean['apps'], self::defaults()['apps']));
         $clean['packaging_fee'] = round((float) $clean['packaging_fee'], 2);
         $clean['upi']['vpa'] = $clean['upi']['vpa'] ? strtolower(trim((string) $clean['upi']['vpa'])) : null;
         $clean['upi']['payee'] = $clean['upi']['payee'] ? trim(strip_tags((string) $clean['upi']['payee'])) : null;

@@ -15,6 +15,7 @@ interface Pnl {
   from: string;
   to: string;
   revenue: { total: string; restaurant: string; rooms: string; tiffin?: string };
+  apps?: { app: 'swiggy' | 'zomato'; sales: string }[];
   food_cost: string;
   food_cost_percent: number | null;
   gross_profit: string;
@@ -127,6 +128,8 @@ function PnlTab() {
             <dl className="divide-y divide-line text-sm">
               {[
                 [t('finance.restaurantSales'), r.revenue.restaurant],
+                // Part of restaurant sales (not added again).
+                ...(r.apps ?? []).map((a) => [t('finance.appSales', { app: a.app === 'swiggy' ? 'Swiggy' : 'Zomato' }), a.sales]),
                 ...(Number(r.revenue.rooms) > 0 ? [[t('finance.roomSales'), r.revenue.rooms]] : []),
                 ...(Number(r.revenue.tiffin ?? 0) > 0 ? [[t('finance.tiffinSales'), r.revenue.tiffin!]] : []),
                 [t('finance.foodCost'), `−${r.food_cost}`],

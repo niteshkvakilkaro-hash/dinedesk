@@ -9,7 +9,7 @@ import type { TicketLine } from './api';
  * does, from a pricing pack kept while online.
  */
 
-export interface OfflinePack { prices_include_tax: boolean; packaging_fee: number; rates: Record<string, number>; at: string }
+export interface OfflinePack { prices_include_tax: boolean; packaging_fee: number; rates: Record<string, number>; at: string; apps?: ('swiggy' | 'zomato')[] }
 export type OfflineMode = 'cash' | 'upi' | 'card';
 export interface OfflineSale {
   ref: string;

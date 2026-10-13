@@ -5,7 +5,7 @@ import { useSession } from '@/hooks/useSession';
 import { keep, kept, type OfflinePack } from './offline';
 import type { MenuCategory } from '@/site/types';
 
-export type PayMode = 'cash' | 'upi' | 'card' | 'gift_card' | 'online' | 'other';
+export type PayMode = 'cash' | 'upi' | 'card' | 'gift_card' | 'online' | 'other' | 'app';
 
 export interface Bill {
   id: number;

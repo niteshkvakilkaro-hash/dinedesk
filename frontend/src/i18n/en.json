@@ -1766,7 +1766,10 @@
     "waOrders": "Take orders on WhatsApp",
     "waOrdersHint": "Guests add dishes on your website and send the order to your WhatsApp with one tap (no online payment). You confirm the order and price on chat.",
     "waOrdersOnline": "Online ordering is on, so guests use checkout. WhatsApp orders are used while online ordering is off.",
-    "waOrdersNoNumber": "Add and verify your WhatsApp number in Website → Contact details, or guests can't send orders."
+    "waOrdersNoNumber": "Add and verify your WhatsApp number in Website → Contact details, or guests can't send orders.",
+    "apps": "Swiggy & Zomato orders",
+    "appsHint": "Enter orders that come through Swiggy or Zomato at the POS: they go to the kitchen, get a GST bill, are marked paid through the app, and the app's commission shows in Profit & loss. Commission is a % of the food value before GST. (This doesn't connect to the apps; that needs their partner approval.)",
+    "commission": "Commission"
   },
   "reservationsAdmin": {
     "title": "Bookings",
@@ -2088,7 +2091,8 @@
       "card": "Card",
       "online": "Paid online",
       "other": "Other",
-      "gift_card": "Gift card"
+      "gift_card": "Gift card",
+      "app": "Paid via app"
     },
     "amount": "Amount",
     "reference": "UTR / last 4 digits",
@@ -2144,6 +2148,14 @@
       "saved": "Sale saved on this device. It will sync automatically.",
       "receiptTitle": "Receipt (offline)",
       "receiptNote": "Made offline. The GST bill is issued when the counter is back online."
+    },
+    "apps": {
+      "label": "Order came from",
+      "counter": "Counter",
+      "ref": "{{app}} order ID (optional)",
+      "save": "Save {{app}} order",
+      "hint": "Sent to the kitchen, billed and marked paid through the app.",
+      "saved": "{{app}} order #{{number}} saved · bill {{bill}}"
     }
   },
   "dayEnd": {
@@ -3589,7 +3601,8 @@
       "supplies": "Supplies (non-food)",
       "marketing": "Marketing",
       "maintenance": "Repairs & maintenance",
-      "other": "Other"
+      "other": "Other",
+      "app_commission": "Swiggy / Zomato commission"
     },
     "mode": {
       "cash": "Cash",
@@ -3606,7 +3619,8 @@
     "noRecipe": "No recipe",
     "missingCosts_one": "{{count}} ingredient has no cost price",
     "missingCosts_other": "{{count}} ingredients have no cost price",
-    "tiffinSales": "Tiffin subscriptions (payments taken)"
+    "tiffinSales": "Tiffin subscriptions (payments taken)",
+    "appSales": "of which via {{app}}"
   },
   "purchasing": {
     "addSupplier": "Add supplier",
