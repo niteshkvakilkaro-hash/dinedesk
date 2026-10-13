@@ -2,6 +2,8 @@ import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import type { PageKey } from '@/themes/types';
 import type { SiteData } from './types';
+import { useSiteMenu } from './data';
+import { actionsSchema, geoSchema, menuSchema } from './schema';
 
 const PATHS: Record<PageKey, string> = { home: '/', menu: '/menu', about: '/about', gallery: '/gallery', contact: '/contact' };
 
@@ -22,6 +24,9 @@ export function Seo({ site, page, themeColor, title = null, path }: { site: Site
   const description = (hi && site.seo.description_hi) || site.seo.description;
   const url = `${site.seo.canonical}${path ?? PATHS[page]}`;
   const c = site.content.contact;
+  const { data: menu } = useSiteMenu();
+  const geo = geoSchema(site);
+  const actions = actionsSchema(site);
 
   const jsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
@@ -34,7 +39,10 @@ export function Seo({ site, page, themeColor, title = null, path }: { site: Site
     ...(c.address || site.city
       ? { address: { '@type': 'PostalAddress', ...(c.address ? { streetAddress: c.address } : {}), ...(site.city ? { addressLocality: site.city } : {}), addressCountry: 'IN' } }
       : {}),
-    ...(site.has_menu && site.business_type !== 'hotel' ? { hasMenu: `${site.seo.canonical}/menu` } : {}),
+    // The menu page carries the whole menu; other pages point to it.
+    ...(site.has_menu && page === 'menu' && menu?.length ? { hasMenu: menuSchema(site, menu) } : site.has_menu && site.business_type !== 'hotel' ? { hasMenu: `${site.seo.canonical}/menu` } : {}),
+    ...(geo ? { geo } : {}),
+    ...(actions.length ? { potentialAction: actions } : {}),
     ...(site.opening_hours
       ? {
           openingHoursSpecification: Object.entries(site.opening_hours)

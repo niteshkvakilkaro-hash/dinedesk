@@ -59,6 +59,8 @@ class SitePresenter
             'has_gallery' => GalleryImage::exists(),
             // Tiffin / meal plans on offer: the site shows a Tiffin page.
             'has_tiffin' => MealPlan::where('is_active', true)->exists(),
+            // The pin the owner set (Ordering → location), for maps and search engines.
+            'geo' => $this->geo(),
             'ordering' => $this->ordering($tenant, $hasMenu) + [
                 // Cart sent to the business's own WhatsApp, when the owner takes orders that way.
                 'whatsapp' => $hasMenu && (app(OrderingSettings::class)->get()['whatsapp_orders'] ?? false) ? ($content['contact']['whatsapp'] ?? null) : null,
@@ -115,6 +117,14 @@ class SitePresenter
     }
 
     /** How this business takes orders right now (what the cart and checkout may offer). */
+    /** @return array{lat: float, lng: float}|null */
+    private function geo(): ?array
+    {
+        $l = app(OrderingSettings::class)->get()['location'] ?? [];
+
+        return isset($l['lat'], $l['lng']) && $l['lat'] !== null && $l['lng'] !== null ? ['lat' => (float) $l['lat'], 'lng' => (float) $l['lng']] : null;
+    }
+
     public function ordering(Tenant $tenant, bool $hasMenu): array
     {
         $ordering = app(OrderingSettings::class);

@@ -61,6 +61,8 @@ export interface SiteData {
   has_gallery: boolean;
   /** Tiffin / meal plans on offer. */
   has_tiffin?: boolean;
+  /** Map pin the owner set, when there is one. */
+  geo?: { lat: number; lng: number } | null;
   features: { online_ordering: boolean; reservations: boolean; qr_ordering: boolean; hotel?: boolean };
   /** Hotel pages (rooms, room-service QR, event enquiries); null when the plan has no hotel module. */
   hotel?: HotelInfo | null;
