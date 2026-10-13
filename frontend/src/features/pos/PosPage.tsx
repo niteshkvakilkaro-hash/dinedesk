@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +13,10 @@ import { FoodTypeMark } from '@/site/components/bits';
 import { useLiveTables } from '@/features/tables/api';
 import { MenuPicker } from './MenuPicker';
 import { BillDialog, type BillTarget } from './BillDialog';
-import { useOpenBills, usePosMenu, type TicketLine } from './api';
+import { useOpenBills, usePosMenu, usePosPack, type TicketLine } from './api';
+import { OfflineBar, OfflineCharge } from './OfflinePanel';
+import { useAutoSync, type OfflinePack } from './offline';
+import { registerDashboardWorker } from '@/lib/push';
 
 function useAgo() {
   const { t } = useTranslation();
@@ -21,7 +24,7 @@ function useAgo() {
 }
 
 /** The order being built: lines, table / takeaway, then send to the kitchen or charge now. */
-function Ticket({ lines, setLines, onBill }: { lines: TicketLine[]; setLines: (l: TicketLine[]) => void; onBill: (t: BillTarget) => void }) {
+function Ticket({ lines, setLines, onBill, online, tenant, pack }: { lines: TicketLine[]; setLines: (l: TicketLine[]) => void; onBill: (t: BillTarget) => void; online: boolean; tenant: string | number | undefined; pack: OfflinePack | undefined }) {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const business = useSession().data?.tenant?.name ?? '';
@@ -32,6 +35,8 @@ function Ticket({ lines, setLines, onBill }: { lines: TicketLine[]; setLines: (l
   const [customer, setCustomer] = useState({ name: '', phone: '' });
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
+  // No connection: counter sales are paid and kept on this device.
+  const [offlineCharge, setOfflineCharge] = useState(false);
   const subtotal = lines.reduce((n, l) => n + l.unit * l.quantity, 0);
   const count = lines.reduce((n, l) => n + l.quantity, 0);
 
@@ -61,8 +66,18 @@ function Ticket({ lines, setLines, onBill }: { lines: TicketLine[]; setLines: (l
       for (const k of ['pos-open', 'tables-live', 'orders']) void qc.invalidateQueries({ queryKey: [k] });
       if (mode === 'charge') onBill({ title: t('pos.billFor', { number: res.data.number }), orderIds: [res.data.id] });
     },
-    onError: (e) => setError(e.errors ? Object.values(e.errors)[0][0] : e.message),
+    onError: (e, mode) => {
+      if (e.status === 0 && mode === 'charge' && type === 'takeaway' && tenant) return setOfflineCharge(true);
+      setError(e.errors ? Object.values(e.errors)[0][0] : e.message);
+    },
   });
+  const clear = () => {
+    setLines([]);
+    setNotes('');
+    setCustomer({ name: '', phone: '' });
+    setError('');
+    setOfflineCharge(false);
+  };
   const qty = (key: string, d: number) => setLines(lines.flatMap((l) => (l.key === key ? (l.quantity + d <= 0 ? [] : [{ ...l, quantity: Math.min(50, l.quantity + d) }]) : [l])));
   const freeTables = (tables.data ?? []).filter((x) => x.is_active);
 
@@ -127,13 +142,16 @@ function Ticket({ lines, setLines, onBill }: { lines: TicketLine[]; setLines: (l
       <p className="-mt-3 text-right text-xs text-muted">{t('pos.gstOnBill')}</p>
       {error && <Alert>{error}</Alert>}
       <div className="grid grid-cols-2 gap-2">
-        <button type="button" className="btn-outline" disabled={!lines.length || place.isPending || (type === 'dine_in' && !tableId)} onClick={() => place.mutate('kot')}>
+        <button type="button" className="btn-outline" disabled={!lines.length || place.isPending || (type === 'dine_in' && !tableId) || !online} title={online ? undefined : t('pos.offline.kotNeedsNet')} onClick={() => place.mutate('kot')}>
           <Send className="h-4 w-4" aria-hidden="true" /> {t('pos.sendKot')}
         </button>
-        <button type="button" className="btn-primary" disabled={!lines.length || place.isPending || type === 'dine_in'} onClick={() => place.mutate('charge')} title={type === 'dine_in' ? t('pos.chargeTableHint') : undefined}>
+        <button type="button" className="btn-primary" disabled={!lines.length || place.isPending || type === 'dine_in'} onClick={() => (online ? place.mutate('charge') : setOfflineCharge(true))} title={type === 'dine_in' ? t('pos.chargeTableHint') : undefined}>
           {place.isPending ? <Spinner /> : t('pos.charge')}
         </button>
       </div>
+      {offlineCharge && tenant && (
+        <OfflineCharge tenant={tenant} business={business} lines={lines} pack={pack} customer={customer} notes={notes} onDone={clear} onClose={() => setOfflineCharge(false)} />
+      )}
     </div>
   );
 }
@@ -215,6 +233,19 @@ export default function PosPage() {
   const menu = usePosMenu();
   const canPos = useCan('pos.use');
   const open = useOpenBills(canPos);
+  const tenant = session.data?.tenant?.id;
+  const pack = usePosPack(canPos);
+  const qc = useQueryClient();
+  const synced = useCallback((r: { synced: number; problems: number }) => {
+    if (r.synced) toast.success(t('pos.offline.synced', { count: r.synced }));
+    if (r.problems) toast.error(t('pos.offline.problems', { count: r.problems }));
+    for (const k of ['pos-open', 'orders']) void qc.invalidateQueries({ queryKey: [k] });
+  }, [qc, t]);
+  const sync = useAutoSync(canPos ? tenant : undefined, synced);
+  // The POS keeps working offline once it has been opened online on this device.
+  useEffect(() => {
+    if (import.meta.env.PROD) void registerDashboardWorker();
+  }, []);
   const [tab, setTab] = useState<'new' | 'open'>('new');
   const [lines, setLines] = useState<TicketLine[]>([]);
   const [billing, setBilling] = useState<BillTarget | null>(null);
@@ -250,11 +281,13 @@ export default function PosPage() {
         </div>
       </div>
 
+      {tenant && canPos && <OfflineBar tenant={tenant} online={sync.online} queue={sync.queue} waiting={sync.waiting} syncing={sync.syncing} onSync={() => void sync.syncNow().catch((e: Error) => toast.error(e.message))} />}
+
       {tab === 'new' ? (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_380px]">
           <div>{menu.isLoading ? <SkeletonRows rows={6} /> : menu.data ? <MenuPicker menu={menu.data} onAdd={add} /> : <ErrorState message={(menu.error as Error | null)?.message} onRetry={() => void menu.refetch()} />}</div>
           <div className="lg:sticky lg:top-24 lg:self-start">
-            <Ticket lines={lines} setLines={setLines} onBill={setBilling} />
+            <Ticket lines={lines} setLines={setLines} onBill={setBilling} online={sync.online} tenant={canPos ? tenant : undefined} pack={pack.data} />
           </div>
         </div>
       ) : (

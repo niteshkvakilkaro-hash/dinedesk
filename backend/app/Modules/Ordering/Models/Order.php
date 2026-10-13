@@ -24,7 +24,7 @@ class Order extends Model
         'tenant_id', 'tracking_token', 'number', 'customer_id', 'type', 'status', 'scheduled_for', 'stock_deducted_at', 'discount_label', 'marketing_opt_in',
         'customer_name', 'customer_phone', 'customer_email', 'address', 'delivery_zone_id', 'table_label', 'dining_table_id', 'table_session_id', 'room_booking_id', 'source', 'created_by', 'notes',
         'subtotal', 'tax_total', 'delivery_fee', 'packaging_fee', 'discount_total', 'total', 'prices_include_tax',
-        'payment_method', 'payment_status', 'payment_reference', 'cancel_reason', 'locale', 'placed_at',
+        'payment_method', 'payment_status', 'payment_reference', 'cancel_reason', 'locale', 'placed_at', 'client_ref',
     ];
 
     protected $hidden = ['tracking_token'];

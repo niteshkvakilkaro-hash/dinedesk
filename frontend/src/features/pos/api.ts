@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { usePollInterval } from '@/lib/realtime';
+import { useSession } from '@/hooks/useSession';
+import { keep, kept, type OfflinePack } from './offline';
 import type { MenuCategory } from '@/site/types';
 
 export type PayMode = 'cash' | 'upi' | 'card' | 'gift_card' | 'online' | 'other';
@@ -58,8 +60,37 @@ export interface TicketLine {
   food_type: 'veg' | 'non_veg' | 'egg';
 }
 
+/** The menu, kept on this device too so the counter can sell with no internet. */
 export function usePosMenu() {
-  return useQuery({ queryKey: ['pos-menu'], queryFn: async () => (await api.get<MenuCategory[]>('/tenant/pos/menu')).data, staleTime: 60_000 });
+  const tenant = useSession().data?.tenant?.id;
+  return useQuery({
+    queryKey: ['pos-menu', tenant],
+    queryFn: async () => {
+      const data = (await api.get<MenuCategory[]>('/tenant/pos/menu')).data;
+      if (tenant) keep(tenant, 'menu', data);
+      return data;
+    },
+    initialData: () => (tenant ? kept<MenuCategory[]>(tenant, 'menu') : undefined),
+    initialDataUpdatedAt: 0,
+    staleTime: 60_000,
+  });
+}
+
+/** GST rates and charges for pricing sales offline (refreshed while online, kept on the device). */
+export function usePosPack(enabled = true) {
+  const tenant = useSession().data?.tenant?.id;
+  return useQuery({
+    queryKey: ['pos-pack', tenant],
+    queryFn: async () => {
+      const data = (await api.get<OfflinePack>('/tenant/pos/offline-pack')).data;
+      if (tenant) keep(tenant, 'pack', data);
+      return data;
+    },
+    initialData: () => (tenant ? kept<OfflinePack>(tenant, 'pack') : undefined),
+    initialDataUpdatedAt: 0,
+    staleTime: 10 * 60_000,
+    enabled: enabled && Boolean(tenant),
+  });
 }
 
 export function useOpenBills(enabled = true) {

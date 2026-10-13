@@ -2,6 +2,7 @@
 
 use App\Modules\Billing\Http\Controllers\BillingController;
 use App\Modules\Billing\Http\Controllers\DayEndController;
+use App\Modules\Billing\Http\Controllers\OfflinePosController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api'])->prefix('tenant')->group(function () {
@@ -13,6 +14,9 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api'])->prefix('tena
 
     Route::middleware(['feature:pos', 'tenant.can:pos.use'])->group(function () {
         Route::get('pos/open', [BillingController::class, 'open']);
+        // Offline POS: pricing kept on the device, and the sales it saved while offline.
+        Route::get('pos/offline-pack', [OfflinePosController::class, 'pack']);
+        Route::post('pos/offline-sync', [OfflinePosController::class, 'sync']);
         Route::get('bills', [BillingController::class, 'index']);
         Route::post('bills', [BillingController::class, 'store']);
         Route::get('bills/{id}', [BillingController::class, 'show'])->whereNumber('id');
