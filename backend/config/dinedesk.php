@@ -115,4 +115,12 @@ return [
         'admin_package' => env('ANDROID_ADMIN_PACKAGE'),
         'admin_sha256' => array_values(array_filter(array_map('trim', explode(',', (string) env('ANDROID_ADMIN_SHA256', ''))))),
     ],
+    /*
+    | AI features (menu import from photos, dish descriptions) use Claude through the Anthropic API.
+    | Without a key they stay switched off and the dashboard says so.
+    */
+    'ai' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('DINEDESK_AI_MODEL', 'claude-opus-5-5'),
+    ],
 ];

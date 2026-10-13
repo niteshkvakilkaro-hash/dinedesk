@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Menu\Http\Controllers\AiMenuController;
 use App\Modules\Menu\Http\Controllers\MenuController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,4 +30,9 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api', 'tenant.can:me
         Route::get('import/template', [MenuController::class, 'template']);
         Route::post('import', [MenuController::class, 'import']);
         Route::delete('demo', [MenuController::class, 'clearDemo']);
+
+        // AI: read a printed menu from photos, suggest dish descriptions.
+        Route::get('ai', [AiMenuController::class, 'status']);
+        Route::post('ai/read', [AiMenuController::class, 'read'])->middleware('throttle:ai');
+        Route::post('ai/describe', [AiMenuController::class, 'describe'])->middleware('throttle:ai');
     });

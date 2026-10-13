@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDown, ArrowUp, EyeOff, FileSpreadsheet, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, EyeOff, FileSpreadsheet, Pencil, Plus, Search, Sparkles, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { formatINR } from '@/lib/format';
 import { useSession } from '@/hooks/useSession';
@@ -9,6 +9,7 @@ import { FoodTypeMark } from '@/site/components/bits';
 import type { AdminCategory, AdminGroup, AdminItem } from './api';
 import { useAdminMenu, useMenuMutation } from './api';
 import { DishEditor, GroupEditor, ImportDialog, SectionEditor } from './editors';
+import { AiImportDialog } from './AiImport';
 
 type Tab = 'dishes' | 'extras';
 
@@ -30,6 +31,7 @@ export default function MenuPage() {
   const [dish, setDish] = useState<{ open: boolean; item: AdminItem | null; categoryId: number }>({ open: false, item: null, categoryId: 0 });
   const [group, setGroup] = useState<{ open: boolean; group: AdminGroup | null }>({ open: false, group: null });
   const [importing, setImporting] = useState(false);
+  const [aiImporting, setAiImporting] = useState(false);
 
   const availability = useMenuMutation(({ id, is_available }: { id: number; is_available: boolean }) => api.patch(`/tenant/menu/items/${id}/availability`, { is_available }));
   const removeItem = useMenuMutation((id: number) => api.delete(`/tenant/menu/items/${id}`));
@@ -69,6 +71,9 @@ export default function MenuPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button type="button" className="btn-primary" onClick={() => setAiImporting(true)}>
+            <Sparkles className="h-4 w-4" aria-hidden="true" /> {t('menuAdmin.ai.button')}
+          </button>
           <button type="button" className="btn-outline" onClick={() => setImporting(true)}>
             <FileSpreadsheet className="h-4 w-4" aria-hidden="true" /> {t('menuAdmin.import')}
           </button>
@@ -240,6 +245,7 @@ export default function MenuPage() {
       {dish.open && <DishEditor key={dish.item?.id ?? `new-${dish.categoryId}`} menu={data} allergens={meta.allergens} item={dish.item} categoryId={dish.categoryId} open onClose={() => setDish({ open: false, item: null, categoryId: 0 })} />}
       {group.open && <GroupEditor key={group.group?.id ?? 'new'} group={group.group} open onClose={() => setGroup({ open: false, group: null })} />}
       {importing && <ImportDialog open onClose={() => setImporting(false)} />}
+      {aiImporting && <AiImportDialog onClose={() => setAiImporting(false)} />}
     </div>
   );
 }

@@ -32,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
             'live' => new LiveMessenger(),
             default => new LogMessenger(),
         });
+
+        // AI features (menu import, dish descriptions); tests bind a fake.
+        $this->app->bind(\App\Support\Ai\Ai::class, \App\Support\Ai\ClaudeAi::class);
     }
 
     public function boot(): void
@@ -62,6 +65,10 @@ class AppServiceProvider extends ServiceProvider
             429,
             $headers,
         );
+
+        // AI requests cost money: a business gets a fair number per hour.
+        RateLimiter::for('ai', fn (Request $request) => Limit::perHour(30)->by('ai|'.($request->user()?->tenant_id ?? $request->ip()))
+            ->response($tooMany('That is a lot of AI requests for one hour. Please try again later.')));
 
         RateLimiter::for('login', fn (Request $request) => [
             Limit::perMinute(5)->by('login|'.strtolower((string) $request->input('email')).'|'.$request->ip())

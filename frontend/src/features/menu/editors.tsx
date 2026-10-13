@@ -6,6 +6,7 @@ import { Alert, Dialog, Field, Spinner, toast } from '@/components/ui';
 import type { AdminCategory, AdminGroup, AdminItem, AdminVariant, AdminAddon, FoodType, MenuData } from './api';
 import { downloadTemplate, useMenuMutation } from './api';
 import { DIETS } from '@/site/types';
+import { DescribeButton } from './AiImport';
 
 const TAX_RATES = ['', '0', '5', '12', '18', '28'];
 const FOOD: FoodType[] = ['veg', 'non_veg', 'egg'];
@@ -179,6 +180,9 @@ export function DishEditor({ menu, allergens, item, categoryId, open, onClose }:
               ))}
             </div>
           </fieldset>
+        </div>
+        <div className="-mb-2 flex justify-end">
+          <DescribeButton name={form.name ?? ''} foodType={form.food_type ?? null} onText={(d) => setForm((f) => ({ ...f, description: d.description, description_hi: d.description_hi }))} />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('menuAdmin.description')} optional>
