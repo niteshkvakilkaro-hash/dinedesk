@@ -3,6 +3,7 @@
 namespace App\Modules\Hotel\Services;
 
 use App\Modules\Hotel\Models\Room;
+use App\Modules\Hotel\Models\RoomBlock;
 use App\Modules\Hotel\Models\RoomBooking;
 use App\Modules\Hotel\Models\RoomType;
 use Carbon\CarbonImmutable;
@@ -26,6 +27,19 @@ class RoomAvailability
             ->when($exceptId, fn ($q) => $q->whereKeyNot($exceptId));
     }
 
+    /**
+     * Rooms held by bookings on other sites (their calendars), shaped like bookings: each holds
+     * one room of its type on its nights.
+     *
+     * @return Collection<int, object>
+     */
+    public static function blocks(string $in, string $out): Collection
+    {
+        return RoomBlock::where('starts_on', '<', $out)->where('ends_on', '>', $in)->get()
+            ->map(fn (RoomBlock $b) => (object) ['room_type_id' => $b->room_type_id, 'check_in' => $b->starts_on, 'check_out' => $b->ends_on])
+            ->toBase();
+    }
+
     public function sellableRooms(int $typeId): int
     {
         return Room::where('room_type_id', $typeId)->where('is_active', true)->where('housekeeping', '!=', 'out_of_order')->count();
@@ -35,7 +49,8 @@ class RoomAvailability
     public function freeRooms(RoomType $type, string $in, string $out, ?int $exceptId = null): int
     {
         $rooms = $this->sellableRooms($type->id);
-        $bookings = self::overlapping($in, $out, $exceptId)->where('room_type_id', $type->id)->get(['check_in', 'check_out']);
+        $bookings = self::overlapping($in, $out, $exceptId)->where('room_type_id', $type->id)->get(['check_in', 'check_out'])->toBase()
+            ->concat(self::blocks($in, $out)->where('room_type_id', $type->id));
 
         return $rooms - $this->peak($bookings, $in, $out);
     }
@@ -56,7 +71,8 @@ class RoomAvailability
         $types = RoomType::where('is_active', true)->orderBy('sort_order')->orderBy('id')->get();
         $rooms = Room::where('is_active', true)->where('housekeeping', '!=', 'out_of_order')
             ->selectRaw('room_type_id, COUNT(*) as n')->groupBy('room_type_id')->pluck('n', 'room_type_id');
-        $bookings = self::overlapping($in, $out, $exceptId)->get(['room_type_id', 'check_in', 'check_out'])->groupBy('room_type_id');
+        $bookings = self::overlapping($in, $out, $exceptId)->get(['room_type_id', 'check_in', 'check_out'])->toBase()
+            ->concat(self::blocks($in, $out))->groupBy('room_type_id');
 
         return $types->map(fn (RoomType $t) => [
             'type' => $t,
@@ -84,6 +100,8 @@ class RoomAvailability
 
         $types = RoomType::with(['rooms' => fn ($q) => $q->where('is_active', true)])->orderBy('sort_order')->orderBy('id')->get()
             ->filter(fn (RoomType $t) => $t->is_active || $t->rooms->isNotEmpty());
+        $external = RoomBlock::where('starts_on', '<', $end->format('Y-m-d'))->where('ends_on', '>', $start->format('Y-m-d'))->orderBy('starts_on')->get();
+        $feeds = \App\Modules\Hotel\Models\RoomCalendarFeed::whereIn('id', $external->pluck('room_calendar_feed_id')->filter())->pluck('name', 'id');
 
         return [
             'from' => $start->format('Y-m-d'),
@@ -96,6 +114,11 @@ class RoomAvailability
                     'bookings' => $bookings->where('room_id', $r->id)->values()->map($present),
                 ])->values(),
                 'unassigned' => $bookings->where('room_type_id', $t->id)->whereNull('room_id')->whereIn('status', ['pending', 'confirmed'])->values()->map($present),
+                // Rooms held by bookings on other sites (calendar sync).
+                'external' => $external->where('room_type_id', $t->id)->values()->map(fn (RoomBlock $b) => [
+                    'id' => $b->id, 'source' => $feeds[$b->room_calendar_feed_id] ?? null, 'summary' => $b->summary,
+                    'check_in' => $b->starts_on->format('Y-m-d'), 'check_out' => $b->ends_on->format('Y-m-d'),
+                ]),
             ])->values(),
         ];
     }

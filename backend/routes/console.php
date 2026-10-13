@@ -56,6 +56,27 @@ Artisan::command('hotel:expire-holds', function (TenantContext $context) {
 
 Schedule::command('hotel:expire-holds')->everyFiveMinutes()->withoutOverlapping();
 
+// Booking sites' calendars (iCal): their bookings hold a room here. A broken link is noted on it.
+Artisan::command('hotel:calendar-sync', function (TenantContext $context) {
+    $feeds = \App\Modules\Hotel\Models\RoomCalendarFeed::withoutTenancy()->get()->groupBy('tenant_id');
+    $read = $failed = 0;
+    foreach (Tenant::whereIn('id', $feeds->keys())->get() as $tenant) {
+        $context->run($tenant, function () use ($tenant, &$read, &$failed) {
+            foreach (\App\Modules\Hotel\Models\RoomCalendarFeed::all() as $feed) {
+                try {
+                    app(\App\Modules\Hotel\Services\CalendarSync::class)->import($tenant, $feed);
+                    $read++;
+                } catch (\App\Support\ApiException) {
+                    $failed++;
+                }
+            }
+        });
+    }
+    $this->info("Calendars read: {$read}, could not read: {$failed}.");
+})->purpose('Read booking sites\' calendars (iCal) for hotels');
+
+Schedule::command('hotel:calendar-sync')->everyThirtyMinutes()->withoutOverlapping();
+
 // Hotel: guest ID documents are deleted once their keep period after check-out ends.
 Artisan::command('hotel:purge-documents', function (TenantContext $context) {
     $tenantIds = \App\Modules\Hotel\Models\GuestDocument::withoutTenancy()

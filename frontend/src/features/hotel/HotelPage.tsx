@@ -123,6 +123,20 @@ function CalendarTab({ onOpen }: { onOpen: (id: number) => void }) {
                     {r.bookings.map(bar)}
                   </div>
                 ))}
+                {/* Bookings on other sites (calendar sync): each holds one room of the type. */}
+                {(ty.external ?? []).map((b) => {
+                  const start = Math.max(0, col(b.check_in));
+                  const end = Math.min(days, col(b.check_out));
+                  if (end <= start) return null;
+                  return (
+                    <div key={`x${b.id}`} className="grid min-h-10 border-b border-dashed border-ink/10" style={{ gridTemplateColumns: `90px repeat(${days}, 1fr)` }}>
+                      <div className="p-2 text-xs italic text-muted" style={{ gridRow: 1, gridColumn: 1 }}>{b.source ?? t('hotel.sync.otherSite')}</div>
+                      <span title={b.summary ?? undefined} style={{ gridColumn: `${start + 2} / ${end + 2}`, gridRow: 1 }} className="z-[1] m-0.5 truncate rounded-md border border-ink/20 bg-ink/10 px-1.5 py-1 text-xs font-semibold text-ink">
+                        {t('hotel.sync.heldBy', { site: b.source ?? t('hotel.sync.otherSite') })}
+                      </span>
+                    </div>
+                  );
+                })}
                 {!!ty.unassigned.length && ty.unassigned.map((b) => (
                   <div key={`u${b.id}`} className="grid min-h-10 border-b border-dashed border-ink/10" style={{ gridTemplateColumns: `90px repeat(${days}, 1fr)` }}>
                     <div className="p-2 text-xs italic text-muted" style={{ gridRow: 1, gridColumn: 1 }}>{t('hotel.noRoomYet')}</div>

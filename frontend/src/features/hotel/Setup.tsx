@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import QRCode from 'qrcode';
-import { ImagePlus, Pencil, Plus, Printer, RefreshCw, Star, Trash2 } from 'lucide-react';
+import { CalendarSync as CalendarSyncIcon, ImagePlus, Pencil, Plus, Printer, RefreshCw, Star, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { useSession } from '@/hooks/useSession';
 import { formatMoney } from '@/lib/format';
 import { Alert, Badge, Dialog, EmptyState, ErrorState, Field, SkeletonRows, Spinner, toast, Toggle } from '@/components/ui';
+import { CalendarSyncDialog } from './CalendarSync';
 import { AMENITIES, shortDate, useHotelSettings, useRooms, useRoomTypes, type HotelSettings, type RoomRow, type RoomTypeRow } from './api';
 
 const errorsOf = (e: ApiError) => (e.errors ? Object.fromEntries(Object.entries(e.errors).map(([k, v]) => [k, v[0]])) : { form: e.message });
@@ -328,6 +329,7 @@ export default function Setup() {
   const qc = useQueryClient();
   const types = useRoomTypes();
   const [editing, setEditing] = useState<RoomTypeRow | 'new' | null>(null);
+  const [syncing, setSyncing] = useState<RoomTypeRow | null>(null);
   const session = useSession().data;
   const remove = useMutation<unknown, ApiError, RoomTypeRow>({
     mutationFn: (ty) => api.delete(`/tenant/hotel/types/${ty.id}`),
@@ -355,6 +357,7 @@ export default function Setup() {
                   </p>
                 </div>
                 <span className="flex gap-1">
+                  <button type="button" className="btn-ghost !min-h-9 text-sm" onClick={() => setSyncing(ty)}><CalendarSyncIcon className="h-4 w-4" aria-hidden="true" /> {t('hotel.sync.button')}</button>
                   <button type="button" className="btn-ghost !min-h-9 !px-2" onClick={() => setEditing(ty)} aria-label={t('hotel.setup.editType', { name: ty.name })}><Pencil className="h-4 w-4" aria-hidden="true" /></button>
                   <button type="button" className="btn-ghost !min-h-9 !px-2 text-danger" onClick={() => window.confirm(t('hotel.setup.confirmType', { name: ty.name })) && remove.mutate(ty)} aria-label={t('hotel.setup.removeType', { name: ty.name })}><Trash2 className="h-4 w-4" aria-hidden="true" /></button>
                 </span>
@@ -368,6 +371,7 @@ export default function Setup() {
       <RoomsCard types={types.data ?? []} business={session?.tenant?.name ?? ''} />
       <SettingsCard />
       <TypeDialog type={editing} onClose={() => setEditing(null)} />
+      <CalendarSyncDialog type={syncing} onClose={() => setSyncing(null)} />
     </div>
   );
 }

@@ -1,10 +1,23 @@
 <?php
 
+use App\Modules\Hotel\Http\Controllers\CalendarSyncController;
 use App\Modules\Hotel\Http\Controllers\FrontDeskController;
 use App\Modules\Hotel\Http\Controllers\HotelSetupController;
 use App\Modules\Hotel\Http\Controllers\HousekeepingController;
 use App\Modules\Hotel\Http\Controllers\PublicHotelController;
 use Illuminate\Support\Facades\Route;
+
+// Booking sites read a room type's private calendar (.ics) by its token.
+Route::get('ical/{token}.ics', [CalendarSyncController::class, 'export'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:api');
+
+// Calendar sync with booking sites (owner / manager).
+Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api', 'feature:hotel', 'tenant.can:rooms.setup'])->prefix('tenant/hotel')->group(function () {
+    Route::get('types/{id}/calendar-sync', [CalendarSyncController::class, 'show'])->whereNumber('id');
+    Route::post('types/{id}/calendar-sync/feeds', [CalendarSyncController::class, 'addFeed'])->whereNumber('id');
+    Route::post('types/{id}/calendar-sync/sync', [CalendarSyncController::class, 'syncNow'])->whereNumber('id');
+    Route::post('types/{id}/calendar-sync/renew', [CalendarSyncController::class, 'renewLink'])->whereNumber('id');
+    Route::delete('calendar-feeds/{feedId}', [CalendarSyncController::class, 'removeFeed'])->whereNumber('feedId');
+});
 
 // Guests on a hotel's website (tenant from host)
 Route::middleware(['tenant.host', 'feature:hotel'])->prefix('site/hotel')->group(function () {

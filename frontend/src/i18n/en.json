@@ -2859,6 +2859,31 @@
       "confirmRoom": "Remove room {{number}}?",
       "qrScan": "Scan to order to your room",
       "qrHint": "Room service is added to your bill."
+    },
+    "sync": {
+      "button": "Calendar sync",
+      "title": "Calendar sync · {{name}}",
+      "intro": "Keep this room type's dates in step with booking sites, so the same room isn't sold twice. Only dates are shared — never guest names or details.",
+      "outTitle": "Your calendar link (give this to the booking site)",
+      "outHint": "Paste it in the booking site's calendar import (e.g. Airbnb → Availability → Connect calendars). Nights when no room of this type is free close there automatically.",
+      "copy": "Copy",
+      "copied": "Link copied.",
+      "renew": "Make a new link (the old one stops working)",
+      "renewConfirm": "Make a new link? You'll need to update it on every booking site.",
+      "inTitle": "Booking sites' calendars",
+      "inHint": "Paste each site's calendar export link (.ics). Their bookings hold a room here; checked every 30 minutes.",
+      "syncNow": "Sync now",
+      "synced_one": "Synced {{when}} · {{count}} booking",
+      "synced_other": "Synced {{when}} · {{count}} bookings",
+      "notYet": "Not synced yet",
+      "removeConfirm": "Remove the {{name}} calendar? Its bookings will stop holding rooms here.",
+      "site": "Site",
+      "other": "Other",
+      "link": "Calendar link (.ics)",
+      "add": "Add link",
+      "which": "Calendar links work with Airbnb, Booking.com homes and apartments, Agoda Homes, Vrbo and similar listings. Hotel listings on MakeMyTrip, Goibibo or Booking.com need a channel manager or the site's own connection instead.",
+      "otherSite": "Other site",
+      "heldBy": "Booked on {{site}}"
     }
   },
   "support": {

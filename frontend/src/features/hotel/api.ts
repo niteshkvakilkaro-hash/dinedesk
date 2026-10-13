@@ -99,7 +99,7 @@ export interface CalendarStay { id: number; code: string; name: string; status: 
 export interface CalendarData {
   from: string;
   days: number;
-  types: { id: number; name: string; rooms: { id: number; number: string; housekeeping: Housekeeping; bookings: CalendarStay[] }[]; unassigned: CalendarStay[] }[];
+  types: { id: number; name: string; rooms: { id: number; number: string; housekeeping: Housekeeping; bookings: CalendarStay[] }[]; unassigned: CalendarStay[]; external?: { id: number; source: string | null; summary: string | null; check_in: string; check_out: string }[] }[];
 }
 
 export interface DeskAvailability {
