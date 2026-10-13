@@ -3079,7 +3079,7 @@
       "secondary": "See live demo sites",
       "points": [
         "No per-order commission",
-        "Hindi and English",
+        "12 Indian languages",
         "GST-ready bills"
       ],
       "visualAlt": "A restaurant website made with DineDesk, on a laptop and a phone",
@@ -3111,7 +3111,7 @@
       "items": {
         "website": {
           "title": "Restaurant website",
-          "text": "Menu, photos, hours, map and booking on your own address, in Hindi and English, ready for Google."
+          "text": "Menu, photos, hours, map and booking on your own address, ready for Google. Buttons and labels in 12 Indian languages."
         },
         "ordering": {
           "title": "Online ordering",
@@ -3179,7 +3179,7 @@
       "title": "Made for how India eats out",
       "lead": "The details that matter here are built in, not bolted on.",
       "items": [
-        "Hindi and English for guests and staff",
+        "12 Indian languages for guests and staff",
         "GST tax invoices with CGST / SGST and B2B GSTIN",
         "UPI, cards and cash, with split payments",
         "Veg / non-veg marks, Jain and no onion-garlic labels",
@@ -3248,7 +3248,7 @@
     "f": {
       "website": {
         "metaTitle": "Restaurant website builder for India | DineDesk",
-        "metaDesc": "Make a fast, mobile-first restaurant website with your menu, photos, hours, map, table booking and online ordering. Hindi and English. Free trial.",
+        "metaDesc": "Make a fast, mobile-first restaurant website with your menu, photos, hours, map, table booking and online ordering. 12 Indian languages. Free trial.",
         "eyebrow": "Restaurant website",
         "title": "A restaurant website that looks premium and loads fast",
         "lead": "Pick a theme, add your logo, photos and menu, and you are live on your own address. Guests see your menu, today's hours and how to reach you in a tap.",
@@ -3266,8 +3266,8 @@
             "text": "App-style bottom tabs, Call and WhatsApp buttons, and quick loading on mobile data."
           },
           {
-            "title": "Hindi and English",
-            "text": "Every page and dish can have a Hindi version; guests switch with one tap."
+            "title": "12 Indian languages",
+            "text": "Guests switch language with one tap. Dish names and descriptions can also have a Hindi version."
           },
           {
             "title": "Ready for Google",

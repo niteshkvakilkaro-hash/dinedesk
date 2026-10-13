@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { intlLocale } from '@/i18n/locale';
 import { create } from 'zustand';
 import { api } from '@/lib/api';
 import type { SiteData, SiteImage } from './types';
@@ -189,6 +190,6 @@ export function ymdToday(timeZone: string) {
 export function ymdLabel(ymd: string, locale: string, opts: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short' }) {
   const [y, m, d] = ymd.split('-').map(Number);
   // Indian English / Hindi ("Sat, 14 Nov"), never US order.
-  const tag = locale.startsWith('hi') ? 'hi-IN' : 'en-IN';
+  const tag = intlLocale(locale);
   return new Intl.DateTimeFormat(tag, { ...opts, timeZone: 'UTC' }).format(new Date(Date.UTC(y, m - 1, d)));
 }

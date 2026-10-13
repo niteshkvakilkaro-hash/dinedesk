@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { intlLocale } from '@/i18n/locale';
 import { useQueries } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight, LogOut, MapPin, ReceiptText, Trash2 } from 'lucide-react';
@@ -38,7 +39,7 @@ export default function MyOrdersPage({ site }: { site: SiteData }) {
       staleTime: 30_000,
     })),
   });
-  const date = (iso: string) => new Intl.DateTimeFormat(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { timeZone: site.timezone, day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
+  const date = (iso: string) => new Intl.DateTimeFormat(intlLocale(i18n.language), { timeZone: site.timezone, day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-24 pt-8 sm:px-6">

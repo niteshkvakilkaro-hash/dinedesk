@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import { Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES } from '@/i18n';
+import { languageCode } from '@/i18n/locale';
 
 export function LogoMark({ className = 'h-8 w-8' }: { className?: string }) {
   return (
@@ -22,28 +23,26 @@ export function Logo({ to = '/', light = false }: { to?: string; light?: boolean
   );
 }
 
-/** English / हिन्दी switch. The choice is remembered on this device. */
+/** Language menu (each language in its own script). The choice is remembered on this device. */
 export function LanguageToggle({ light = false }: { light?: boolean }) {
   const { i18n, t } = useTranslation();
-  const current = i18n.resolvedLanguage ?? 'en';
+  const current = languageCode(i18n.resolvedLanguage);
   return (
-    <div className={`inline-flex items-center rounded-full border p-0.5 ${light ? 'border-paper/25' : 'border-line bg-surface'}`} role="group" aria-label={t('common.language')}>
-      <Languages className={`mx-1.5 h-4 w-4 ${light ? 'text-paper/70' : 'text-muted'}`} aria-hidden="true" />
-      {LANGUAGES.map((lang) => (
-        <button
-          key={lang.code}
-          type="button"
-          lang={lang.code}
-          aria-pressed={current === lang.code}
-          aria-label={lang.label}
-          onClick={() => void i18n.changeLanguage(lang.code)}
-          className={`min-h-8 rounded-full px-2.5 text-sm font-semibold transition-colors ${
-            current === lang.code ? (light ? 'bg-paper text-ink' : 'bg-ink text-paper') : light ? 'text-paper/80 hover:text-paper' : 'text-muted hover:text-ink'
-          }`}
-        >
-          {lang.short}
-        </button>
-      ))}
-    </div>
+    <label className={`relative inline-flex min-h-9 items-center gap-1.5 rounded-full border pl-2.5 pr-2 ${light ? 'border-paper/25 text-paper' : 'border-line bg-surface text-ink'}`}>
+      <Languages className={`h-4 w-4 shrink-0 ${light ? 'text-paper/70' : 'text-muted'}`} aria-hidden="true" />
+      <span className="sr-only">{t('common.language')}</span>
+      <select
+        value={current}
+        onChange={(e) => void i18n.changeLanguage(e.target.value)}
+        className="min-h-8 cursor-pointer appearance-none bg-transparent pr-1 text-sm font-semibold outline-none"
+        style={{ fontFamily: 'system-ui, sans-serif' }}
+      >
+        {LANGUAGES.map((lang) => (
+          <option key={lang.code} value={lang.code} lang={lang.code} className="text-ink">
+            {lang.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

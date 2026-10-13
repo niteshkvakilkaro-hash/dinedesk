@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, History, Package, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -108,7 +109,7 @@ function StockDialog({ item, onClose }: { item: Item | null; onClose: () => void
               <span className="flex-1 truncate text-muted">{m.note}</span>
               <span className={`tabular-nums font-semibold ${Number(m.quantity) < 0 ? 'text-danger' : 'text-success'}`}>{Number(m.quantity) > 0 ? '+' : ''}{qty(m.quantity)}</span>
               <span className="w-20 text-right tabular-nums text-muted">{qty(m.balance_after)}</span>
-              <span className="w-28 text-right text-xs text-muted">{new Intl.DateTimeFormat(i18n.language.startsWith('hi') ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(m.at))}</span>
+              <span className="w-28 text-right text-xs text-muted">{new Intl.DateTimeFormat(intlLocale(i18n.language), { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(m.at))}</span>
             </li>
           ))}
         </ul>

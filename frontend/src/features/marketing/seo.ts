@@ -1,4 +1,5 @@
 import { showApp } from '@/lib/prerender';
+import { htmlLang } from '@/i18n/locale';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -54,7 +55,7 @@ export function headTags(head: PageHead, lang: string): { meta: [string, string,
       ['property', 'og:description', head.description],
       ['property', 'og:url', url],
       ['property', 'og:image', image],
-      ['property', 'og:locale', lang.startsWith('hi') ? 'hi_IN' : 'en_IN'],
+      ['property', 'og:locale', htmlLang(lang).replace('-', '_')],
       ['name', 'twitter:card', 'summary_large_image'],
     ],
   };
@@ -85,7 +86,7 @@ export function usePageMeta(head: PageHead) {
     const lang = i18n.language ?? 'en';
     const tags = headTags(head, lang);
     document.title = head.title;
-    document.documentElement.lang = lang.startsWith('hi') ? 'hi-IN' : 'en-IN';
+    document.documentElement.lang = htmlLang(lang);
     tags.meta.forEach(([attr, key, value]) => setMeta(attr, key, value));
     let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {

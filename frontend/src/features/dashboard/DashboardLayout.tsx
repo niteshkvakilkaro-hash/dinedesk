@@ -255,28 +255,28 @@ export default function DashboardLayout() {
       <nav aria-label={t('dashboard.nav.label')} className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <ul className="flex">
           {tabs.map(({ to, label, icon: Icon, end, badge: n }) => (
-            <li key={to} className="flex-1">
-              <NavLink to={to} end={end} className={({ isActive }) => `flex h-16 flex-col items-center justify-center gap-1 truncate px-0.5 text-[11px] font-semibold ${isActive ? 'text-ink' : 'text-muted'}`}>
+            <li key={to} className="min-w-0 flex-1">
+              <NavLink to={to} end={end} className={({ isActive }) => `flex h-16 flex-col items-center justify-center gap-1 px-0.5 text-[11px] font-semibold ${isActive ? 'text-ink' : 'text-muted'}`}>
                 {({ isActive }) => (
                   <>
                     <span className={`relative flex h-8 w-12 items-center justify-center rounded-full ${isActive ? 'bg-ink/10' : ''}`}>
                       <Icon className="h-5 w-5" aria-hidden="true" />
                       {!!n && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white">{n}</span>}
                     </span>
-                    {label}
+                    <span className="max-w-full truncate">{label}</span>
                   </>
                 )}
               </NavLink>
             </li>
           ))}
           {overflow.length > 0 && (
-            <li className="flex-1">
+            <li className="min-w-0 flex-1">
               <button type="button" onClick={() => setMore(true)} aria-expanded={more} className={`flex h-16 w-full flex-col items-center justify-center gap-1 text-[11px] font-semibold ${overflow.some((o) => pathname.startsWith(o.to)) ? 'text-ink' : 'text-muted'}`}>
                 <span className="relative flex h-8 w-12 items-center justify-center rounded-full">
                   <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
                   {overflow.some((o) => o.badge) && <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-brand" aria-hidden="true" />}
                 </span>
-                {t('dashboard.nav.more')}
+                <span className="max-w-full truncate">{t('dashboard.nav.more')}</span>
               </button>
             </li>
           )}

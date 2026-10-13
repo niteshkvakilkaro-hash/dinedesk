@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api';
@@ -94,7 +95,7 @@ export function loadRazorpay(): Promise<void> {
 /** Bill amounts in the visitor's language. */
 export function useMoney() {
   const { i18n } = useTranslation();
-  const locale = i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN';
+  const locale = intlLocale(i18n.language);
   const whole = new Intl.NumberFormat(locale, { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
   const paise = new Intl.NumberFormat(locale, { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // ₹285 for whole rupees, ₹14.25 / ₹157.50 when there are paise.

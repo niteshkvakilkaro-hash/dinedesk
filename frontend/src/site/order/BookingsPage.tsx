@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { Link } from 'react-router';
 import { useQueries } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -53,7 +54,7 @@ export default function BookingsPage({ site }: { site: SiteData }) {
       .map((b) => ({ code: b.code, phone: b.phone, date: null as string | null, time: null as string | null, party: null as number | null, status: null as string | null })),
   ];
 
-  const day = (d: string) => new Intl.DateTimeFormat(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${d}T12:00:00Z`));
+  const day = (d: string) => new Intl.DateTimeFormat(intlLocale(i18n.language), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${d}T12:00:00Z`));
   const status = (s: string) => t(`site.profile.status.${s}`, { defaultValue: s });
 
   return (

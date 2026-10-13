@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { Link, useLocation, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -146,7 +147,7 @@ export function OffersPage({ site }: { site: SiteData }) {
   const text = useBannerText();
   const coupons = useQuery({ queryKey: ['site', 'offers'], queryFn: async () => (await api.get<PublicCoupon[]>('/site/offers')).data });
   const cards = site.growth?.banners.filter((b) => b.placement === 'offer') ?? [];
-  const date = (iso: string) => new Intl.DateTimeFormat(i18n.language.startsWith('hi') ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'long', timeZone: site.timezone }).format(new Date(iso));
+  const date = (iso: string) => new Intl.DateTimeFormat(intlLocale(i18n.language), { day: 'numeric', month: 'long', timeZone: site.timezone }).format(new Date(iso));
   const list = coupons.data ?? [];
   return (
     <>
@@ -234,7 +235,7 @@ export function Reviews({ site }: { site: SiteData }) {
               <Stars value={it.rating} />
               {it.comment && <p className="s-body mt-3">“{it.comment}”</p>}
               <p className="s-small s-muted mt-4">
-                {it.name ?? t('site.reviews.guest')} · {new Intl.DateTimeFormat(i18n.language.startsWith('hi') ? 'hi-IN' : 'en-IN', { month: 'long', year: 'numeric' }).format(new Date(`${it.date}T12:00:00Z`))}
+                {it.name ?? t('site.reviews.guest')} · {new Intl.DateTimeFormat(intlLocale(i18n.language), { month: 'long', year: 'numeric' }).format(new Date(`${it.date}T12:00:00Z`))}
               </p>
               {it.reply && (
                 <p className="s-small mt-3 border-l-2 border-t-line pl-3">

@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { intlLocale } from '@/i18n/locale';
 
 /**
  * Thermal printing (KOT and bills) through the browser's print dialog, laid out for 58 mm or
@@ -106,7 +107,7 @@ export interface KotData {
 type T = (key: string, opts?: Record<string, unknown>) => string;
 
 const clock = (d: Date, lang: string) =>
-  new Intl.DateTimeFormat(lang.startsWith('hi') ? 'hi-IN' : 'en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(d);
+  new Intl.DateTimeFormat(intlLocale(lang), { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(d);
 
 /** Kitchen ticket: big quantities and names, notes underneath, no prices. */
 export function kotSlip(k: KotData, t: T, lang: string) {

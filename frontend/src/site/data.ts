@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api';
@@ -81,7 +82,7 @@ export function featuredItems(menu: MenuCategory[] | undefined, limit = 6): Menu
 }
 
 export function formatPrice(price: string | number, lang = 'en') {
-  return new Intl.NumberFormat(lang.startsWith('hi') ? 'hi-IN' : 'en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(price));
+  return new Intl.NumberFormat(intlLocale(lang), { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(price));
 }
 
 export function telHref(phone: string) {

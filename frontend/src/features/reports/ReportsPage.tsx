@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -65,7 +66,7 @@ function Heatmap({ cells }: { cells: Overview['heatmap'] }) {
   const at = (d: number, h: number) => cells.find((c) => c.day === d && c.hour === h)?.orders ?? 0;
   const hours = Array.from({ length: 24 }, (_, h) => h);
   const days = [1, 2, 3, 4, 5, 6, 7];
-  const dayName = (d: number) => new Intl.DateTimeFormat(i18n.language.startsWith('hi') ? 'hi-IN' : 'en-IN', { weekday: 'short' }).format(new Date(2026, 10, 1 + d)); // 2 Nov 2026 is a Monday
+  const dayName = (d: number) => new Intl.DateTimeFormat(intlLocale(i18n.language), { weekday: 'short' }).format(new Date(2026, 10, 1 + d)); // 2 Nov 2026 is a Monday
   return (
     <section className="card overflow-x-auto p-5">
       <h2 className="font-bold">{t('reports.peakHours')}</h2>

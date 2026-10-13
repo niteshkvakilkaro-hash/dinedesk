@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
@@ -55,7 +56,7 @@ export default function Overview() {
   const tenant = session.tenant;
   const d = dash.data;
   const trialDays = tenant.subscription?.status === 'trialing' ? daysUntil(tenant.subscription.trial_ends_at) : null;
-  const locale = i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN';
+  const locale = intlLocale(i18n.language);
   const now = new Date();
   const enter = (i: number) => (reduce ? {} : { initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] as const } });
 
@@ -216,7 +217,7 @@ function StatCards({ d }: { d: DashboardData }) {
 function RevenueChart({ series, hotel }: { series: NonNullable<DashboardData['series']>; hotel: boolean }) {
   const { t, i18n } = useTranslation();
   const c = useThemeColors(['brand', 'success', 'line', 'muted', 'surface', 'ink']);
-  const data = series.map((p) => ({ label: new Intl.DateTimeFormat(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short' }).format(new Date(`${p.date}T00:00:00`)), restaurant: Number(p.restaurant), rooms: Number(p.rooms) }));
+  const data = series.map((p) => ({ label: new Intl.DateTimeFormat(intlLocale(i18n.language), { day: 'numeric', month: 'short' }).format(new Date(`${p.date}T00:00:00`)), restaurant: Number(p.restaurant), rooms: Number(p.rooms) }));
   const empty = data.every((p) => !p.restaurant && !p.rooms);
   const short = (v: number) => (v >= 1000 ? `₹${Math.round(v / 100) / 10}k` : `₹${v}`);
   return (
@@ -459,7 +460,7 @@ function RecentCustomers({ rows }: { rows: NonNullable<DashboardData['recent_cus
                 <span className="block truncate text-sm font-semibold">{c.name}</span>
                 <span className="text-xs text-muted">{t('dashboard.home.ordersCount', { count: c.orders })}</span>
               </span>
-              <span className="text-xs text-muted">{new Intl.DateTimeFormat(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(c.last))}</span>
+              <span className="text-xs text-muted">{new Intl.DateTimeFormat(intlLocale(i18n.language), { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(c.last))}</span>
             </li>
           ))}
         </ul>
@@ -501,7 +502,7 @@ function QuickActions() {
 function Activity({ d }: { d: DashboardData }) {
   const { t, i18n } = useTranslation();
   if (!d.recent_orders && !d.recent_bookings) return null;
-  const rtf = new Intl.RelativeTimeFormat(i18n.language?.startsWith('hi') ? 'hi' : 'en', { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat(intlLocale(i18n.language), { numeric: 'auto' });
   const ago = (iso: string) => {
     const mins = Math.round((new Date(iso).getTime() - Date.now()) / 60000);
     return Math.abs(mins) < 60 ? rtf.format(mins, 'minute') : Math.abs(mins) < 1440 ? rtf.format(Math.round(mins / 60), 'hour') : rtf.format(Math.round(mins / 1440), 'day');

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Phone, Plus, RefreshCw, Search, Trash2, Users } from 'lucide-react';
@@ -25,7 +26,7 @@ const TONE: Record<ReservationStatus, string> = {
 const FILTERS = ['', 'upcoming', 'pending', 'confirmed', 'seated', 'completed', 'cancelled', 'rejected', 'no_show'] as const;
 
 function dayLabel(date: string, lang: string) {
-  return new Intl.DateTimeFormat(lang.startsWith('hi') ? 'hi-IN' : 'en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
+  return new Intl.DateTimeFormat(intlLocale(lang), { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
 }
 
 /** Reject / cancel with an optional reason the guest will see. */

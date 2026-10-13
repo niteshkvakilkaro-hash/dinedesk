@@ -27,6 +27,7 @@ import MyOrdersPage from './order/MyOrdersPage';
 import { EventsPage, RoomCheckout, RoomLanding, RoomsPage, StayLookupPage, StayPage } from './ui/HotelPages';
 import { useActiveRoom } from './hotel';
 import { showApp } from '@/lib/prerender';
+import { LANGUAGE_CODES, languageCode } from '@/i18n/locale';
 import { useOpenLabel } from './components/bits';
 import type { SectionKey, SiteData } from './types';
 
@@ -213,7 +214,7 @@ export default function SiteApp() {
 
   useEffect(() => {
     const lang = params.get('lang');
-    if (lang === 'hi' || lang === 'en') void i18n.changeLanguage(lang);
+    if (lang && (LANGUAGE_CODES as readonly string[]).includes(lang)) void i18n.changeLanguage(lang);
   }, [params, i18n]);
 
   const raw = query.data;
@@ -233,7 +234,8 @@ export default function SiteApp() {
 
   const def = getTheme(site?.theme.key);
   const { module, failed } = useThemeModule(site ? def.key : null);
-  const hindi = i18n.language?.startsWith('hi');
+  // Hindi and Marathi share the Devanagari script (the theme's Devanagari fonts).
+  const hindi = ['hi', 'mr'].includes(languageCode(i18n.language));
   useEffect(() => {
     if (hindi) void module?.loadHindiFonts?.();
   }, [hindi, module]);

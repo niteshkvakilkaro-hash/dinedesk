@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { CalendarClock, ChevronLeft, ChevronRight, Copy, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -72,7 +73,7 @@ function ShiftDialog({ shift, staff, onClose }: { shift: Partial<Shift> | null; 
 function RotaTab() {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
-  const locale = i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN';
+  const locale = intlLocale(i18n.language);
   const [start, setStart] = useState(todayYmd());
   const [editing, setEditing] = useState<Partial<Shift> | null>(null);
   const q = useQuery({ queryKey: ['rota', 'week', start], queryFn: async () => (await api.get<Week>(`/tenant/shifts?start=${start}`)).data });
@@ -204,7 +205,7 @@ function EntryDialog({ entry, staff, onClose }: { entry: Partial<Entry> | null; 
 
 function AttendanceTab() {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN';
+  const locale = intlLocale(i18n.language);
   const [range, setRange] = useState({ from: `${todayYmd().slice(0, 8)}01`, to: todayYmd() });
   const [editing, setEditing] = useState<Partial<Entry> | null>(null);
   const q = useQuery({ queryKey: ['rota', 'attendance', range], queryFn: async () => (await api.get<Report>(`/tenant/attendance?from=${range.from}&to=${range.to}`)).data });

@@ -4,6 +4,7 @@ import type { PageKey } from '@/themes/types';
 import type { SiteData } from './types';
 import { useSiteMenu } from './data';
 import { actionsSchema, geoSchema, menuSchema } from './schema';
+import { htmlLang, isRtl, LANGUAGE_CODES } from '@/i18n/locale';
 
 const PATHS: Record<PageKey, string> = { home: '/', menu: '/menu', about: '/about', gallery: '/gallery', contact: '/contact' };
 
@@ -56,12 +57,13 @@ export function Seo({ site, page, themeColor, title = null, path }: { site: Site
 
   return (
     <Helmet>
-      <html lang={hi ? 'hi-IN' : 'en-IN'} />
+      <html lang={htmlLang(i18n.language)} dir={isRtl(i18n.language) ? 'rtl' : 'ltr'} />
       <title>{pageTitle}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={url} />
-      <link rel="alternate" hrefLang="en-IN" href={url} />
-      <link rel="alternate" hrefLang="hi-IN" href={`${url}?lang=hi`} />
+      {/* The same page in every language (English is the default address). */}
+      {LANGUAGE_CODES.map((code) => <link key={code} rel="alternate" hrefLang={htmlLang(code)} href={code === 'en' ? url : `${url}?lang=${code}`} />)}
+      <link rel="alternate" hrefLang="x-default" href={url} />
       {(!site.seo.indexable || (title && !path)) && <meta name="robots" content="noindex, nofollow" />}
       <meta name="theme-color" content={themeColor} />
       <meta property="og:type" content="website" />
@@ -69,7 +71,7 @@ export function Seo({ site, page, themeColor, title = null, path }: { site: Site
       <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={url} />
-      <meta property="og:locale" content={hi ? 'hi_IN' : 'en_IN'} />
+      <meta property="og:locale" content={htmlLang(i18n.language).replace('-', '_')} />
       {site.seo.image && <meta property="og:image" content={site.seo.image} />}
       <meta name="twitter:card" content={site.seo.image ? 'summary_large_image' : 'summary'} />
       {site.theme.logo && <link rel="icon" href={site.theme.logo.src} />}

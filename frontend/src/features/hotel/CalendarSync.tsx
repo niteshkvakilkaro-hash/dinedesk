@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Copy, RefreshCw, Trash2 } from 'lucide-react';
@@ -46,7 +47,7 @@ export function CalendarSyncDialog({ type, onClose }: { type: RoomTypeRow | null
   });
   if (!type) return null;
   const d = q.data;
-  const when = (iso: string) => new Date(iso).toLocaleString(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+  const when = (iso: string) => new Date(iso).toLocaleString(intlLocale(i18n.language), { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
 
   return (
     <Dialog open onClose={onClose} title={t('hotel.sync.title', { name: type.name })} wide>

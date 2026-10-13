@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { useTranslation } from 'react-i18next';
 import { CloudOff, RefreshCw, Trash2, Wifi } from 'lucide-react';
 import { formatMoney as formatINR } from '@/lib/format';
@@ -82,7 +83,7 @@ export function OfflineCharge({ tenant, business, lines, pack, customer, notes, 
     const at = new Date();
     const rows = lines.map((l) => `<tr><td>${esc(l.name)}<div class="sm">${l.quantity} × ${(l.unit).toFixed(2)}</div></td><td class="n">${(l.unit * l.quantity).toFixed(2)}</td></tr>`).join('');
     const receipt = `<div class="c big">${esc(business)}</div><hr><div class="c b">${esc(t('pos.offline.receiptTitle'))}</div>
-<div class="c sm">${esc(sale.ref)} · ${esc(at.toLocaleString(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { timeZone: 'Asia/Kolkata' }))}</div><hr>
+<div class="c sm">${esc(sale.ref)} · ${esc(at.toLocaleString(intlLocale(i18n.language), { timeZone: 'Asia/Kolkata' }))}</div><hr>
 <table>${rows}</table><hr><table>
 ${packaging ? `<tr><td>${esc(t('print.charges'))}</td><td class="n">${(packaging / 100).toFixed(2)}</td></tr>` : ''}
 <tr><td>${esc(pack.prices_include_tax ? t('pos.offline.gstIncluded') : t('pos.offline.gst'))}</td><td class="n">${(tax / 100).toFixed(2)}</td></tr>

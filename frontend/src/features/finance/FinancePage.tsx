@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -82,7 +83,7 @@ function PnlTab() {
   const [range, setRange] = useState({ from: monthStart, to: today() });
   const q = useQuery({ queryKey: ['pnl', range], queryFn: async () => (await api.get<Pnl>('/tenant/finance/pnl', range)).data });
   const r = q.data;
-  const fmt = (d: string) => new Intl.DateTimeFormat(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short' }).format(new Date(`${d}T00:00:00`));
+  const fmt = (d: string) => new Intl.DateTimeFormat(intlLocale(i18n.language), { day: 'numeric', month: 'short' }).format(new Date(`${d}T00:00:00`));
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { BarChart3, ChevronLeft, ChevronRight, Download } from 'lucide-react';
@@ -69,7 +70,7 @@ export default function DayEndPage() {
     onError: (e) => toast.error(e.message),
   });
   const diff = r && counted !== '' ? Number(counted) - Number(r.cash.expected) : null;
-  const label = new Intl.DateTimeFormat(i18n.language.startsWith('hi') ? 'hi-IN' : 'en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
+  const label = new Intl.DateTimeFormat(intlLocale(i18n.language), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
 
   return (
     <div className="space-y-5">

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { intlLocale } from '@/i18n/locale';
 import { Link, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Crosshair, Loader2, MapPin } from 'lucide-react';
@@ -302,7 +303,7 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
                   <select aria-label={t('order.day')} className={`min-h-12 px-2 ${skin.input}`} value={day.date} onChange={(e) => { setSlotDay(e.target.value); setSlot(''); }}>
                     {days.map((d) => (
                       <option key={d.date} value={d.date}>
-                        {new Intl.DateTimeFormat(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${d.date}T12:00:00Z`))}
+                        {new Intl.DateTimeFormat(intlLocale(i18n.language), { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${d.date}T12:00:00Z`))}
                       </option>
                     ))}
                   </select>

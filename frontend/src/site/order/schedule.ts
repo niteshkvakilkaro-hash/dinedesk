@@ -1,4 +1,5 @@
 import type { DayKey, OpeningHours } from '@/types';
+import { intlLocale } from '@/i18n/locale';
 import type { Holiday } from '@/lib/openStatus';
 
 const DAYS: DayKey[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -37,7 +38,7 @@ export interface SlotDay {
 export function scheduleSlots(hours: OpeningHours, holidays: Holiday[], timeZone: string, prepMinutes: number, maxDays: number, now = Date.now(), lang = 'en'): SlotDay[] {
   const earliest = now + prepMinutes * 60_000;
   const out: SlotDay[] = [];
-  const fmt = new Intl.DateTimeFormat(lang.startsWith('hi') ? 'hi-IN' : 'en-IN', { timeZone, hour: 'numeric', minute: '2-digit' });
+  const fmt = new Intl.DateTimeFormat(intlLocale(lang), { timeZone, hour: 'numeric', minute: '2-digit' });
   for (let i = 0; i <= maxDays; i++) {
     const date = zonedDate(now + i * 86_400_000, timeZone);
     const weekday = DAYS[new Date(`${date}T12:00:00Z`).getUTCDay()];

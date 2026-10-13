@@ -3,6 +3,7 @@ import { formatTime } from '@/lib/format';
 import type { OpenStatus } from '@/lib/openStatus';
 import { useMotionStore, useReduceMotion } from '@/stores/motion';
 import { LANGUAGES } from '@/i18n';
+import { languageCode } from '@/i18n/locale';
 import type { SiteImage } from '../types';
 
 /** Responsive WebP with a blurred placeholder underneath while it loads. */
@@ -73,13 +74,26 @@ export function ReduceMotionToggle({ className = '' }: { className?: string }) {
   );
 }
 
+/** The website's language menu: shows the current language's letter; the list names each in its own script. */
 export function SiteLanguageToggle({ className = '' }: { className?: string }) {
-  const { i18n } = useTranslation();
-  const next = i18n.language?.startsWith('hi') ? LANGUAGES[0] : LANGUAGES[1];
+  const { i18n, t } = useTranslation();
+  const current = LANGUAGES.find((l) => l.code === languageCode(i18n.language)) ?? LANGUAGES[0];
   return (
-    // System font for the glyph: one Devanagari letter shouldn't download a 100 kB web font.
-    <button type="button" className={className} onClick={() => void i18n.changeLanguage(next.code)} lang={next.code} aria-label={next.label} style={{ fontFamily: 'system-ui, sans-serif' }}>
-      {next.short}
-    </button>
+    // System font for the letters: a few glyphs shouldn't download a 100 kB web font.
+    <label className={`relative ${className}`} style={{ fontFamily: 'system-ui, sans-serif' }}>
+      <span aria-hidden="true">{current.short}</span>
+      <select
+        value={current.code}
+        onChange={(e) => void i18n.changeLanguage(e.target.value)}
+        aria-label={t('common.language')}
+        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+      >
+        {LANGUAGES.map((lang) => (
+          <option key={lang.code} value={lang.code} lang={lang.code}>
+            {lang.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

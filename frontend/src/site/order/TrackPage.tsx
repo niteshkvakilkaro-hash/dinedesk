@@ -1,4 +1,5 @@
 import { useParams, useSearchParams, Link } from 'react-router';
+import { intlLocale } from '@/i18n/locale';
 import { useTranslation } from 'react-i18next';
 import { Check, ChefHat, CircleCheckBig, Clock, PackageCheck, Phone, ReceiptText, Bike, XCircle } from 'lucide-react';
 import { ApiError } from '@/lib/api';
@@ -34,7 +35,7 @@ export default function TrackPage({ site }: { site: SiteData }) {
   const justPlaced = params.get('placed') === '1';
   const { data: order, isLoading, error } = useTrackedOrder(id, token);
   const now = useNow();
-  const time = (iso: string) => new Intl.DateTimeFormat(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { timeZone: site.timezone, hour: 'numeric', minute: '2-digit', day: 'numeric', month: 'short' }).format(new Date(iso));
+  const time = (iso: string) => new Intl.DateTimeFormat(intlLocale(i18n.language), { timeZone: site.timezone, hour: 'numeric', minute: '2-digit', day: 'numeric', month: 'short' }).format(new Date(iso));
 
   if (isLoading) return <Wrap><p>{t('common.loading')}</p></Wrap>;
   if (error || !order) {
@@ -54,7 +55,7 @@ export default function TrackPage({ site }: { site: SiteData }) {
   const awaitingPayment = order.payment_method === 'online' && order.payment_status !== 'paid' && !cancelled;
   const phone = site.content.contact.phone;
   const eta = orderEstimate(order, site.ordering.prep_minutes, site.ordering.delivery_minutes, now);
-  const clock = (d: Date) => new Intl.DateTimeFormat(i18n.language?.startsWith('hi') ? 'hi-IN' : 'en-IN', { timeZone: site.timezone, hour: 'numeric', minute: '2-digit' }).format(d);
+  const clock = (d: Date) => new Intl.DateTimeFormat(intlLocale(i18n.language), { timeZone: site.timezone, hour: 'numeric', minute: '2-digit' }).format(d);
 
   return (
     <Wrap>

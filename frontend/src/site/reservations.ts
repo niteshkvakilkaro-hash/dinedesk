@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { intlLocale } from '@/i18n/locale';
 import { api } from '@/lib/api';
 
 export type ReservationStatus = 'pending' | 'confirmed' | 'seated' | 'completed' | 'rejected' | 'cancelled' | 'no_show';
@@ -53,7 +54,7 @@ export function rememberedBookings(host: string): { code: string; phone: string 
 
 /** "Sat, 14 Nov" in the visitor's language (dates are business-local, so read as UTC noon). */
 export function formatDay(date: string, lang: string, opts: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short' }) {
-  return new Intl.DateTimeFormat(lang.startsWith('hi') ? 'hi-IN' : 'en-IN', { ...opts, timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
+  return new Intl.DateTimeFormat(intlLocale(lang), { ...opts, timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
 }
 
 /** Business-local dates from today for `days` days. */
