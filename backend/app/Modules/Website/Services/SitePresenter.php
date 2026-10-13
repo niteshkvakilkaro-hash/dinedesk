@@ -59,7 +59,10 @@ class SitePresenter
             'has_gallery' => GalleryImage::exists(),
             // Tiffin / meal plans on offer: the site shows a Tiffin page.
             'has_tiffin' => MealPlan::where('is_active', true)->exists(),
-            'ordering' => $this->ordering($tenant, $hasMenu),
+            'ordering' => $this->ordering($tenant, $hasMenu) + [
+                // Cart sent to the business's own WhatsApp, when the owner takes orders that way.
+                'whatsapp' => $hasMenu && (app(OrderingSettings::class)->get()['whatsapp_orders'] ?? false) ? ($content['contact']['whatsapp'] ?? null) : null,
+            ],
             'features' => [
                 'online_ordering' => $this->features->enabled($tenant, 'online_ordering'),
                 'reservations' => $this->features->enabled($tenant, 'reservations'),

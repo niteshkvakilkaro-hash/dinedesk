@@ -19,6 +19,7 @@ interface OrderingSettings {
   scheduling: { enabled: boolean; max_days: number };
   location: { lat: number | null; lng: number | null };
   notifications: { email: boolean; whatsapp: boolean; sms: boolean };
+  whatsapp_orders?: boolean;
 }
 
 interface Zone {
@@ -39,6 +40,7 @@ interface Payload {
   razorpay: { key_id: string | null; has_key_secret: boolean; has_webhook_secret: boolean; mode: 'test' | 'live' | null; webhook_url: string };
   zones: Zone[];
   site_host: string;
+  whatsapp_number: string | null;
 }
 
 function ZoneEditor({ zone, onClose }: { zone: Zone | 'new'; onClose: () => void }) {
@@ -166,6 +168,11 @@ export default function OrderingSettingsPage() {
 
       <section className={`card p-5 ${s.accepting_orders ? '!border-success' : ''}`}>
         <Toggle checked={s.accepting_orders} onChange={(v) => up({ accepting_orders: v })} label={t('orderingAdmin.accepting')} hint={s.accepting_orders ? t('orderingAdmin.acceptingOn', { host: data.site_host }) : t('orderingAdmin.acceptingOff')} />
+      </section>
+
+      <section className="card p-5">
+        <Toggle checked={!!s.whatsapp_orders} onChange={(v) => up({ whatsapp_orders: v })} label={t('orderingAdmin.waOrders')} hint={s.accepting_orders ? t('orderingAdmin.waOrdersOnline') : t('orderingAdmin.waOrdersHint')} />
+        {s.whatsapp_orders && !data.whatsapp_number && <div className="mt-3"><Alert tone="warn">{t('orderingAdmin.waOrdersNoNumber')}</Alert></div>}
       </section>
 
       <section className="card p-5" aria-labelledby="types-h">

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { BedDouble, CalendarCheck, CookingPot, House, Images, Info, MapPin, PartyPopper, ShoppingBag, Tag, UserRound, UtensilsCrossed } from 'lucide-react';
 import { formatPhone } from '@/lib/format';
 import { cartCount, useCart } from '../cart';
+import { orderMode } from '../order/mode';
 import { mapHref, telHref, useLocalized } from '../data';
 import { ReduceMotionToggle, SiteLanguageToggle } from '../components/bits';
 import { useNavItems, type NavKey } from '../components/nav';
@@ -145,7 +146,7 @@ export function MobileBar({ site }: { site: SiteData }) {
   const count = cartCount(useCart((s) => s.lines));
   const setCartOpen = useCart((s) => s.setOpen);
   if (pathname.startsWith('/checkout') || pathname.startsWith('/order/') || pathname.startsWith('/style-guide')) return null;
-  const cart = site.ordering.enabled;
+  const cart = !!orderMode(site);
   const sorted = [...items].sort((a, b) => TAB_ORDER.indexOf(a.key) - TAB_ORDER.indexOf(b.key));
   const tabs = sorted.slice(0, cart ? 3 : 4);
   // Profile also covers the pages without a tab, and the guest's orders and bookings.

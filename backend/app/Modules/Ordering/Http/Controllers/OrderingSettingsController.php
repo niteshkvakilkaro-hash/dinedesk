@@ -110,6 +110,8 @@ class OrderingSettingsController extends Controller
                 'fee' => $z->fee, 'min_order' => $z->min_order, 'free_above' => $z->free_above, 'is_active' => $z->is_active, 'is_demo' => $z->is_demo,
             ])->values(),
             'site_host' => app(SitePresenter::class)->primaryHost($tenant),
+            // Where WhatsApp orders would go: the verified number from Website → contact details.
+            'whatsapp_number' => app(\App\Modules\Website\Services\SiteContent::class)->forPublic()['contact']['whatsapp'] ?? null,
         ];
     }
 }

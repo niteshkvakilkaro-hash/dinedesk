@@ -1,15 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
-import { cartCount, cartEstimate, MAX_QTY, useCart } from '../cart';
-import { useLocalized, useOpenStatus, useSite } from '../data';
+import { MessageCircle, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { cartCount, cartEstimate, MAX_QTY, useCart, type CartLine } from '../cart';
+import { useLocalized, useOpenStatus, useSite, whatsappHref } from '../data';
 import { FoodTypeMark } from '../components/bits';
 import { useMoney, useQuote } from '../ordering';
 import type { OrderType, Quote, SiteData } from '../types';
 import { SiteDialog, useSkin } from './skin';
 import { useActiveTable } from '../table';
 import { useActiveRoom } from '../hotel';
+import { orderMode } from './mode';
 
 export function OrderTypePicker({ site, value, onChange }: { site: SiteData; value: OrderType | null; onChange: (t: OrderType) => void }) {
   const { t } = useTranslation();
@@ -88,6 +89,15 @@ function CartLines() {
   );
 }
 
+/** The order as a WhatsApp message to the business: dishes, quantities, prices, then lines for the guest to fill in. */
+export function whatsappOrder(lines: CartLine[], business: string, money: (v: number) => string, t: (k: string, o?: Record<string, unknown>) => string) {
+  const rows = lines.map((l) => {
+    const extras = [l.variant_name, ...l.addon_names].filter(Boolean).join(', ');
+    return `${l.quantity} × ${l.name}${extras ? ` (${extras})` : ''}${l.notes ? ` – "${l.notes}"` : ''} — ${money(l.unit_price * l.quantity)}`;
+  });
+  return [t('order.wa.hello', { name: business }), '', ...rows, '', t('order.wa.totalLine', { total: money(cartEstimate(lines)) }), '', t('order.wa.fill')].join('\n');
+}
+
 /** Floating cart button on wider screens (phones use the bottom bar), hidden while empty and on checkout / tracking pages, + the cart sheet. */
 export function Cart() {
   const { t } = useTranslation();
@@ -108,7 +118,9 @@ export function Cart() {
   const room = useActiveRoom(site);
   // At a table, orders are always dine-in for that table; in a hotel room, room service.
   const effectiveType = room ? 'room_service' : table && site?.ordering.types.includes('dine_in') ? 'dine_in' : type && site?.ordering.types.includes(type) ? type : (site?.ordering.types[0] ?? null);
-  const quote = useQuote(open ? effectiveType : null);
+  // No checkout: the cart goes to the business's WhatsApp (no server quote needed).
+  const viaWhatsapp = orderMode(site) === 'whatsapp' && !room && !table;
+  const quote = useQuote(open && !viaWhatsapp ? effectiveType : null);
 
   // A little nudge whenever something is added (no motion when reduced).
   useEffect(() => {
@@ -116,7 +128,7 @@ export function Cart() {
     button.current.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12)' }, { transform: 'scale(1)' }], { duration: 350, easing: 'cubic-bezier(0.34,1.56,0.64,1)' });
   }, [tick]);
 
-  if (!site || (!site.ordering.enabled && !room)) return null;
+  if (!site || (!orderMode(site) && !room)) return null;
   const count = cartCount(lines);
   const hidden = pathname.startsWith('/checkout') || pathname.startsWith('/order/') || !!table || !!room;
 
@@ -146,7 +158,24 @@ export function Cart() {
         onClose={() => setOpen(false)}
         title={t('order.yourOrder')}
         footer={
-          lines.length > 0 && (
+          lines.length > 0 && viaWhatsapp ? (
+            <div className="space-y-3">
+              <p className="flex items-baseline justify-between font-bold">
+                <span>{t('order.wa.itemsTotal')}</span>
+                <span className="tabular-nums">{money(cartEstimate(lines))}</span>
+              </p>
+              <p className="text-sm text-t-muted">{t('order.wa.note')}</p>
+              <a
+                data-autofocus
+                href={whatsappHref(site.ordering.whatsapp!, whatsappOrder(lines, site.name, money, t))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex min-h-12 w-full items-center justify-center gap-2 px-4 ${skin.primary}`}
+              >
+                <MessageCircle className="h-5 w-5" aria-hidden="true" /> {t('order.wa.send')}
+              </a>
+            </div>
+          ) : lines.length > 0 && (
             <div className="space-y-3">
               {quote.data && <BillSummary quote={quote.data} deliveryPending={effectiveType === 'delivery'} />}
               {quote.isError && (
@@ -178,7 +207,7 @@ export function Cart() {
           </div>
         ) : (
           <div className="space-y-4">
-            {table ? <p className="font-semibold">{t('site.table.orderingFor', { label: table.label })}</p> : <OrderTypePicker site={site} value={effectiveType} onChange={setType} />}
+            {table ? <p className="font-semibold">{t('site.table.orderingFor', { label: table.label })}</p> : !viaWhatsapp && <OrderTypePicker site={site} value={effectiveType} onChange={setType} />}
             {status && !status.is_open && (
               <p className={`px-3 py-2 text-sm ${skin.card}`}>{site.ordering.scheduling.enabled ? t('order.closedSchedule') : t('order.closedNoSchedule')}</p>
             )}

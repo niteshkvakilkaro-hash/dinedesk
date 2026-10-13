@@ -1435,6 +1435,14 @@
       "noOrders": "No orders yet.",
       "saveAddress": "Save this address for next time",
       "signedIn": "Signed in"
+    },
+    "wa": {
+      "itemsTotal": "Items total",
+      "note": "GST, packaging and delivery as per the restaurant's bill. They confirm your order on WhatsApp.",
+      "send": "Send order on WhatsApp",
+      "hello": "Hi {{name}}, I'd like to order:",
+      "totalLine": "Items total: {{total}} (GST and charges as per your bill)",
+      "fill": "Name:\nPickup or delivery:\nAddress (for delivery):"
     }
   },
   "orders": {
@@ -1754,7 +1762,11 @@
     "upiId": "Your UPI ID",
     "upiIdHint": "Shown to guests and in the QR code, e.g. yourshop@okicici.",
     "upiPayee": "Name shown in the UPI app",
-    "upiPayeeHint": "Leave empty to use your business name."
+    "upiPayeeHint": "Leave empty to use your business name.",
+    "waOrders": "Take orders on WhatsApp",
+    "waOrdersHint": "Guests add dishes on your website and send the order to your WhatsApp with one tap (no online payment). You confirm the order and price on chat.",
+    "waOrdersOnline": "Online ordering is on, so guests use checkout. WhatsApp orders are used while online ordering is off.",
+    "waOrdersNoNumber": "Add and verify your WhatsApp number in Website → Contact details, or guests can't send orders."
   },
   "reservationsAdmin": {
     "title": "Bookings",

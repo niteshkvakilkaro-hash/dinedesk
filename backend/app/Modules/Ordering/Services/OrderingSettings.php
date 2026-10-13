@@ -35,6 +35,8 @@ class OrderingSettings
             'scheduling' => ['enabled' => true, 'max_days' => 2],
             'location' => ['lat' => null, 'lng' => null],
             'notifications' => ['email' => true, 'whatsapp' => false, 'sms' => false],
+            // Guests send their cart to the business's WhatsApp (no online payment or checkout).
+            'whatsapp_orders' => false,
         ];
     }
 
@@ -69,6 +71,7 @@ class OrderingSettings
             'notifications.email' => ['required', 'boolean'],
             'notifications.whatsapp' => ['required', 'boolean'],
             'notifications.sms' => ['required', 'boolean'],
+            'whatsapp_orders' => ['sometimes', 'boolean'],
         ];
     }
 

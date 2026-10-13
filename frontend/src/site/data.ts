@@ -90,7 +90,9 @@ export function telHref(phone: string) {
 
 export function whatsappHref(phone: string, text?: string) {
   const digits = phone.replace(/\D/g, '');
-  return `https://wa.me/${digits}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
+  // wa.me needs the country code: a 10-digit Indian mobile gets 91.
+  const to = digits.length === 10 ? `91${digits}` : digits;
+  return `https://wa.me/${to}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 }
 
 export function mapHref(site: SiteData) {

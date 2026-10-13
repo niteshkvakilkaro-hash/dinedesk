@@ -198,6 +198,8 @@ export interface OrderingInfo {
   has_delivery_zones: boolean;
   /** The restaurant's UPI ID, when guests may pay it directly. */
   upi: { vpa: string; payee: string } | null;
+  /** The business's WhatsApp number when guests send their cart there (no checkout). */
+  whatsapp?: string | null;
 }
 
 export interface QuoteLine {

@@ -8,6 +8,7 @@ import type { MenuItem } from '../types';
 import { SiteDialog, useSkin } from './skin';
 import { useMoney } from '../ordering';
 import { useActiveRoom } from '../hotel';
+import { orderMode } from './mode';
 
 const priceOf = (v: string) => Number(v);
 
@@ -16,7 +17,7 @@ export function useCanOrder(item?: MenuItem) {
   const { data: site } = useSite();
   // A hotel guest ordering from their room's QR can order even if the site takes no other orders.
   const room = useActiveRoom(site);
-  return (!!site?.ordering?.enabled || !!room) && (!item || item.is_available);
+  return (!!orderMode(site) || !!room) && (!item || item.is_available);
 }
 
 /** "Add" for a dish: simple dishes go straight in; dishes with options open a chooser. */
