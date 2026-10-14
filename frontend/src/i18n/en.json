@@ -1184,6 +1184,10 @@
       "sampleHint": "A few example dishes, clearly labelled \"Demo\" on your site until you replace them.",
       "skip": "Skip for now",
       "skipHint": "Your menu page stays hidden until you add dishes.",
+      "ai": "Read my menu with AI",
+      "aiHint": "Upload photos or a PDF of your printed menu. AI reads the dishes and prices, you check them, and your site goes live with your real menu.",
+      "aiOpen": "Upload menu photos",
+      "recommended": "Recommended",
       "later": "You can add, edit, photograph and import your full menu anytime from Dashboard → Menu."
     },
     "step7": {

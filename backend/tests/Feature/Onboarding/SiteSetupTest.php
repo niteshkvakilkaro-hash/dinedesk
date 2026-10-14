@@ -2,7 +2,10 @@
 
 namespace Tests\Feature\Onboarding;
 
+use App\Modules\Menu\Models\MenuItem;
 use App\Modules\Tenancy\Models\Tenant;
+use App\Support\Ai\Ai;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class SiteSetupTest extends TestCase
@@ -45,6 +48,51 @@ class SiteSetupTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['tenant_id' => $tenant->id, 'action' => 'tenant.went_live']);
 
         $this->postJson('/api/v1/onboarding/go-live', ['slug' => 'spice-route-jaipur'])->assertStatus(409)->assertJsonPath('meta.code', 'already_live');
+    }
+
+    public function test_owner_can_bring_their_own_menu_with_ai_at_step_six(): void
+    {
+        $this->app->instance(Ai::class, new class implements Ai {
+            public function enabled(): bool
+            {
+                return true;
+            }
+
+            public function json(string $system, array $content, array $schema, int $maxTokens = 16000): array
+            {
+                return ['categories' => [['name' => 'Coffee', 'items' => [
+                    ['name' => 'Filter Coffee', 'description' => null, 'price' => 60, 'food_type' => 'veg', 'variants' => []],
+                ]]], 'notes' => []];
+            }
+        });
+        $tenant = $this->business('Spice Route');
+        Tenant::whereKey($tenant->id)->update(['onboarding_step' => 6]);
+        $this->actingAsUser($this->ownerOf($tenant));
+
+        // Nothing added yet: the step can't be claimed as done.
+        $this->postJson('/api/v1/onboarding/menu', ['mode' => 'imported'])
+            ->assertStatus(422)->assertJsonPath('meta.code', 'menu_empty')->assertJsonValidationErrors('mode');
+        $this->getJson('/api/v1/auth/me')->assertJsonPath('data.tenant.onboarding_step', 6);
+
+        // The owner, still onboarding, may use the AI reader and the CSV import it saves through.
+        $this->getJson('/api/v1/tenant/menu/ai')->assertOk()->assertJsonPath('data.enabled', true);
+        $rows = $this->post('/api/v1/tenant/menu/ai/read', ['files' => [UploadedFile::fake()->image('menu.jpg', 600, 900)]], ['Accept' => 'application/json'])
+            ->assertOk()->json('data.rows');
+        $this->assertSame('Filter Coffee', $rows[0]['name']);
+        $csv = "category,name,description,price,food_type,variants\nCoffee,Filter Coffee,,60,veg,\n";
+        $this->postJson('/api/v1/tenant/menu/import', ['file' => UploadedFile::fake()->createWithContent('ai-menu.csv', $csv), 'dry_run' => false])->assertOk();
+
+        $this->postJson('/api/v1/onboarding/menu', ['mode' => 'imported'])->assertOk()->assertJsonPath('data.tenant.onboarding_step', 7);
+        // Only the owner's dishes: no sample menu was added on top.
+        $this->assertSame(1, MenuItem::withoutTenancy()->where('tenant_id', $tenant->id)->count());
+        $this->assertDatabaseHas('audit_logs', ['tenant_id' => $tenant->id, 'action' => 'onboarding.menu_imported']);
+
+        // Another business's dishes don't count for this one; sample still works there.
+        $other = $this->business('Cafe Sol');
+        Tenant::whereKey($other->id)->update(['onboarding_step' => 6]);
+        $this->actingAsUser($this->ownerOf($other))->postJson('/api/v1/onboarding/menu', ['mode' => 'imported'])->assertStatus(422);
+        $this->postJson('/api/v1/onboarding/menu', ['mode' => 'sample'])->assertOk()->assertJsonPath('data.tenant.onboarding_step', 7);
+        $this->assertTrue(MenuItem::withoutTenancy()->where('tenant_id', $other->id)->where('is_demo', true)->exists());
     }
 
     public function test_subdomain_rules(): void

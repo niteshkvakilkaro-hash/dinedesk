@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import QRCode from 'qrcode';
-import { BookOpen, Check, Download, ExternalLink, PartyPopper, SkipForward } from 'lucide-react';
+import { BookOpen, Check, Download, ExternalLink, PartyPopper, SkipForward, Sparkles, type LucideIcon } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { PLATFORM_DOMAIN, tenantSiteUrl } from '@/lib/host';
 import { useAuthStore } from '@/stores/auth';
@@ -16,9 +16,11 @@ import type { Session } from '@/types';
 import { ColorFields, LivePreview, ThemeCards, validColor } from '@/features/website/ThemePicker';
 import { ImageUpload } from '@/features/website/ImageUpload';
 import { useWebsite } from '@/features/website/api';
+import { AiImportDialog, useAiStatus } from '@/features/menu/AiImport';
 
 export type SetupStep = 4 | 5 | 6 | 7;
 type Step = SetupStep;
+type MenuMode = 'ai' | 'sample' | 'skip';
 
 function StepActions({ onBack, busy, disabled, label, onNext }: { onBack?: () => void; busy: boolean; disabled?: boolean; label: string; onNext: () => void }) {
   const { t } = useTranslation();
@@ -116,7 +118,12 @@ export function SiteSetup({ session, step, setStep }: { session: Session; step: 
   const [colors, setColors] = useState<{ primary_color: string | null; accent_color: string | null }>({ primary_color: null, accent_color: null });
   const [tagline, setTagline] = useState('');
   const [taglineHi, setTaglineHi] = useState('');
-  const [menuMode, setMenuMode] = useState<'sample' | 'skip' | null>(null);
+  const [menuMode, setMenuMode] = useState<MenuMode | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  // Set once the AI dishes are saved, so a failed step save retries without importing them twice.
+  const [imported, setImported] = useState(false);
+  const ai = useAiStatus();
+  const aiEnabled = ai.data?.enabled === true;
   const [slug, setSlug] = useState(tenant.slug);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -159,7 +166,17 @@ export function SiteSetup({ session, step, setStep }: { session: Session; step: 
 
   const saveTheme = () => run(async () => (await api.put<Session>('/onboarding/theme', { theme })).data, 5);
   const saveBranding = () => run(async () => (await api.put<Session>('/onboarding/branding', { ...colors, tagline: tagline.trim() || null, tagline_hi: taglineHi.trim() || null })).data, 6);
-  const saveMenu = () => run(async () => (await api.post<Session>('/onboarding/menu', { mode: menuMode })).data, 7);
+  const saveMenu = (mode: 'sample' | 'skip' | 'imported') => run(async () => (await api.post<Session>('/onboarding/menu', { mode })).data, 7);
+  const menuNext = () => {
+    if (menuMode === 'ai') {
+      if (imported) void saveMenu('imported');
+      else setAiOpen(true);
+    } else if (menuMode) void saveMenu(menuMode);
+  };
+  const menuChoices: [MenuMode, LucideIcon][] = [['sample', BookOpen], ['skip', SkipForward]];
+  // AI first when it's on; shown switched off (with the reason) when the server has no AI key.
+  if (aiEnabled) menuChoices.unshift(['ai', Sparkles]);
+  else if (ai.data) menuChoices.push(['ai', Sparkles]);
   const goLive = async () => {
     setError('');
     setBusy(true);
@@ -230,26 +247,49 @@ export function SiteSetup({ session, step, setStep }: { session: Session; step: 
         {step === 6 && (
           <>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" role="radiogroup" aria-labelledby="step-title">
-              {(
-                [
-                  ['sample', BookOpen],
-                  ['skip', SkipForward],
-                ] as const
-              ).map(([mode, Icon]) => (
-                <button key={mode} type="button" role="radio" aria-checked={menuMode === mode} onClick={() => setMenuMode(mode)} className={`card flex items-start gap-4 p-4 text-left ${menuMode === mode ? '!border-ink ring-2 ring-ink' : 'hover:border-ink/40'}`}>
-                  <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${menuMode === mode ? 'bg-ink text-gold' : 'bg-paper'}`}>
-                    <Icon className="h-6 w-6" aria-hidden="true" />
-                  </span>
-                  <span className="flex-1">
-                    <span className="block font-bold">{t(`setup.step6.${mode}`)}</span>
-                    <span className="block text-sm text-muted">{t(`setup.step6.${mode}Hint`)}</span>
-                  </span>
-                  {menuMode === mode && <Check className="h-5 w-5" aria-hidden="true" />}
-                </button>
-              ))}
+              {menuChoices.map(([mode, Icon]) => {
+                const off = mode === 'ai' && !aiEnabled;
+                const picked = menuMode === mode;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    role="radio"
+                    aria-checked={picked}
+                    disabled={off}
+                    onClick={() => {
+                      setMenuMode(mode);
+                      if (mode === 'ai' && !imported) setAiOpen(true);
+                    }}
+                    className={`card flex items-start gap-4 p-4 text-left ${mode === 'ai' ? 'sm:col-span-2' : ''} ${off ? 'cursor-not-allowed opacity-60' : picked ? '!border-ink ring-2 ring-ink' : 'hover:border-ink/40'}`}
+                  >
+                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${picked ? 'bg-ink text-gold' : 'bg-paper'}`}>
+                      <Icon className="h-6 w-6" aria-hidden="true" />
+                    </span>
+                    <span className="flex-1">
+                      <span className="flex flex-wrap items-center gap-2 font-bold">
+                        {t(`setup.step6.${mode}`)}
+                        {mode === 'ai' && aiEnabled && <span className="rounded-full bg-gold/25 px-2 py-0.5 text-xs font-semibold">{t('setup.step6.recommended')}</span>}
+                      </span>
+                      <span className="block text-sm text-muted">{off ? t('menuAdmin.ai.off') : t(`setup.step6.${mode}Hint`)}</span>
+                    </span>
+                    {picked && <Check className="h-5 w-5" aria-hidden="true" />}
+                  </button>
+                );
+              })}
             </div>
             <p className="text-sm text-muted">{t('setup.step6.later')}</p>
-            <StepActions busy={busy} disabled={!menuMode} onBack={() => setStep(5)} label={t('common.continue')} onNext={() => void saveMenu()} />
+            <StepActions busy={busy} disabled={!menuMode} onBack={() => setStep(5)} label={menuMode === 'ai' && !imported ? t('setup.step6.aiOpen') : t('common.continue')} onNext={menuNext} />
+            {aiOpen && (
+              <AiImportDialog
+                onClose={() => setAiOpen(false)}
+                onSaved={() => {
+                  setAiOpen(false);
+                  setImported(true);
+                  void saveMenu('imported');
+                }}
+              />
+            )}
           </>
         )}
 

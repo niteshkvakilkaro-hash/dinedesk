@@ -23,8 +23,9 @@ export function useAiStatus() {
 /**
  * Photos (or a PDF) of a printed menu → dishes to check and correct → saved through the CSV import,
  * so the same checks (prices, plan limit, all-or-nothing) apply.
+ * `onSaved` runs after the dishes are added, instead of `onClose` (onboarding uses it to move on).
  */
-export function AiImportDialog({ onClose }: { onClose: () => void }) {
+export function AiImportDialog({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
   const { t } = useTranslation();
   const status = useAiStatus();
   const [files, setFiles] = useState<File[]>([]);
@@ -72,7 +73,7 @@ export function AiImportDialog({ onClose }: { onClose: () => void }) {
       setImportErrors(r.errors);
       if (r.errors.length) return;
       toast.success(t('menuAdmin.ai.added', { count: kept.length }));
-      onClose();
+      (onSaved ?? onClose)();
     },
     onError: (e) => toast.error(e.message),
   });

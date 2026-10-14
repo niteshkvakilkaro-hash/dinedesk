@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Identity\Support\SessionPayload;
 use App\Modules\Menu\Models\MenuCategory;
+use App\Modules\Menu\Models\MenuItem;
 use App\Modules\Menu\Support\SampleMenu;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Models\TenantDomain;
@@ -23,7 +24,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * Onboarding steps 4–7, after the business exists:
- * 4 theme → 5 branding → 6 menu (sample or skip) → 7 subdomain + go live.
+ * 4 theme → 5 branding → 6 menu (own menu read by AI, sample, or skip) → 7 subdomain + go live.
  * onboarding_step only moves forward; the wizard may revisit earlier steps.
  */
 class SiteSetupController extends Controller
@@ -69,8 +70,17 @@ class SiteSetupController extends Controller
 
     public function menu(Request $request): JsonResponse
     {
-        $data = $request->validate(['mode' => ['required', Rule::in(['sample', 'skip'])]]);
+        // 'imported': the owner has already added their own dishes (AI read of the printed menu).
+        $data = $request->validate(['mode' => ['required', Rule::in(['sample', 'skip', 'imported'])]]);
         $tenant = $this->context->require();
+
+        if ($data['mode'] === 'imported') {
+            $dishes = MenuItem::count();
+            if ($dishes === 0) {
+                throw new ApiException('Add your dishes first, or pick another option.', 422, 'menu_empty', ['field' => 'mode']);
+            }
+            AuditLog::record('onboarding.menu_imported', $tenant, ['dishes' => $dishes]);
+        }
 
         if ($data['mode'] === 'sample' && ! MenuCategory::exists()) {
             DB::transaction(fn () => SampleMenu::install(SampleMenu::keyFor($tenant->business_type)));
