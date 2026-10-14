@@ -7,4 +7,5 @@ webview-app/.gradle/
 webview-app/app/build/
 webview-app/local.properties
 webview-app/keystore.properties
+webview-app/upload-keystore.properties
 webview-app/build/

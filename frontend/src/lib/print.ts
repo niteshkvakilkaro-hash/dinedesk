@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { intlLocale } from '@/i18n/locale';
+import { androidBridge } from './dinedeskApp';
 
 /**
  * Thermal printing (KOT and bills) through the browser's print dialog, laid out for 58 mm or
@@ -71,8 +72,26 @@ td.n { text-align: right; white-space: nowrap; padding-left: 1.5mm; }
 </style></head><body>${body}</body></html>`;
 }
 
-/** Prints a slip from a hidden frame (the page itself is left alone). */
+/** The <title> of a slip document, for the print job's name. */
+export function slipTitle(html: string): string {
+  const m = /<title>([^<]*)<\/title>/i.exec(html);
+  return (m?.[1] ?? '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim() || 'DineDesk';
+}
+
+/** Prints the page on screen. window.print() does nothing in the Android app: it prints through the phone's print service. */
+export function printPage(w: Window = window) {
+  const bridge = androidBridge(w);
+  if (bridge) bridge.printPage(w.document.title || 'DineDesk');
+  else w.print();
+}
+
+/** Prints a slip from a hidden frame (the page itself is left alone); in the Android app, from an off-screen page of the app. */
 export function printSlip(html: string) {
+  const bridge = androidBridge();
+  if (bridge) {
+    bridge.printHtml(html, slipTitle(html));
+    return;
+  }
   const frame = document.createElement('iframe');
   frame.setAttribute('aria-hidden', 'true');
   frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';

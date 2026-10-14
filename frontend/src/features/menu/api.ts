@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, API_BASE } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
+import { saveBlob } from '@/lib/dinedeskApp';
 import type { Diet, SiteImage } from '@/site/types';
 
 export type FoodType = 'veg' | 'non_veg' | 'egg';
@@ -110,10 +111,5 @@ export async function downloadTemplate() {
   const token = useAuthStore.getState().token;
   const res = await fetch(`${API_BASE}/tenant/menu/import/template`, { headers: { Authorization: `Bearer ${token}`, 'X-Tenant-Host': window.location.host } });
   if (!res.ok) throw new Error('Could not download the template.');
-  const url = URL.createObjectURL(await res.blob());
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'dinedesk-menu-template.csv';
-  a.click();
-  URL.revokeObjectURL(url);
+  await saveBlob(await res.blob(), 'dinedesk-menu-template.csv');
 }

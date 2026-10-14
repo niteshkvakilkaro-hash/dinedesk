@@ -5,6 +5,7 @@ import { useTabParam } from '@/lib/urlParams';
 import QRCode from 'qrcode';
 import { BellRing, CalendarCheck, LayoutGrid, Pencil, Plus, Printer, QrCode, ReceiptText, RefreshCw, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
+import { printPage } from '@/lib/print';
 import { formatINR, formatTime } from '@/lib/format';
 import { useCan } from '@/hooks/useSession';
 import { Alert, Badge, Dialog, EmptyState, ErrorState, Field, SkeletonRows, Spinner, toast, Toggle } from '@/components/ui';
@@ -458,7 +459,7 @@ function SetupTab() {
           <LayoutGrid className="h-4 w-4" aria-hidden="true" />
           {t('tablesAdmin.arrange')}
         </button>
-        <button type="button" className="btn-outline !min-h-10 text-sm" onClick={() => window.print()} disabled={!tables.some((x) => x.is_active)}>
+        <button type="button" className="btn-outline !min-h-10 text-sm" onClick={() => printPage()} disabled={!tables.some((x) => x.is_active)}>
           <Printer className="h-4 w-4" aria-hidden="true" />
           {t('tablesAdmin.print')}
         </button>

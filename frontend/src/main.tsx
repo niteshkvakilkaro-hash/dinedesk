@@ -8,6 +8,10 @@ import { useAuthStore } from '@/stores/auth';
 import '@/i18n';
 import '@/styles/index.css';
 import { getTheme, isThemeKey } from '@/themes/registry';
+import { installAppDownloads } from '@/lib/dinedeskApp';
+
+// Inside the DineDesk Android app, QR images and other download links are saved through the app.
+installAppDownloads();
 
 // Business website: start downloading its theme as soon as the early /site response names it.
 void window.__ddSite?.then((res) => {

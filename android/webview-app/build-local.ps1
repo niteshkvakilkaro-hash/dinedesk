@@ -1,5 +1,5 @@
-# Builds the two local test APKs (DineDesk dashboard + Haveli Demo site) that open this PC's dev
-# server from a phone on the same Wi-Fi. Output: ..\apk\DineDesk-local.apk, ..\apk\HaveliDemo-local.apk
+# Builds the DineDesk app (one app for guests and businesses) for testing on a phone on the same
+# Wi-Fi as this PC: it opens http://<pc-ip>:<port>/app, the dev server. Output: ..\apk\DineDesk-local.apk
 #
 #   .\build-local.ps1                      # uses this PC's Wi-Fi IP
 #   .\build-local.ps1 -DevHost 192.168.1.40 -DevPort 5173
@@ -17,7 +17,8 @@ Set-Location $PSScriptRoot
 if (-not $DevHost) {
     $DevHost = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -match '^(192\.168|10\.|172\.(1[6-9]|2\d|3[01]))' -and $_.PrefixOrigin -ne 'WellKnown' } | Select-Object -First 1).IPAddress
 }
-Write-Host "Phone will open http://${DevHost}:$DevPort"
+if (-not $DevHost) { throw "Could not find this PC's Wi-Fi IP: pass -DevHost 192.168.x.x" }
+Write-Host "Phone will open http://${DevHost}:$DevPort/app (businesses: http://<slug>.$DevHost.nip.io:$DevPort)"
 
 $env:JAVA_HOME = $Jdk
 $env:ANDROID_HOME = $Sdk
@@ -37,11 +38,12 @@ if (-not (Test-Path 'keystore.properties')) {
 $gradle = Get-ChildItem "$env:USERPROFILE\.gradle\wrapper\dists" -Recurse -Filter gradle.bat | Where-Object FullName -match 'gradle-8\.1[3-9]' | Select-Object -First 1
 if (-not $gradle) { throw 'Gradle 8.13+ not found in ~/.gradle/wrapper/dists.' }
 
-Native { & $gradle.FullName --no-daemon assembleAdminRelease assembleHaveliRelease "-PdevHost=$DevHost" "-PdevPort=$DevPort" }
+Native { & $gradle.FullName --no-daemon assembleDevRelease "-PdevHost=$DevHost" "-PdevPort=$DevPort" }
 if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
 
 $out = Join-Path $PSScriptRoot '..\apk'
 New-Item -ItemType Directory -Force $out | Out-Null
-Copy-Item 'app\build\outputs\apk\admin\release\app-admin-release.apk' (Join-Path $out 'DineDesk-local.apk') -Force
-Copy-Item 'app\build\outputs\apk\haveli\release\app-haveli-release.apk' (Join-Path $out 'HaveliDemo-local.apk') -Force
+# The separate Haveli Demo app is gone: business sites open inside DineDesk.
+Remove-Item (Join-Path $out 'HaveliDemo-local.apk') -ErrorAction SilentlyContinue
+Copy-Item 'app\build\outputs\apk\dev\release\app-dev-release.apk' (Join-Path $out 'DineDesk-local.apk') -Force
 Get-ChildItem $out -Filter *.apk | Select-Object Name, @{ n = 'KB'; e = { [math]::Round($_.Length / 1KB) } }

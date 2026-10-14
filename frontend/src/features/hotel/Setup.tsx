@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import QRCode from 'qrcode';
 import { CalendarSync as CalendarSyncIcon, ImagePlus, Pencil, Plus, Printer, RefreshCw, Star, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
+import { printPage } from '@/lib/print';
 import { useSession } from '@/hooks/useSession';
 import { formatMoney } from '@/lib/format';
 import { Alert, Badge, Dialog, EmptyState, ErrorState, Field, SkeletonRows, Spinner, toast, Toggle } from '@/components/ui';
@@ -276,7 +277,7 @@ function RoomsCard({ types, business }: { types: RoomTypeRow[]; business: string
     <section className="card space-y-4 p-5" aria-labelledby="hr-h">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="hr-h" className="text-lg font-bold">{t('hotel.setup.rooms')} <span className="text-muted">({rooms.length})</span></h2>
-        <button type="button" className="btn-outline !min-h-10 text-sm" onClick={() => window.print()} disabled={!rooms.some((r) => r.is_active)}><Printer className="h-4 w-4" aria-hidden="true" /> {t('hotel.setup.printQr')}</button>
+        <button type="button" className="btn-outline !min-h-10 text-sm" onClick={() => printPage()} disabled={!rooms.some((r) => r.is_active)}><Printer className="h-4 w-4" aria-hidden="true" /> {t('hotel.setup.printQr')}</button>
       </div>
       {!types.length ? <p className="text-sm text-muted">{t('hotel.setup.typesFirst')}</p> : (
         <form className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_2fr_1fr_auto]" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>

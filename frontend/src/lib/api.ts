@@ -13,6 +13,7 @@
 
 import i18n from 'i18next';
 import { languageCode } from '@/i18n/locale';
+import { androidBridge, saveBlob } from './dinedeskApp';
 
 const ROOT = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 export const API_BASE = `${ROOT}/api/v1`;
@@ -148,7 +149,9 @@ export function applyServerErrors(
 
 /** Opens a private file (e.g. a guest's ID) from an authenticated endpoint in a new tab, without saving it. */
 export async function openFile(path: string) {
-  const win = window.open('', '_blank');
+  // The Android app has no tabs or PDF viewer: it saves the file and opens it in a viewer app.
+  const inApp = !!androidBridge();
+  const win = inApp ? null : window.open('', '_blank');
   const headers: Record<string, string> = { 'X-Tenant-Host': window.location.host };
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(buildUrl(path), { headers, cache: 'no-store' });
@@ -162,7 +165,9 @@ export async function openFile(path: string) {
     }
     throw new ApiError(message, res.status);
   }
-  const url = URL.createObjectURL(await res.blob());
+  const blob = await res.blob();
+  if (inApp) return saveBlob(blob, fileNameFrom(res, blob), { open: true });
+  const url = URL.createObjectURL(blob);
   if (win) win.location.href = url;
   else window.location.assign(url);
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -174,12 +179,19 @@ export async function downloadFile(path: string, filename: string, params?: Para
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(buildUrl(path, params), { headers });
   if (!res.ok) throw new ApiError('Could not download the file.', res.status);
-  const url = URL.createObjectURL(await res.blob());
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  await saveBlob(await res.blob(), filename);
+}
+
+/** The file name the server gave (Content-Disposition), else "document.<type>". */
+function fileNameFrom(res: Response, blob: Blob): string {
+  const m = /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(res.headers.get('Content-Disposition') ?? '');
+  if (m) {
+    try {
+      return decodeURIComponent(m[1] ?? m[2]);
+    } catch {
+      return m[2] ?? 'document';
+    }
+  }
+  const ext = blob.type.split('/')[1]?.split(/[;+]/)[0];
+  return ext ? `document.${ext}` : 'document';
 }

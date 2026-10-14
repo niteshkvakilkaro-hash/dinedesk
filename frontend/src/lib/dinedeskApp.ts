@@ -161,3 +161,93 @@ export function forgetPlaces() {
     /* ignore */
   }
 }
+
+/**
+ * What the Android app adds to its pages as window.DineDeskAndroid (only on the platform host, its
+ * business subdomains and places opened from the app). A WebView can't print (window.print() does
+ * nothing) or save blob: / data: downloads by itself, so those go through the app.
+ */
+export interface AndroidBridge {
+  /** Prints a complete HTML document (thermal slips) from an off-screen page. */
+  printHtml(html: string, title: string): void;
+  /** Prints the page on screen (QR sheets). */
+  printPage(title: string): void;
+  /** A file in parts: begin → id, chunk (base64) …, end → saved to Downloads (and opened when asked). */
+  saveBegin(filename: string, mime: string): string;
+  saveChunk(id: string, base64: string): boolean;
+  saveEnd(id: string, open: boolean): boolean;
+  /** A business's own domain (confirmed by the server) may open inside the app from now on. */
+  allowHost(host: string): void;
+}
+
+export function androidBridge(w: unknown = typeof window !== 'undefined' ? window : undefined): AndroidBridge | null {
+  const b = (w as { DineDeskAndroid?: Partial<AndroidBridge> } | undefined)?.DineDeskAndroid;
+  return b && typeof b.saveBegin === 'function' && typeof b.printHtml === 'function' ? (b as AndroidBridge) : null;
+}
+
+const CHUNK = 512 * 1024;
+
+function base64(bytes: Uint8Array): string {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
+/** Sends a file to the app in 512 KB parts (big exports stay out of one huge string). */
+export async function saveViaBridge(bridge: AndroidBridge, blob: Blob, filename: string, open = false): Promise<void> {
+  const id = bridge.saveBegin(filename, blob.type || 'application/octet-stream');
+  if (!id) throw new Error('Could not save the file.');
+  for (let at = 0; at < blob.size; at += CHUNK) {
+    const part = new Uint8Array(await blob.slice(at, at + CHUNK).arrayBuffer());
+    if (!bridge.saveChunk(id, base64(part))) throw new Error('Could not save the file.');
+  }
+  if (!bridge.saveEnd(id, open)) throw new Error('Could not save the file.');
+}
+
+/** Saves a file: through the app when there is one, else the browser's download. */
+export async function saveBlob(blob: Blob, filename: string, options: { open?: boolean } = {}): Promise<void> {
+  const bridge = androidBridge();
+  if (bridge) return saveViaBridge(bridge, blob, filename, options.open);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
+/**
+ * Inside the app, links like <a href="data:…" download="table-4.png"> (QR codes) are saved through
+ * the app with their name. Installed once at start-up; does nothing in a browser.
+ */
+export function installAppDownloads(doc: Document = document) {
+  const bridge = androidBridge(doc.defaultView);
+  if (!bridge) return;
+  doc.addEventListener(
+    'click',
+    (e) => {
+      const a = (e.target as Element | null)?.closest?.('a[download]') as HTMLAnchorElement | null;
+      if (!a || !/^(blob|data):/i.test(a.href)) return;
+      e.preventDefault();
+      const name = a.getAttribute('download') || 'download';
+      void fetch(a.href)
+        .then((r) => r.blob())
+        .then((b) => saveViaBridge(bridge, b, name))
+        .catch(() => undefined);
+    },
+    true,
+  );
+}
+
+/** Tells the app a place may open inside it (needed for a business's own domain). */
+export function allowInApp(url: string) {
+  const bridge = androidBridge();
+  if (!bridge) return;
+  try {
+    bridge.allowHost(new URL(url).hostname);
+  } catch {
+    /* not a URL */
+  }
+}
