@@ -688,6 +688,86 @@
     }
   }
 
+  /* ---------- Inside the DineDesk app: top bar on inner pages, "All places" on the home page ---------- */
+  .s-appbar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) 52px;
+    align-items: center;
+    min-height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 4px 0;
+    background: var(--t-primary);
+    color: var(--t-on-primary);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--t-accent) 35%, transparent),
+      0 8px 20px -14px rgb(0 0 0 / 0.5);
+  }
+  .s-appbar-btn {
+    display: flex;
+    height: 48px;
+    width: 48px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    transition: background-color 0.2s;
+  }
+  .s-appbar-btn:active,
+  .s-appbar-btn:hover {
+    background: color-mix(in srgb, var(--t-on-primary) 14%, transparent);
+  }
+  .s-appbar-title {
+    overflow: hidden;
+    padding-inline: 4px;
+    text-align: center;
+    font-family: var(--t-font-display);
+    font-size: 1.1875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .s-appbar-end {
+    display: flex;
+    justify-content: flex-end;
+  }
+  /* The cart count reads on the bar's colour in every theme. */
+  .s-appbar .s-icon-btn > span {
+    background: var(--t-on-primary);
+    color: var(--t-primary);
+  }
+  .site-root .s-appbar :focus-visible {
+    outline-color: var(--t-on-primary);
+  }
+  .s-places-btn {
+    display: inline-flex;
+    max-width: 42%;
+    min-height: 36px;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 2px;
+    border-radius: 999px;
+    padding: 0 12px 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+    background: color-mix(in srgb, currentColor 6%, transparent);
+  }
+  [dir='rtl'] .s-places-btn {
+    padding: 0 6px 0 12px;
+  }
+  /* In the app the bottom tabs stay at every width (a tablet or a desktop test with ?app=1). */
+  @media (min-width: 1024px) {
+    .s-in-app .s-tabbar {
+      display: grid;
+    }
+    .s-in-app.s-has-bar {
+      padding-bottom: calc(var(--s-bar-h) + env(safe-area-inset-bottom));
+    }
+  }
+
   /* ---------- Hero ---------- */
   .s-hero-full {
     position: relative;

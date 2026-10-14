@@ -11,6 +11,7 @@ import { DishRow } from './DishCard';
 import { Hero } from './Hero';
 import { Divider, Hours, MapFacade, themeStyle } from './primitives';
 import { FeaturedRooms, HomeSections, QuickActions, Reserve } from './sections';
+import { IN_APP } from '../app';
 
 const delay = (i: number) => ({ ['--i' as string]: i });
 
@@ -23,8 +24,9 @@ export function PageHeader({ site, eyebrow, title, lead, banner = false, image }
         <div className="s-page-banner-img">
           <SiteImg image={photo} alt="" sizes="(orientation: portrait) 200vw, 100vw" priority className="h-full w-full" />
         </div>
-        <div className="s-wrap relative z-[2] w-full pb-7 pt-20 md:pb-10 md:pt-28">
-          {eyebrow && <p className="s-reveal s-eyebrow s-hero-kicker">{eyebrow}</p>}
+        <div className={`s-wrap relative z-[2] w-full pb-7 md:pb-10 md:pt-28 ${IN_APP ? 'pt-12' : 'pt-20'}`}>
+          {/* In the app the business name is a tap away (Home); the banner keeps the page heading. */}
+          {eyebrow && !IN_APP && <p className="s-reveal s-eyebrow s-hero-kicker">{eyebrow}</p>}
           <h1 className="s-reveal s-h1 mt-2 max-w-4xl" style={delay(1)}>
             {title}
           </h1>
@@ -34,6 +36,15 @@ export function PageHeader({ site, eyebrow, title, lead, banner = false, image }
             </div>
           )}
         </div>
+      </header>
+    );
+  }
+  // Inside the DineDesk app the top bar names the page: just the lead, no big heading.
+  if (IN_APP) {
+    return (
+      <header className="s-wrap pb-2 pt-5">
+        <h1 className="sr-only">{title}</h1>
+        {lead && <div className="s-muted max-w-2xl">{lead}</div>}
       </header>
     );
   }

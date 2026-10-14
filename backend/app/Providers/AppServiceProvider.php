@@ -131,6 +131,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('referral-lookup', fn (Request $request) => Limit::perMinute(20)->by('ref|'.$request->ip())
             ->response($tooMany('Too many tries. Please wait a minute.')));
 
+        // The app's public place finder: plenty for people searching, too slow to scrape.
+        RateLimiter::for('directory', fn (Request $request) => Limit::perMinute(60)->by('dir|'.$request->ip())
+            ->response($tooMany('Too many searches. Please wait a minute.')));
+
         RateLimiter::for('webhooks', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
 
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(240)->by($request->user()?->id ?: $request->ip()));

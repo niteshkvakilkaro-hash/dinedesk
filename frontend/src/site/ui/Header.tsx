@@ -11,6 +11,8 @@ import { SkipLink, useMobileMenu, useNavItems } from '../components/nav';
 import type { SiteData } from '../types';
 import { useScrolled } from './motion';
 import { OpenBadge, themeStyle } from './primitives';
+import { IN_APP } from '../app';
+import { AllPlacesLink } from './AppBar';
 
 export function Brand({ site, className = '' }: { site: SiteData; className?: string }) {
   return (
@@ -21,7 +23,7 @@ export function Brand({ site, className = '' }: { site: SiteData; className?: st
   );
 }
 
-function CartButton({ site }: { site: SiteData }) {
+export function CartButton({ site }: { site: SiteData }) {
   const { t } = useTranslation();
   const count = cartCount(useCart((s) => s.lines));
   const setOpen = useCart((s) => s.setOpen);
@@ -53,6 +55,8 @@ export function Header({ site }: { site: SiteData }) {
       <SkipLink className="bg-t-primary text-t-on-primary" />
       <header className={`s-header ${over ? 'is-over' : ''}`}>
         <div className="s-wrap flex h-full items-center gap-4">
+          {/* Inside the DineDesk app: back to all places. */}
+          {IN_APP && <AllPlacesLink />}
           <Brand site={site} className="min-w-0 flex-1 lg:flex-none" />
           <nav aria-label={t('site.mainNav')} className="mx-auto hidden lg:block">
             <ul className="flex items-center">
@@ -66,8 +70,9 @@ export function Header({ site }: { site: SiteData }) {
             </ul>
           </nav>
           <div className="flex items-center gap-1">
-            <SiteLanguageToggle className="s-icon-btn text-sm font-bold" />
-            <CartButton site={site} />
+            {/* In the DineDesk app the language is on the Profile tab and the cart is a tab: room for the name. */}
+            {!IN_APP && <SiteLanguageToggle className="s-icon-btn text-sm font-bold" />}
+            {(!IN_APP || drawer) && <CartButton site={site} />}
             {cta ? (
               <Link to={cta.to} className={`s-btn s-btn-sm ml-2 hidden md:inline-flex ${over ? 's-btn-glass' : 's-btn-primary'}`}>
                 {cta.label}

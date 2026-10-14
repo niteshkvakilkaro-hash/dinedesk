@@ -20,6 +20,8 @@ export interface WebsiteData {
   warnings: ServerWarning[];
   themes: { key: ThemeKey; primary: string; accent: string; background: string; text: string; accent_role: 'fill' | 'ink' }[];
   site_url: string;
+  /** Shown in the DineDesk app's place finder. */
+  directory_listed: boolean;
 }
 
 export type ThemeUpdate = Partial<Pick<SiteTheme, 'key' | 'primary_color' | 'accent_color' | 'sections'>>;
@@ -68,5 +70,14 @@ export function useGallery() {
       const res = await api.get<GalleryItem[]>('/tenant/gallery');
       return { items: res.data, max: (res.meta as { max?: number } | null)?.max ?? 60 };
     },
+  });
+}
+
+/** Show (or hide) this business in the DineDesk app's place finder. */
+export function useSaveDirectory() {
+  const qc = useQueryClient();
+  return useMutation<{ listed: boolean }, ApiError, boolean>({
+    mutationFn: async (listed) => (await api.put<{ listed: boolean }>('/tenant/website/directory', { listed })).data,
+    onSuccess: ({ listed }) => qc.setQueryData<WebsiteData>(['website'], (old) => (old ? { ...old, directory_listed: listed } : old)),
   });
 }

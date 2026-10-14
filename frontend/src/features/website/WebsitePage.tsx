@@ -6,10 +6,10 @@ import { useSession } from '@/hooks/useSession';
 import { tenantSiteUrl } from '@/lib/host';
 import { isIndianMobile } from '@/lib/format';
 import { ApiError } from '@/lib/api';
-import { Alert, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
+import { Alert, ErrorState, Field, SkeletonRows, Spinner, Toggle, toast } from '@/components/ui';
 import type { ThemeKey } from '@/themes/types';
 import type { SectionKey } from '@/site/types';
-import { useSaveContent, useSaveTheme, useWebsite, type EditableContent } from './api';
+import { useSaveContent, useSaveDirectory, useSaveTheme, useWebsite, type EditableContent } from './api';
 import { ColorFields, LivePreview, SectionOrder, ThemeCards, validColor } from './ThemePicker';
 import { ImageUpload } from './ImageUpload';
 
@@ -294,6 +294,29 @@ function ContentTab() {
   );
 }
 
+/** Listed in the DineDesk app's place finder (on by default); saves at once. */
+function DirectoryCard() {
+  const { t } = useTranslation();
+  const { data } = useWebsite();
+  const save = useSaveDirectory();
+  if (!data) return null;
+  return (
+    <section className="card mb-6 max-w-3xl px-5 py-3" aria-label={t('website.directory.title')}>
+      <Toggle
+        checked={save.isPending ? !!save.variables : data.directory_listed}
+        onChange={(listed) =>
+          save.mutate(listed, {
+            onSuccess: () => toast.success(t('website.saved')),
+            onError: (e) => toast.error(e.message),
+          })
+        }
+        label={t('website.directory.label')}
+        hint={t('website.directory.hint')}
+      />
+    </section>
+  );
+}
+
 export default function WebsitePage() {
   const { t } = useTranslation();
   const { data: session } = useSession();
@@ -324,7 +347,12 @@ export default function WebsitePage() {
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'design' && <DesignTab />}
         {tab === 'images' && <ImagesTab />}
-        {tab === 'content' && <ContentTab />}
+        {tab === 'content' && (
+          <>
+            <DirectoryCard />
+            <ContentTab />
+          </>
+        )}
       </div>
     </div>
   );

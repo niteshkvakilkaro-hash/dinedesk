@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Website\Http\Controllers\DirectoryController;
 use App\Modules\Website\Http\Controllers\GalleryController;
 use App\Modules\Website\Http\Controllers\PublicSiteController;
 use App\Modules\Website\Http\Controllers\WebsiteController;
@@ -12,6 +13,13 @@ Route::middleware(['tenant.host', 'throttle:api'])->prefix('site')->group(functi
     Route::get('gallery', [PublicSiteController::class, 'gallery']);
 });
 
+// The DineDesk app's place finder (platform host only)
+Route::middleware('throttle:directory')->group(function () {
+    Route::get('directory', [DirectoryController::class, 'index']);
+    // Is this host (a scanned QR / typed address) a DineDesk place?
+    Route::get('directory/place', [DirectoryController::class, 'place']);
+});
+
 // Dashboard → Website and Gallery
 Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api', 'tenant.can:theme.manage', 'feature:website'])
     ->prefix('tenant')
@@ -21,6 +29,7 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api', 'tenant.can:th
         Route::put('website/content', [WebsiteController::class, 'updateContent']);
         Route::post('website/images/{slot}', [WebsiteController::class, 'uploadImage']);
         Route::delete('website/images/{slot}', [WebsiteController::class, 'deleteImage']);
+        Route::put('website/directory', [DirectoryController::class, 'update']);
 
         Route::get('gallery', [GalleryController::class, 'index']);
         Route::post('gallery', [GalleryController::class, 'store']);

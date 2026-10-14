@@ -7,6 +7,7 @@ import { useSession } from '@/hooks/useSession';
 import { Spinner, Toaster } from '@/components/ui';
 import { captureReferral } from '@/lib/referral';
 
+const AppHome = lazy(() => import('@/features/app/AppHome'));
 const Landing = lazy(() => import('@/features/marketing/Landing'));
 const MarketingLayout = lazy(() => import('@/features/marketing/MarketingLayout'));
 const FeaturePage = lazy(() => import('@/features/marketing/FeaturePage'));
@@ -117,6 +118,8 @@ export default function PlatformApp() {
         <Route path="themes" element={<ThemesPage />} />
         <Route path="features/:slug" element={<FeaturePage />} />
       </Route>
+      {/* The DineDesk app (Android WebView) starts here: find a place, or sign in as a business. */}
+      <Route path="app" element={<AppHome />} />
       <Route path="signup" element={<Guard need="guest"><SignupPage /></Guard>} />
       <Route path="login" element={<Guard need="guest"><LoginPage /></Guard>} />
       <Route path="onboarding" element={<Guard need="onboarding"><OnboardingWizard /></Guard>} />

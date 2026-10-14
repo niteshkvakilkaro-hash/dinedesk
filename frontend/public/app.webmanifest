@@ -1,0 +1,17 @@
+{
+  "name": "DineDesk",
+  "short_name": "DineDesk",
+  "description": "Find restaurants and hotels, order, book a table or a room. Businesses sign in to run theirs.",
+  "id": "/app",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14110f",
+  "theme_color": "#14110f",
+  "icons": [
+    { "src": "/icons/dd-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/dd-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/dd-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

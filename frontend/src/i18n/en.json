@@ -1506,6 +1506,11 @@
       "fssaiInvalid": "The FSSAI licence number has 14 digits.",
       "showGstin": "Show GSTIN in the footer",
       "showGstinHint": "Uses the GSTIN from Business details."
+    },
+    "directory": {
+      "title": "DineDesk app",
+      "label": "Show my business in the DineDesk app",
+      "hint": "Guests can find you by name or city in the DineDesk app. Your website and QR codes work either way."
     }
   },
   "gallery": {
@@ -4310,5 +4315,39 @@
     "referredBy": "Your business joined through {{name}}.",
     "invitedBy": "Invited by {{name}}",
     "invitedHint": "You both get free days when you start a paid plan."
+  },
+  "app": {
+    "tagline": "Food, tables and rooms in one app",
+    "forGuests": "For guests",
+    "findTitle": "Find a restaurant or hotel",
+    "findText": "Order food, book a table or a room.",
+    "searchLabel": "Search places",
+    "searchPlaceholder": "Name or city",
+    "clearSearch": "Clear search",
+    "scanQr": "Scan QR",
+    "scanTitle": "Scan a QR code",
+    "scanHint": "Point the camera at the QR code on your table, room door or menu card.",
+    "scanPhoto": "Take a photo of the QR code",
+    "scanPhotoHint": "Live scanning isn't available here. Take a photo of the QR code instead.",
+    "scanUnsupported": "This phone can't scan QR codes here. Type the address instead.",
+    "cameraBlocked": "The camera isn't available. Take a photo of the QR code instead.",
+    "noQrFound": "No QR code found in that photo. Try again, a little closer.",
+    "notDineDesk": "This QR isn't a DineDesk place.",
+    "checking": "Checking…",
+    "addressLabel": "Or type the address",
+    "addressPlaceholder": "e.g. haveli.dinedesk.in",
+    "open": "Open",
+    "recent": "Recently visited",
+    "clearRecent": "Clear",
+    "places": "Places on DineDesk",
+    "results": "Results",
+    "noPlaces": "No places match “{{q}}”. Try another name or city.",
+    "noPlacesYet": "No places to show yet.",
+    "loadMore": "Show more",
+    "businessTitle": "I run a restaurant or hotel",
+    "businessText": "Orders, bookings, billing and your own website, in one place.",
+    "openDashboard": "Open my dashboard",
+    "startTrial": "Start free trial",
+    "allPlaces": "All places"
   }
 }

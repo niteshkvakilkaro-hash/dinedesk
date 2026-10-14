@@ -5,7 +5,7 @@ import { formatPhone } from '@/lib/format';
 import { mapHref, telHref, whatsappHref } from '../data';
 import { ReduceMotionToggle, SiteLanguageToggle } from '../components/bits';
 import { guestSignOut, useGuestAccount } from '../account';
-import { useInstallApp } from '../app';
+import { IN_APP, useInstallApp } from '../app';
 import type { SiteData } from '../types';
 import { OpenBadge } from '../ui/primitives';
 import { GuestSignIn } from './GuestSignIn';
@@ -34,8 +34,9 @@ export default function ProfilePage({ site }: { site: SiteData }) {
   ];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5 px-4 pb-24 pt-8 sm:px-6">
-      <h1 className={`text-4xl ${skin.heading}`}>{t('site.profile.title')}</h1>
+    <div className={`mx-auto max-w-2xl space-y-5 px-4 pb-24 sm:px-6 ${IN_APP ? 'pt-4' : 'pt-8'}`}>
+      {/* In the DineDesk app the top bar already names the page. */}
+      <h1 className={IN_APP ? 'sr-only' : `text-4xl ${skin.heading}`}>{t('site.profile.title')}</h1>
 
       <section className={`p-5 ${skin.card}`} aria-label={t('site.profile.account')}>
         {me ? (
@@ -60,7 +61,8 @@ export default function ProfilePage({ site }: { site: SiteData }) {
         )}
       </section>
 
-      {!app.installed && (app.canPrompt || app.ios) && (
+      {/* Already an app inside DineDesk: no "install" offer there. */}
+      {!IN_APP && !app.installed && (app.canPrompt || app.ios) && (
         <section className={`flex items-center gap-4 p-5 ${skin.card}`} aria-labelledby="install-h">
           <img src="/site-icon-192.png" alt="" width={48} height={48} className="h-12 w-12 shrink-0 rounded-xl" />
           <div className="min-w-0 flex-1">
@@ -133,6 +135,18 @@ export default function ProfilePage({ site }: { site: SiteData }) {
         <button type="button" className="flex min-h-12 w-full items-center justify-center gap-2 font-semibold underline" onClick={() => void guestSignOut()}>
           <LogOut className="h-4 w-4" aria-hidden="true" /> {t('order.account.signOut')}
         </button>
+      )}
+
+      {/* The website footer's legal line (the app has no footer). */}
+      {IN_APP && (
+        <p className="s-small s-muted flex flex-wrap justify-center gap-x-4 gap-y-1 text-center">
+          <span>
+            © {new Date().getFullYear()} {site.name}
+          </span>
+          {site.content.legal?.fssai && <span>{t('site.fssai', { number: site.content.legal.fssai })}</span>}
+          {site.gstin && <span>{t('site.gstin', { number: site.gstin })}</span>}
+          <span>{t('site.poweredBy')}</span>
+        </p>
       )}
     </div>
   );

@@ -4,6 +4,7 @@ namespace App\Modules\Website\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Audit\Models\AuditLog;
+use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Modules\Website\Models\ThemeSetting;
 use App\Modules\Website\Services\SiteContent;
@@ -123,6 +124,8 @@ class WebsiteController extends Controller
             'warnings' => Themes::contrastWarnings($theme->theme, $theme->primary_color, $theme->accent_color),
             'themes' => collect(Themes::CATALOGUE)->map(fn ($t, $key) => ['key' => $key] + $t)->values(),
             'site_url' => '//'.$this->presenter->primaryHost($this->context->require()),
+            // Listed in the DineDesk app's place finder (owners can opt out).
+            'directory_listed' => app(TenantSettings::class)->get(DirectoryController::SETTING) !== false,
         ];
     }
 }
