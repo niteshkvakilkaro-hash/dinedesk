@@ -8,6 +8,7 @@ use App\Modules\Hotel\Models\RoomBooking;
 use App\Modules\Hotel\Models\RoomRate;
 use App\Modules\Hotel\Models\RoomType;
 use App\Support\Images\ImageService;
+use App\Support\Translations;
 
 class HotelPresenter
 {
@@ -26,6 +27,7 @@ class HotelPresenter
             'name_hi' => $t->name_hi,
             'description' => $t->description,
             'description_hi' => $t->description_hi,
+            'translations' => Translations::clean($t->translations, ['name', 'description']),
             'photos' => collect($t->photos ?? [])->map(fn ($p, $i) => ['key' => $i, 'alt' => $p['alt'] ?? $t->name] + ($this->images->present($p['image'] ?? null) ?? []))->filter(fn ($p) => isset($p['src']))->values(),
             'amenities' => array_values($t->amenities ?? []),
             'bed' => $t->bed,
@@ -131,7 +133,7 @@ class HotelPresenter
             'code' => $b->code,
             'status' => $b->status,
             'name' => $b->name,
-            'room_type' => ['name' => $b->type->name, 'name_hi' => $b->type->name_hi],
+            'room_type' => ['name' => $b->type->name, 'name_hi' => $b->type->name_hi, 'translations' => Translations::clean($b->type->translations, ['name'])],
             'check_in' => $b->check_in->format('Y-m-d'),
             'check_out' => $b->check_out->format('Y-m-d'),
             'nights' => $b->nights,

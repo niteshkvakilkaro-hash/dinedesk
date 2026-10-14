@@ -6,6 +6,7 @@ use App\Modules\Menu\Models\AddonGroup;
 use App\Modules\Menu\Models\MenuCategory;
 use App\Modules\Menu\Models\MenuItem;
 use App\Support\Images\ImageService;
+use App\Support\Translations;
 
 /** Shapes menu data for the dashboard and the public site (same fields, one place). */
 class MenuPresenter
@@ -21,6 +22,7 @@ class MenuPresenter
             'name_hi' => $i->name_hi,
             'description' => $i->description,
             'description_hi' => $i->description_hi,
+            'translations' => Translations::clean($i->translations, ['name', 'description']),
             'price' => $i->price,
             'food_type' => $i->food_type,
             'spice_level' => $i->spice_level,
@@ -33,7 +35,7 @@ class MenuPresenter
             'is_demo' => $i->is_demo,
             'variants' => $i->variants
                 ->filter(fn ($v) => $admin || $v->is_available)
-                ->map(fn ($v) => ['id' => $v->id, 'name' => $v->name, 'name_hi' => $v->name_hi, 'price' => $v->price, 'is_default' => $v->is_default, 'is_available' => $v->is_available])
+                ->map(fn ($v) => ['id' => $v->id, 'name' => $v->name, 'name_hi' => $v->name_hi, 'translations' => Translations::clean($v->translations, ['name']), 'price' => $v->price, 'is_default' => $v->is_default, 'is_available' => $v->is_available])
                 ->values(),
             'addon_group_ids' => $i->addonGroups->pluck('id')->values(),
         ];
@@ -51,12 +53,13 @@ class MenuPresenter
             'id' => $g->id,
             'name' => $g->name,
             'name_hi' => $g->name_hi,
+            'translations' => Translations::clean($g->translations, ['name']),
             'min_select' => $g->min_select,
             'max_select' => $g->max_select,
             'is_demo' => $g->is_demo,
             'addons' => $g->addons
                 ->filter(fn ($a) => $admin || $a->is_available)
-                ->map(fn ($a) => ['id' => $a->id, 'name' => $a->name, 'name_hi' => $a->name_hi, 'price' => $a->price, 'food_type' => $a->food_type, 'is_available' => $a->is_available])
+                ->map(fn ($a) => ['id' => $a->id, 'name' => $a->name, 'name_hi' => $a->name_hi, 'translations' => Translations::clean($a->translations, ['name']), 'price' => $a->price, 'food_type' => $a->food_type, 'is_available' => $a->is_available])
                 ->values(),
             ...($admin ? ['items_count' => $g->items_count ?? null] : []),
         ];
@@ -72,6 +75,7 @@ class MenuPresenter
                 'id' => $c->id,
                 'name' => $c->name,
                 'name_hi' => $c->name_hi,
+                'translations' => Translations::clean($c->translations, ['name']),
                 'slug' => $c->slug,
                 'tax_rate' => $c->tax_rate,
                 'station' => $c->station,
@@ -98,6 +102,7 @@ class MenuPresenter
                 'id' => $c->id,
                 'name' => $c->name,
                 'name_hi' => $c->name_hi,
+                'translations' => Translations::clean($c->translations, ['name']),
                 'slug' => $c->slug,
                 'is_demo' => $c->is_demo,
                 'items' => $c->items->map(fn ($i) => $this->item($i))->values(),

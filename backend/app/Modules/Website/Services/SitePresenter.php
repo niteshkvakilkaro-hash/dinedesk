@@ -17,6 +17,7 @@ use App\Modules\Website\Models\GalleryImage;
 use App\Modules\Website\Models\ThemeSetting;
 use App\Modules\Website\Support\Themes;
 use App\Support\Images\ImageService;
+use App\Support\Translations;
 
 /**
  * Shapes what a public website needs. Runs inside the tenant's context, so
@@ -158,7 +159,7 @@ class SitePresenter
             ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
             ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
             ->orderBy('sort_order')->orderByDesc('id')->get()
-            ->map(fn ($b) => $b->only(['id', 'placement', 'title', 'title_hi', 'text', 'text_hi', 'cta_label', 'cta_link', 'coupon_code']) + ['ends_at' => $b->ends_at?->toIso8601String()])->values()->all() : [];
+            ->map(fn ($b) => $b->only(['id', 'placement', 'title', 'title_hi', 'text', 'text_hi', 'cta_label', 'cta_link', 'coupon_code']) + ['translations' => Translations::clean($b->translations, ['title', 'text']), 'ends_at' => $b->ends_at?->toIso8601String()])->values()->all() : [];
         $loyalty = app(\App\Modules\Loyalty\Services\Loyalty::class)->get();
         $loyaltyOn = $loyalty['enabled'] && $this->features->enabled($tenant, 'loyalty');
 

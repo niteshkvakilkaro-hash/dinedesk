@@ -9,10 +9,10 @@ class ItemVariant extends Model
 {
     use BelongsToTenant;
 
-    protected $fillable = ['tenant_id', 'menu_item_id', 'name', 'name_hi', 'price', 'is_default', 'is_available', 'sort_order'];
+    protected $fillable = ['tenant_id', 'menu_item_id', 'name', 'name_hi', 'price', 'is_default', 'is_available', 'sort_order', 'translations'];
 
     protected function casts(): array
     {
-        return ['price' => 'decimal:2', 'is_default' => 'boolean', 'is_available' => 'boolean', 'sort_order' => 'integer'];
+        return ['price' => 'decimal:2', 'is_default' => 'boolean', 'is_available' => 'boolean', 'sort_order' => 'integer', 'translations' => 'array'];
     }
 }

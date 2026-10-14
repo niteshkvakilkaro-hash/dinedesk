@@ -148,24 +148,24 @@ class Branches
             return DB::transaction(function () use ($source, $to) {
                 $groupIds = [];
                 foreach ($source['groups'] as $g) {
-                    $new = AddonGroup::create($g->only(['name', 'name_hi', 'min_select', 'max_select', 'sort_order', 'is_demo']));
+                    $new = AddonGroup::create($g->only(['name', 'name_hi', 'translations', 'min_select', 'max_select', 'sort_order', 'is_demo']));
                     foreach ($g->addons as $a) {
-                        Addon::create(['addon_group_id' => $new->id] + $a->only(['name', 'name_hi', 'price', 'food_type', 'is_available', 'sort_order']));
+                        Addon::create(['addon_group_id' => $new->id] + $a->only(['name', 'name_hi', 'translations', 'price', 'food_type', 'is_available', 'sort_order']));
                     }
                     $groupIds[$g->id] = $new->id;
                 }
                 $catIds = [];
                 foreach ($source['categories'] as $c) {
-                    $catIds[$c->id] = MenuCategory::create($c->only(['name', 'name_hi', 'slug', 'tax_rate', 'sort_order', 'is_active', 'is_demo']))->id;
+                    $catIds[$c->id] = MenuCategory::create($c->only(['name', 'name_hi', 'translations', 'slug', 'tax_rate', 'sort_order', 'is_active', 'is_demo']))->id;
                 }
                 $count = 0;
                 foreach ($source['items'] as $i) {
                     $item = MenuItem::create(['menu_category_id' => $catIds[$i->menu_category_id], 'image' => $this->copyImage($i->image, $to)] + $i->only([
-                        'name', 'name_hi', 'description', 'description_hi', 'price', 'tax_rate', 'food_type', 'spice_level', 'allergens',
+                        'name', 'name_hi', 'description', 'description_hi', 'translations', 'price', 'tax_rate', 'food_type', 'spice_level', 'allergens',
                         'is_available', 'is_bestseller', 'is_chefs_special', 'sort_order', 'is_demo',
                     ]));
                     foreach ($i->variants as $v) {
-                        ItemVariant::create(['menu_item_id' => $item->id] + $v->only(['name', 'name_hi', 'price', 'is_default', 'is_available', 'sort_order']));
+                        ItemVariant::create(['menu_item_id' => $item->id] + $v->only(['name', 'name_hi', 'translations', 'price', 'is_default', 'is_available', 'sort_order']));
                     }
                     foreach ($i->addonGroups as $g) {
                         $item->addonGroups()->attach($groupIds[$g->id], ['tenant_id' => $to->id, 'sort_order' => $g->pivot->sort_order]);

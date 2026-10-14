@@ -40,7 +40,7 @@ export function AddButton({ item, className = '', label }: { item: MenuItem; cla
   const addSimple = (e: React.MouseEvent) => {
     add({
       item_id: item.id, variant_id: null, addon_ids: [], quantity: 1, notes: '',
-      name: item.name, name_hi: item.name_hi, variant_name: null, addon_names: [], unit_price: priceOf(item.price), food_type: item.food_type, image: item.image?.src ?? null,
+      name: item.name, name_hi: item.name_hi, translations: item.translations, variant_name: null, addon_names: [], unit_price: priceOf(item.price), food_type: item.food_type, image: item.image?.src ?? null,
     });
     skin.onAdd?.({ x: e.clientX, y: e.clientY });
   };
@@ -114,7 +114,7 @@ export function DishOptions({ item, open, onClose }: { item: MenuItem; open: boo
     }
     add({
       item_id: item.id, variant_id: variantId, addon_ids: addonIds, quantity: qty, notes: notes.trim(),
-      name: item.name, name_hi: item.name_hi, variant_name: variant?.name ?? null,
+      name: item.name, name_hi: item.name_hi, translations: item.translations, variant_name: variant?.name ?? null,
       addon_names: addonIds.map((id) => allAddons.find((a) => a.id === id)?.name ?? ''), unit_price: unit, food_type: item.food_type, image: item.image?.src ?? null,
     });
     skin.onAdd?.({ x: e.clientX, y: e.clientY });

@@ -2,6 +2,7 @@
 
 use App\Modules\Menu\Http\Controllers\AiMenuController;
 use App\Modules\Menu\Http\Controllers\MenuController;
+use App\Modules\Menu\Http\Controllers\TranslationController;
 use Illuminate\Support\Facades\Route;
 
 // Dashboard → Menu
@@ -35,4 +36,14 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api', 'tenant.can:me
         Route::get('ai', [AiMenuController::class, 'status']);
         Route::post('ai/read', [AiMenuController::class, 'read'])->middleware('throttle:ai');
         Route::post('ai/describe', [AiMenuController::class, 'describe'])->middleware('throttle:ai');
+    });
+
+// Dashboard → Menu → Languages: owner content in the site's other languages (AI drafts, owner saves).
+// Rooms, offers and website text are included only for people who may edit those.
+Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api', 'tenant.can:menu.manage'])
+    ->prefix('tenant/translations')
+    ->group(function () {
+        Route::get('/', [TranslationController::class, 'index']);
+        Route::put('/', [TranslationController::class, 'update']);
+        Route::post('ai', [TranslationController::class, 'suggest'])->middleware('throttle:ai');
     });

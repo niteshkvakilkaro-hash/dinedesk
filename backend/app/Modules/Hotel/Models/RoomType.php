@@ -19,7 +19,7 @@ class RoomType extends Model
 
     protected $fillable = [
         'tenant_id', 'slug', 'name', 'name_hi', 'description', 'description_hi', 'photos', 'amenities', 'bed', 'size_sqft',
-        'base_occupancy', 'max_adults', 'max_children', 'base_price', 'weekend_price', 'extra_adult_price', 'extra_child_price', 'sort_order', 'is_active',
+        'base_occupancy', 'max_adults', 'max_children', 'base_price', 'weekend_price', 'extra_adult_price', 'extra_child_price', 'sort_order', 'is_active', 'translations',
     ];
 
     protected function casts(): array
@@ -37,6 +37,7 @@ class RoomType extends Model
             'extra_child_price' => 'decimal:2',
             'sort_order' => 'integer',
             'is_active' => 'boolean',
+            'translations' => 'array',
         ];
     }
 

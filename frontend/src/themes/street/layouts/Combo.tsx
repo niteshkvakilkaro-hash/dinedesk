@@ -39,7 +39,7 @@ export function ComboBuilder() {
       const variant = i.variants.find((v) => v.is_default) ?? i.variants[0] ?? null;
       add({
         item_id: i.id, variant_id: variant?.id ?? null, addon_ids: [], quantity: 1, notes: '',
-        name: i.name, name_hi: i.name_hi, variant_name: variant?.name ?? null, addon_names: [], unit_price: priceOf(i), food_type: i.food_type, image: i.image?.src ?? null,
+        name: i.name, name_hi: i.name_hi, translations: i.translations, variant_name: variant?.name ?? null, addon_names: [], unit_price: priceOf(i), food_type: i.food_type, image: i.image?.src ?? null,
       });
     }
     chilliConfetti({ x: e.clientX, y: e.clientY });

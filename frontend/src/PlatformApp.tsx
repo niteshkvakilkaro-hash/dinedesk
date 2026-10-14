@@ -22,6 +22,7 @@ const WebsitePage = lazy(() => import('@/features/website/WebsitePage'));
 const GalleryPage = lazy(() => import('@/features/website/GalleryPage'));
 const OrdersPage = lazy(() => import('@/features/orders/OrdersPage'));
 const MenuPage = lazy(() => import('@/features/menu/MenuPage'));
+const MenuLanguagesPage = lazy(() => import('@/features/menu/LanguagesPage'));
 const OrderingSettingsPage = lazy(() => import('@/features/ordering/OrderingSettingsPage'));
 const ReservationsPage = lazy(() => import('@/features/reservations/ReservationsPage'));
 const TablesPage = lazy(() => import('@/features/tables/TablesPage'));
@@ -115,6 +116,7 @@ export default function PlatformApp() {
         <Route path="gallery" element={<GalleryPage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="menu" element={<MenuPage />} />
+        <Route path="menu/languages" element={<MenuLanguagesPage />} />
         <Route path="ordering" element={<OrderingSettingsPage />} />
         <Route path="reservations" element={<ReservationsPage />} />
         <Route path="tables" element={<TablesPage />} />

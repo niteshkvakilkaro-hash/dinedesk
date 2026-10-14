@@ -11,11 +11,11 @@ class AddonGroup extends Model
 {
     use BelongsToTenant;
 
-    protected $fillable = ['tenant_id', 'name', 'name_hi', 'min_select', 'max_select', 'sort_order', 'is_demo'];
+    protected $fillable = ['tenant_id', 'name', 'name_hi', 'min_select', 'max_select', 'sort_order', 'is_demo', 'translations'];
 
     protected function casts(): array
     {
-        return ['min_select' => 'integer', 'max_select' => 'integer', 'sort_order' => 'integer', 'is_demo' => 'boolean'];
+        return ['min_select' => 'integer', 'max_select' => 'integer', 'sort_order' => 'integer', 'is_demo' => 'boolean', 'translations' => 'array'];
     }
 
     public function addons(): HasMany

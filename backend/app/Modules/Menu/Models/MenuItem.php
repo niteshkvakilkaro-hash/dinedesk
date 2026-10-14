@@ -23,7 +23,7 @@ class MenuItem extends Model
     protected $fillable = [
         'tenant_id', 'menu_category_id', 'name', 'name_hi', 'description', 'description_hi', 'price', 'tax_rate',
         'food_type', 'spice_level', 'allergens', 'diet_tags', 'is_available', 'is_bestseller', 'is_chefs_special',
-        'image', 'sort_order', 'is_demo',
+        'image', 'sort_order', 'is_demo', 'translations',
     ];
 
     protected function casts(): array
@@ -40,6 +40,7 @@ class MenuItem extends Model
             'image' => 'array',
             'sort_order' => 'integer',
             'is_demo' => 'boolean',
+            'translations' => 'array',
         ];
     }
 

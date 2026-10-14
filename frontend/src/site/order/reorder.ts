@@ -38,6 +38,7 @@ export function reorderLines(order: Pick<CustomerOrder, 'items'>, menu: MenuCate
       notes: old.notes ?? '',
       name: item.name,
       name_hi: item.name_hi,
+      translations: item.translations,
       variant_name: variant?.name ?? null,
       addon_names: addons.map((a) => a.name),
       unit_price: Number(variant?.price ?? item.price) + addons.reduce((s, a) => s + Number(a.price), 0),

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDown, ArrowUp, EyeOff, FileSpreadsheet, Pencil, Plus, Search, Sparkles, Trash2 } from 'lucide-react';
+import { Link } from 'react-router';
+import { ArrowDown, ArrowUp, EyeOff, FileSpreadsheet, Languages, Pencil, Plus, Search, Sparkles, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { formatINR } from '@/lib/format';
 import { useSession } from '@/hooks/useSession';
@@ -74,6 +75,9 @@ export default function MenuPage() {
           <button type="button" className="btn-primary" onClick={() => setAiImporting(true)}>
             <Sparkles className="h-4 w-4" aria-hidden="true" /> {t('menuAdmin.ai.button')}
           </button>
+          <Link to="/dashboard/menu/languages" className="btn-outline">
+            <Languages className="h-4 w-4" aria-hidden="true" /> {t('menuAdmin.languages.button')}
+          </Link>
           <button type="button" className="btn-outline" onClick={() => setImporting(true)}>
             <FileSpreadsheet className="h-4 w-4" aria-hidden="true" /> {t('menuAdmin.import')}
           </button>

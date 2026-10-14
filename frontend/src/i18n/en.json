@@ -1673,6 +1673,47 @@
       "added_one": "{{count}} dish added to your menu.",
       "added_other": "{{count}} dishes added to your menu.",
       "describe": "Write with AI"
+    },
+    "languages": {
+      "button": "Languages",
+      "title": "Your menu in other languages",
+      "intro": "Show your dishes, rooms, offers and website text in the language each guest picks. Hindi is filled in with each dish as usual. Anything left empty shows in English.",
+      "back": "Back to menu",
+      "language": "Language",
+      "switchConfirm": "You have unsaved changes in this language. Switch and lose them?",
+      "filled": "{{done}} of {{total}} texts translated",
+      "filling": "AI is translating… {{done}} of {{total}}",
+      "unsaved": "Unsaved changes: {{count}}",
+      "fillAi": "Fill empty with AI",
+      "aiNothing": "Every text already has a translation.",
+      "aiDone": "AI drafts ready: {{count}}. Check them, then save.",
+      "aiCheck": "AI drafts are marked. Read each one and correct it before you save, especially dish names.",
+      "aiDraft": "AI draft — check",
+      "save": "Save",
+      "saved": "Translations saved.",
+      "emptyTitle": "Nothing to translate yet",
+      "emptyHint": "Add sections and dishes to your menu first.",
+      "inputLabel": "Translation of {{text}}",
+      "group": {
+        "menu": "Menu",
+        "rooms": "Rooms",
+        "banners": "Offers",
+        "website": "Website"
+      },
+      "kind": {
+        "category_name": "Section",
+        "item_name": "Dish",
+        "item_description": "Description",
+        "variant_name": "Size",
+        "group_name": "Add-on group",
+        "addon_name": "Add-on",
+        "room_name": "Room type",
+        "room_description": "Room description",
+        "banner_title": "Offer title",
+        "banner_text": "Offer text",
+        "site_tagline": "Tagline",
+        "site_about": "About us"
+      }
     }
   },
   "orderingAdmin": {

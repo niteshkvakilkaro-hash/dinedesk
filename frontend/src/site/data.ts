@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api';
 import { openStatus } from '@/lib/openStatus';
+import { localize } from './localize';
 import type { GalleryItem, MenuCategory, MenuItem, SiteData } from './types';
 
 /** Data the server-side renderer already used for this page (window.__ddSsr), so the app starts with it. */
@@ -62,16 +63,11 @@ export function useOpenStatus(site: SiteData) {
   return openStatus(site.opening_hours, site.timezone, site.holidays, now);
 }
 
-/** Picks the Hindi field when the visitor reads in Hindi and the owner filled it in. */
+/** Picks an owner-written field in the visitor's language (see localize), falling back to English. */
 export function useLocalized() {
   const { i18n } = useTranslation();
-  const hi = i18n.language?.startsWith('hi');
-  return <T extends object>(obj: T | null | undefined, field: string): string | null => {
-    if (!obj) return null;
-    const rec = obj as Record<string, unknown>;
-    const value = hi ? (rec[`${field}_hi`] ?? rec[field]) : rec[field];
-    return typeof value === 'string' && value !== '' ? value : null;
-  };
+  const lang = i18n.language;
+  return <T extends object>(obj: T | null | undefined, field: string): string | null => localize(obj, field, lang);
 }
 
 /** Bestsellers and chef's specials first, for "Today's specials" style sections. */

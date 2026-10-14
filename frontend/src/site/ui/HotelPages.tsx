@@ -116,7 +116,7 @@ function PriceLines({ quote }: { quote: StayQuote }) {
 
 /** /rooms: room types with photos, and the booking engine (dates, guests, live price). */
 export function RoomsPage({ site }: { site: SiteData }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const l = useLocalized();
   const money = useMoney();
   const navigate = useNavigate();
@@ -219,7 +219,7 @@ export function RoomsPage({ site }: { site: SiteData }) {
             <p>{t('site.stay.times', { in: h.check_in_time, out: h.check_out_time })}</p>
             {h.online_booking && <p>{h.free_cancel_days ? t('site.stay.cancelDays', { count: h.free_cancel_days }) : t('site.stay.cancelDayBefore')}</p>}
             {h.online_booking && h.advance_percent > 0 && <p>{t('site.stay.advanceNote', { percent: h.advance_percent })}</p>}
-            {(i18n.language.startsWith('hi') ? h.house_rules_hi || h.house_rules : h.house_rules) && <p className="whitespace-pre-line">{i18n.language.startsWith('hi') ? h.house_rules_hi || h.house_rules : h.house_rules}</p>}
+            {l(h, 'house_rules') && <p className="whitespace-pre-line">{l(h, 'house_rules')}</p>}
             <p className="s-small s-muted"><Link to="/stay" className="underline">{t('site.stay.findBooking')}</Link></p>
           </section>
         )}
@@ -331,6 +331,7 @@ function BookingForm({ type, search, quote, advancePct, onClose }: { type: RoomT
 /** /stay/:id?t=…: the guest's booking (status, price, pay the advance, cancel). */
 export function StayPage({ site }: { site: SiteData }) {
   const { t, i18n } = useTranslation();
+  const l = useLocalized();
   const money = useMoney();
   const qc = useQueryClient();
   const { id } = useParams();
@@ -382,7 +383,7 @@ export function StayPage({ site }: { site: SiteData }) {
             <article className="s-card space-y-4 p-5 sm:p-6">
               <p className={`s-status ${s.status === 'confirmed' || s.status === 'checked_in' ? 'is-open' : ''}`}><span className="s-status-dot" aria-hidden="true" />{t(`site.stay.status.${s.status}`)}</p>
               <dl className="grid gap-3 sm:grid-cols-2">
-                <div><dt className="s-small s-muted">{t('site.stay.room')}</dt><dd className="font-semibold">{(i18n.language.startsWith('hi') && s.room_type.name_hi) || s.room_type.name}</dd></div>
+                <div><dt className="s-small s-muted">{t('site.stay.room')}</dt><dd className="font-semibold">{l(s.room_type, 'name')}</dd></div>
                 <div><dt className="s-small s-muted">{t('site.stay.dates')}</dt><dd className="font-semibold">{ymdLabel(s.check_in, i18n.language)} → {ymdLabel(s.check_out, i18n.language)} · {t('site.stay.nights', { count: s.nights })}</dd></div>
                 <div><dt className="s-small s-muted">{t('site.stay.guestsLabel')}</dt><dd className="font-semibold">{t('site.stay.guests', { adults: s.adults, children: s.children })}</dd></div>
                 <div><dt className="s-small s-muted">{t('site.stay.name')}</dt><dd className="font-semibold">{s.name}</dd></div>

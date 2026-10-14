@@ -1,6 +1,7 @@
 import type { BusinessType, OpeningHours } from '@/types';
 import type { Holiday, OpenStatus } from '@/lib/openStatus';
 import type { ThemeKey } from '@/themes/types';
+import type { Translations } from './localize';
 
 export type SectionKey = 'specials' | 'story' | 'menu_preview' | 'gallery' | 'hours' | 'visit';
 
@@ -26,6 +27,8 @@ export interface SiteContent {
   tagline_hi: string | null;
   about: string | null;
   about_hi: string | null;
+  /** The other site languages (Hindi has its own field). */
+  translations?: Translations;
   milestones: Milestone[];
   contact: { phone: string | null; whatsapp: string | null; email: string | null; address: string | null; map_url: string | null; parking?: string | null };
   socials: { instagram: string | null; facebook: string | null; youtube: string | null; google_maps: string | null; google_review?: string | null };
@@ -82,6 +85,7 @@ export interface MenuItem {
   name_hi: string | null;
   description: string | null;
   description_hi: string | null;
+  translations?: Translations;
   price: string;
   food_type: 'veg' | 'non_veg' | 'egg';
   spice_level: number;
@@ -100,6 +104,7 @@ export interface ItemVariant {
   id: number;
   name: string;
   name_hi: string | null;
+  translations?: Translations;
   price: string;
   is_default: boolean;
   is_available: boolean;
@@ -109,6 +114,7 @@ export interface Addon {
   id: number;
   name: string;
   name_hi: string | null;
+  translations?: Translations;
   price: string;
   food_type: 'veg' | 'non_veg' | 'egg';
   is_available: boolean;
@@ -118,6 +124,7 @@ export interface AddonGroup {
   id: number;
   name: string;
   name_hi: string | null;
+  translations?: Translations;
   min_select: number;
   max_select: number | null;
   addons: Addon[];
@@ -127,6 +134,7 @@ export interface MenuCategory {
   id: number;
   name: string;
   name_hi: string | null;
+  translations?: Translations;
   slug: string;
   is_demo: boolean;
   items: MenuItem[];
@@ -163,6 +171,7 @@ export interface SiteBanner {
   title_hi: string | null;
   text: string | null;
   text_hi: string | null;
+  translations?: Translations;
   cta_label: string | null;
   cta_link: string | null;
   coupon_code: string | null;

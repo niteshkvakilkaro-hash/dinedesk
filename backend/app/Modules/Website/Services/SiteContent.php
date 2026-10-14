@@ -4,6 +4,7 @@ namespace App\Modules\Website\Services;
 
 use App\Modules\Settings\Services\TenantSettings;
 use App\Support\Phone;
+use App\Support\Translations;
 
 /**
  * The words on a business's website, kept in tenant settings under
@@ -15,6 +16,9 @@ class SiteContent
     public const KEY = 'site_content';
 
     public const SOCIALS = ['instagram', 'facebook', 'youtube', 'google_maps', 'google_review'];
+
+    /** Fields that can be shown in the other site languages (Dashboard → Menu → Languages). */
+    public const TRANSLATED = ['tagline', 'about'];
 
     public function __construct(private readonly TenantSettings $settings) {}
 
@@ -40,6 +44,8 @@ class SiteContent
             'seo' => ['description' => null, 'description_hi' => null],
             // Footer: FSSAI licence number, and whether to show the GSTIN from business details.
             'legal' => ['fssai' => null, 'show_gstin' => false],
+            // Tagline and about in the other languages: {"ta": {"tagline": "...", "about": "..."}}.
+            'translations' => [],
         ];
     }
 
@@ -132,10 +138,28 @@ class SiteContent
             'fssai' => $text($data['legal']['fssai'] ?? null),
             'show_gstin' => (bool) ($data['legal']['show_gstin'] ?? false),
         ];
+        // Edited on their own page, so saving this form keeps them.
+        $clean['translations'] = $this->get()['translations'];
 
         $this->settings->set(self::KEY, $clean);
 
         return $clean;
+    }
+
+    /**
+     * Sets (or, when a text is empty, removes) fields in one language.
+     *
+     * @param  array<string, string>  $fields  e.g. ['tagline' => '...']
+     */
+    public function saveTranslations(string $lang, array $fields): void
+    {
+        $content = $this->get();
+        $translations = $content['translations'] ?: null;
+        foreach (array_intersect_key($fields, array_flip(self::TRANSLATED)) as $field => $text) {
+            $translations = Translations::put($translations, $lang, $field, strip_tags($text));
+        }
+        $content['translations'] = $translations ?? [];
+        $this->settings->set(self::KEY, $content);
     }
 
     /** What visitors may see: the WhatsApp number only once confirmed. */
@@ -146,6 +170,7 @@ class SiteContent
             $content['contact']['whatsapp'] = null;
         }
         unset($content['contact']['whatsapp_verified']);
+        $content['translations'] = Translations::clean($content['translations'], self::TRANSLATED);
 
         return $content;
     }

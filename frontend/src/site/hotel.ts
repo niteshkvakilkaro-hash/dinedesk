@@ -3,6 +3,7 @@ import { intlLocale } from '@/i18n/locale';
 import { create } from 'zustand';
 import { api } from '@/lib/api';
 import type { SiteData, SiteImage } from './types';
+import type { Translations } from './localize';
 
 /**
  * In-room dining by QR code. Scanning a room's QR (/r/{token}) remembers the room for this
@@ -62,6 +63,7 @@ export interface RoomTypeInfo {
   name_hi: string | null;
   description: string | null;
   description_hi: string | null;
+  translations?: Translations;
   photos: (SiteImage & { key: number; alt: string })[];
   amenities: string[];
   bed: string | null;
@@ -110,7 +112,7 @@ export interface GuestStay {
   code: string;
   status: 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled' | 'no_show';
   name: string;
-  room_type: { name: string; name_hi: string | null };
+  room_type: { name: string; name_hi: string | null; translations?: Translations };
   check_in: string;
   check_out: string;
   nights: number;

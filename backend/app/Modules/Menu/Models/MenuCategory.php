@@ -10,11 +10,11 @@ class MenuCategory extends Model
 {
     use BelongsToTenant;
 
-    protected $fillable = ['tenant_id', 'name', 'name_hi', 'slug', 'tax_rate', 'station', 'sort_order', 'is_active', 'is_demo'];
+    protected $fillable = ['tenant_id', 'name', 'name_hi', 'slug', 'tax_rate', 'station', 'sort_order', 'is_active', 'is_demo', 'translations'];
 
     protected function casts(): array
     {
-        return ['tax_rate' => 'decimal:2', 'sort_order' => 'integer', 'is_active' => 'boolean', 'is_demo' => 'boolean'];
+        return ['tax_rate' => 'decimal:2', 'sort_order' => 'integer', 'is_active' => 'boolean', 'is_demo' => 'boolean', 'translations' => 'array'];
     }
 
     public function items(): HasMany

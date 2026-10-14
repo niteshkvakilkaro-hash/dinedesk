@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { MenuItem, OrderType } from './types';
+import type { Translations } from './localize';
 
 /**
  * The visitor's cart for this restaurant, remembered on this device.
@@ -16,6 +17,7 @@ export interface CartLine {
   // Display snapshot
   name: string;
   name_hi: string | null;
+  translations?: Translations;
   variant_name: string | null;
   addon_names: string[];
   unit_price: number;

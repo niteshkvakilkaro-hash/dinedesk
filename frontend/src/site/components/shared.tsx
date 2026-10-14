@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Globe, Mail, MapPin, MessageCircle, Phone, PlayCircle, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DAYS } from '@/components/HoursEditor';
 import { formatTime } from '@/lib/format';
+import { languageCode } from '@/i18n/locale';
 import { mapHref, telHref, useLocalized, whatsappHref } from '../data';
 import { DIETS, type Diet, type GalleryItem, type MenuCategory, type SectionKey, type SiteData } from '../types';
 import type { OpenStatus } from '@/lib/openStatus';
@@ -93,8 +94,10 @@ export function ContactList({ site, className = '', itemClassName = '', iconClas
   );
 }
 
-/** Search + veg-only filter for menu pages (searches English and Hindi names and descriptions). */
+/** Search + veg-only filter for menu pages (searches English, Hindi and the visitor's language). */
 export function useMenuFilter(menu: MenuCategory[] | undefined) {
+  const { i18n } = useTranslation();
+  const lang = languageCode(i18n.language);
   const [vegOnly, setVegOnly] = useState(false);
   const [search, setSearch] = useState('');
   // Dishes must carry every chosen diet label and none of the allergens to avoid.
@@ -107,13 +110,13 @@ export function useMenuFilter(menu: MenuCategory[] | undefined) {
   const categories = useMemo(() => {
     const q = search.trim().toLowerCase();
     const matches = (i: MenuCategory['items'][number]) =>
-      !q || [i.name, i.name_hi, i.description, i.description_hi].some((v) => v?.toLowerCase().includes(q));
+      !q || [i.name, i.name_hi, i.description, i.description_hi, i.translations?.[lang]?.name, i.translations?.[lang]?.description].some((v) => v?.toLowerCase().includes(q));
     const fits = (i: MenuCategory['items'][number]) =>
       diets.every((d) => i.diet_tags?.includes(d)) && !avoid.some((a) => i.allergens?.includes(a));
     return (menu ?? [])
       .map((c) => ({ ...c, items: c.items.filter((i) => (!vegOnly || i.food_type === 'veg') && fits(i) && matches(i)) }))
       .filter((c) => c.items.length > 0);
-  }, [menu, vegOnly, search, diets, avoid]);
+  }, [menu, vegOnly, search, diets, avoid, lang]);
   const hasDemo = (menu ?? []).some((c) => c.is_demo || c.items.some((i) => i.is_demo));
   const filterCount = diets.length + avoid.length;
   const clearFilters = () => {
