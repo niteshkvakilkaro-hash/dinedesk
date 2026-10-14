@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { scrollToSection, useOpenParam } from '@/lib/urlParams';
 import { api, ApiError } from '@/lib/api';
 import { GSTIN_REGEX } from '@/lib/format';
 import { Alert, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
@@ -27,6 +28,8 @@ export default function Business() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [hourErrors, setHourErrors] = useState<Partial<Record<DayKey, string>>>({});
   const [error, setError] = useState('');
+  // From the dashboard search: ?open=hours scrolls to the opening hours.
+  useOpenParam(scrollToSection, !!form);
 
   useEffect(() => {
     if (query.data) setForm(query.data);
@@ -77,7 +80,7 @@ export default function Business() {
             {(a) => <input {...a} className="field-input uppercase" maxLength={15} value={form.gstin ?? ''} onChange={(e) => setForm({ ...form, gstin: e.target.value })} />}
           </Field>
         </div>
-        <HoursEditor value={form.opening_hours} onChange={(opening_hours) => setForm({ ...form, opening_hours })} errors={hourErrors} />
+        <div id="find-hours" className="rounded-xl"><HoursEditor value={form.opening_hours} onChange={(opening_hours) => setForm({ ...form, opening_hours })} errors={hourErrors} /></div>
       </div>
       <div className="card p-5">
         <HolidaysEditor value={form.holidays ?? []} onChange={(holidays) => setForm({ ...form, holidays })} />

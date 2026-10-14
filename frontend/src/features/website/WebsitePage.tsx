@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useTabParam } from '@/lib/urlParams';
 import { ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { useSession } from '@/hooks/useSession';
 import { tenantSiteUrl } from '@/lib/host';
@@ -297,7 +298,7 @@ export default function WebsitePage() {
   const { t } = useTranslation();
   const { data: session } = useSession();
   const query = useWebsite();
-  const [tab, setTab] = useState<Tab>('design');
+  const [tab, setTab] = useTabParam<Tab>(['design', 'images', 'content'], 'design');
   if (query.isError) return <ErrorState message={(query.error as Error).message} onRetry={() => void query.refetch()} />;
   if (!query.data || !session?.tenant) return <SkeletonRows rows={6} />;
 

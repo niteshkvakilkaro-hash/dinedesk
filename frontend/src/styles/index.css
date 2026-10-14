@@ -291,6 +291,23 @@
   .field-input[aria-invalid='true'] {
     @apply border-danger ring-2 ring-danger/15;
   }
+  /* A section opened from the dashboard search: clears the sticky header and glows briefly. */
+  [id^='find-'] {
+    scroll-margin-top: 5.5rem;
+  }
+  .find-flash {
+    animation: find-flash 1.6s ease-out;
+  }
+}
+
+@keyframes find-flash {
+  0%,
+  40% {
+    box-shadow: 0 0 0 3px var(--dd-brand);
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -317,4 +334,9 @@
 [data-paused='true'],
 [data-paused='true'] * {
   animation-play-state: paused !important;
+}
+
+/* Letter-spacing breaks Indian scripts apart (and Urdu's joined letters): only Latin text gets it. */
+html:not([lang^='en']) [class*='tracking-'] {
+  letter-spacing: normal;
 }

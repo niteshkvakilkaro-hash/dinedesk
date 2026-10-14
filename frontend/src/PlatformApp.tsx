@@ -19,6 +19,7 @@ const DashboardLayout = lazy(() => import('@/features/dashboard/DashboardLayout'
 const Overview = lazy(() => import('@/features/dashboard/Overview'));
 const Team = lazy(() => import('@/features/dashboard/Team'));
 const Business = lazy(() => import('@/features/dashboard/Business'));
+const SettingsHub = lazy(() => import('@/features/dashboard/SettingsHub'));
 const WebsitePage = lazy(() => import('@/features/website/WebsitePage'));
 const GalleryPage = lazy(() => import('@/features/website/GalleryPage'));
 const OrdersPage = lazy(() => import('@/features/orders/OrdersPage'));
@@ -123,6 +124,7 @@ export default function PlatformApp() {
         <Route index element={<Overview />} />
         <Route path="team" element={<Team />} />
         <Route path="business" element={<Business />} />
+        <Route path="settings" element={<SettingsHub />} />
         <Route path="website" element={<WebsitePage />} />
         <Route path="gallery" element={<GalleryPage />} />
         <Route path="orders" element={<OrdersPage />} />

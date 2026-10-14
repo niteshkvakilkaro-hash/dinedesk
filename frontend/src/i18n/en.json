@@ -208,7 +208,8 @@
       "label": "Dashboard",
       "finance": "Profit & loss",
       "rota": "Shifts & attendance",
-      "tiffin": "Tiffin"
+      "tiffin": "Tiffin",
+      "settings": "Settings"
     },
     "welcome": "Namaste, {{name}}",
     "demoBanner": "This is a demo business. Its data is sample content.",
@@ -257,11 +258,12 @@
     "customiseSite": "Customise website",
     "liveHint": "Live updates are on: screens change the moment something happens.",
     "groups": {
-      "daily": "Daily work",
-      "menuHotel": "Menu & hotel",
-      "grow": "Grow",
       "website": "Website",
-      "settings": "Settings"
+      "settings": "Settings",
+      "today": "Today",
+      "menuRooms": "Menu & rooms",
+      "customers": "Customers & offers",
+      "money": "Money"
     },
     "collapseMenu": "Collapse menu",
     "expandMenu": "Expand menu",
@@ -363,6 +365,362 @@
         "order": "New order #{{number}}",
         "room": "Room booking",
         "table": "Table booking"
+      }
+    },
+    "find": {
+      "button": "Search",
+      "hint": "What are you looking for?",
+      "label": "Search the dashboard",
+      "placeholder": "Type a page, dish, order number or customer…",
+      "recent": "Recently opened",
+      "suggestions": "Try searching for",
+      "examples": "printer, UPI, holiday, offer, staff, GST",
+      "noResults": "Nothing found for “{{query}}”",
+      "noResultsHint": "Try a simpler word like “bill”, “menu” or “staff”, or open Settings to see everything.",
+      "searching": "Searching…",
+      "order": "Order #{{number}}",
+      "keys": "↑ ↓ to move · Enter to open · Esc to close",
+      "sections": {
+        "pages": "Pages and settings",
+        "dishes": "Dishes",
+        "orders": "Orders",
+        "customers": "Customers",
+        "bookings": "Table bookings",
+        "stays": "Room bookings"
+      },
+      "items": {
+        "overview": {
+          "desc": "Today's numbers, recent orders and bookings",
+          "keys": "home dashboard today summary aaj sales"
+        },
+        "orders": {
+          "desc": "New and running orders from your website, QR and counter",
+          "keys": "order kot online delivery parcel takeaway new"
+        },
+        "reservations": {
+          "desc": "Table bookings from your website and phone",
+          "keys": "booking reservation table book seat guest"
+        },
+        "tables": {
+          "desc": "Live tables, waiter calls and bill requests",
+          "keys": "table dine-in waiter call floor"
+        },
+        "tableQr": {
+          "title": "Tables & QR codes",
+          "desc": "Add tables and print the QR code for each one",
+          "keys": "qr code print table sticker scan standee"
+        },
+        "pos": {
+          "desc": "Billing counter: take orders and print bills",
+          "keys": "bill billing counter cash pos invoice receipt kot"
+        },
+        "appOrders": {
+          "title": "Swiggy & Zomato orders",
+          "desc": "Enter app orders at the POS so they count in sales",
+          "keys": "swiggy zomato app aggregator delivery"
+        },
+        "offlinePos": {
+          "title": "Billing without internet",
+          "desc": "The POS keeps billing offline and sends the bills when you're back online",
+          "keys": "offline internet net band no internet"
+        },
+        "printers": {
+          "title": "Printer",
+          "desc": "Bill and kitchen ticket printer – set it from the printer button on the POS",
+          "keys": "printer print thermal bill kot receipt paper"
+        },
+        "dayEnd": {
+          "title": "Day end / cash closing",
+          "desc": "Count the cash drawer and close the day",
+          "keys": "day end closing cash drawer hisab galla z report"
+        },
+        "kitchen": {
+          "desc": "Kitchen screen with live order tickets",
+          "keys": "kitchen kot chef kds screen cook"
+        },
+        "waiter": {
+          "desc": "Phone app for waiters to take table orders",
+          "keys": "waiter captain phone app"
+        },
+        "menu": {
+          "desc": "Dishes, prices, photos and sections",
+          "keys": "menu dish item price rate food menu card photo"
+        },
+        "aiImport": {
+          "title": "Read a printed menu with AI",
+          "desc": "Upload a photo of your menu card and add all dishes at once",
+          "keys": "ai import upload photo menu card scan"
+        },
+        "menuLanguages": {
+          "title": "Menu languages",
+          "desc": "Show your menu in Hindi and other languages",
+          "keys": "language translate hindi bhasha translation"
+        },
+        "stations": {
+          "title": "Kitchen stations",
+          "desc": "Send each menu section to the right kitchen counter – edit a section on the Menu page",
+          "keys": "station kitchen counter tandoor bar kot"
+        },
+        "tiffin": {
+          "desc": "Tiffin and meal plans with daily deliveries",
+          "keys": "tiffin dabba meal plan subscription monthly"
+        },
+        "hotel": {
+          "desc": "Rooms, check-ins and stays",
+          "keys": "hotel room stay check-in guest lodge"
+        },
+        "housekeeping": {
+          "title": "Housekeeping",
+          "desc": "Which rooms need cleaning",
+          "keys": "cleaning housekeeping safai room clean"
+        },
+        "events": {
+          "title": "Events & banquets",
+          "desc": "Party and banquet enquiries",
+          "keys": "event banquet party hall wedding function"
+        },
+        "calendarSync": {
+          "title": "Calendar sync",
+          "desc": "Sync room availability with Booking.com, Airbnb and others",
+          "keys": "ical calendar sync booking.com airbnb ota"
+        },
+        "customers": {
+          "desc": "Your customers, their orders and visits",
+          "keys": "customer guest phone crm regular"
+        },
+        "feedback": {
+          "title": "Customer feedback",
+          "desc": "Ratings and comments from your customers",
+          "keys": "feedback review rating complaint"
+        },
+        "marketing": {
+          "desc": "Offers, loyalty points and messages to customers",
+          "keys": "marketing offer promotion discount"
+        },
+        "coupons": {
+          "title": "Coupons",
+          "desc": "Discount codes for online orders",
+          "keys": "coupon discount offer code promo chhoot"
+        },
+        "loyalty": {
+          "title": "Loyalty points",
+          "desc": "Reward points for regular customers",
+          "keys": "loyalty points reward regular"
+        },
+        "giftCards": {
+          "title": "Gift cards",
+          "desc": "Sell and redeem gift cards",
+          "keys": "gift card voucher"
+        },
+        "banners": {
+          "title": "Website banners",
+          "desc": "Offer banners on your website",
+          "keys": "banner offer website poster"
+        },
+        "campaigns": {
+          "title": "Messages to customers",
+          "desc": "Send offers by WhatsApp, SMS or email",
+          "keys": "whatsapp sms message campaign broadcast email"
+        },
+        "automations": {
+          "title": "Automatic messages",
+          "desc": "Birthday wishes and come-back offers sent for you",
+          "keys": "automatic birthday anniversary win back automation"
+        },
+        "reports": {
+          "desc": "Sales, best sellers and busy hours",
+          "keys": "report sales hisab analytics best seller"
+        },
+        "dailySummary": {
+          "title": "Morning summary",
+          "desc": "Yesterday's sales on WhatsApp or email every morning",
+          "keys": "morning summary daily whatsapp email report subah"
+        },
+        "gst": {
+          "title": "GST & Tally export",
+          "desc": "GST summary and files for your accountant",
+          "keys": "gst tax tally export ca accountant gstr"
+        },
+        "finance": {
+          "desc": "Profit, expenses and dish costs",
+          "keys": "profit loss pnl munafa kamai"
+        },
+        "expenses": {
+          "title": "Expenses",
+          "desc": "Rent, salaries, gas and other costs",
+          "keys": "expense kharcha rent salary bill gas"
+        },
+        "dishProfit": {
+          "title": "Dish costs",
+          "desc": "What each dish costs you and earns you",
+          "keys": "dish cost margin food cost"
+        },
+        "inventory": {
+          "desc": "Stock of ingredients and low-stock alerts",
+          "keys": "inventory stock ration saman raw material"
+        },
+        "recipes": {
+          "title": "Recipes",
+          "desc": "Ingredients used by each dish",
+          "keys": "recipe ingredient"
+        },
+        "purchases": {
+          "title": "Purchase orders",
+          "desc": "Order stock from suppliers",
+          "keys": "purchase order kharid buy"
+        },
+        "suppliers": {
+          "title": "Suppliers",
+          "desc": "Your vendors and what you owe them",
+          "keys": "supplier vendor dealer"
+        },
+        "website": {
+          "desc": "Design, colours and text of your website",
+          "keys": "website site design theme colour"
+        },
+        "logo": {
+          "title": "Logo & cover photo",
+          "desc": "Your logo and the big photo on your website",
+          "keys": "logo photo cover image"
+        },
+        "gallery": {
+          "desc": "Photos on your website",
+          "keys": "gallery photo image pictures"
+        },
+        "settings": {
+          "desc": "All settings in one place",
+          "keys": "settings setup setting"
+        },
+        "business": {
+          "desc": "Name, city, GSTIN, timings and holidays",
+          "keys": "business name address gstin timing"
+        },
+        "hours": {
+          "title": "Opening hours & holidays",
+          "desc": "When you're open, and days you're closed",
+          "keys": "timing time hours open close band chutti holiday leave"
+        },
+        "ordering": {
+          "title": "Ordering & payments",
+          "desc": "Online ordering, payments, delivery areas and charges",
+          "keys": "ordering online order settings"
+        },
+        "payments": {
+          "title": "UPI & payments",
+          "desc": "UPI ID, online payment and cash on delivery",
+          "keys": "upi payment gpay phonepe paytm razorpay cod cash"
+        },
+        "whatsappOrders": {
+          "title": "WhatsApp ordering",
+          "desc": "Let customers send their order on WhatsApp",
+          "keys": "whatsapp order"
+        },
+        "deliveryApps": {
+          "title": "Swiggy & Zomato settings",
+          "desc": "Turn on app orders and set their commission",
+          "keys": "swiggy zomato commission app"
+        },
+        "deliveryZones": {
+          "title": "Delivery areas",
+          "desc": "Where you deliver and the delivery charge",
+          "keys": "delivery area zone pincode charge distance"
+        },
+        "charges": {
+          "title": "GST & charges",
+          "desc": "Tax rate and packing charges",
+          "keys": "gst tax packing charge packaging"
+        },
+        "alerts": {
+          "title": "Customer updates",
+          "desc": "Order updates sent to customers by WhatsApp, SMS or email",
+          "keys": "notification alert sms whatsapp email"
+        },
+        "team": {
+          "desc": "Add staff and choose what each person can do",
+          "keys": "team staff employee user login role waiter manager"
+        },
+        "rota": {
+          "desc": "Weekly shifts for your staff",
+          "keys": "shift rota schedule duty"
+        },
+        "attendance": {
+          "title": "Attendance",
+          "desc": "Who came in, and for how long",
+          "keys": "attendance hazri present absent clock in"
+        },
+        "branches": {
+          "desc": "Your other outlets",
+          "keys": "branch outlet franchise location"
+        },
+        "domains": {
+          "desc": "Use your own web address",
+          "keys": "domain website address url www"
+        },
+        "billing": {
+          "desc": "Your DineDesk plan, invoices and payment",
+          "keys": "plan subscription invoice payment billing upgrade"
+        },
+        "referral": {
+          "title": "Refer a business",
+          "desc": "Invite another business and you both get free days",
+          "keys": "refer referral invite friend free"
+        },
+        "dataExport": {
+          "title": "Download your data",
+          "desc": "A copy of your menu, orders and customers",
+          "keys": "download export backup data excel"
+        }
+      }
+    },
+    "settingsHub": {
+      "title": "Settings",
+      "subtitle": "Everything about your business, team and account, in one place.",
+      "back": "Settings",
+      "sections": {
+        "business": "Business & account",
+        "people": "Team",
+        "tools": "Extras & tools"
+      },
+      "empty": "There's nothing to set up here for your role.",
+      "searchTip": "Can't find something? Use search at the top."
+    },
+    "getStarted": {
+      "title": "Get started",
+      "subtitle": "A few steps to get your business fully running on DineDesk.",
+      "progress": "{{done}} of {{total}} done",
+      "dismiss": "Hide",
+      "dismissLabel": "Hide the get started list",
+      "go": "Set up",
+      "done": "Done",
+      "steps": {
+        "menu": {
+          "title": "Add your dishes",
+          "desc": "Put your menu online with prices."
+        },
+        "hours": {
+          "title": "Set your opening hours",
+          "desc": "So customers know when you're open."
+        },
+        "logo": {
+          "title": "Upload your logo",
+          "desc": "It shows on your website and bills."
+        },
+        "ordering": {
+          "title": "Turn on online or QR ordering",
+          "desc": "Take orders from your website or table QR codes."
+        },
+        "payments": {
+          "title": "Set up UPI or online payment",
+          "desc": "Get paid straight into your account."
+        },
+        "live": {
+          "title": "Put your website live",
+          "desc": "Finish setup so customers can find you."
+        },
+        "team": {
+          "title": "Invite a team member",
+          "desc": "Give your staff their own login."
+        }
       }
     }
   },

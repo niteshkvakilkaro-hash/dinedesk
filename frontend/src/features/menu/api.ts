@@ -82,13 +82,14 @@ export interface MenuMeta {
   allergens: string[];
 }
 
-export function useAdminMenu() {
+export function useAdminMenu(enabled = true) {
   return useQuery({
     queryKey: ['admin-menu'],
     queryFn: async () => {
       const res = await api.get<MenuData>('/tenant/menu');
       return { ...res.data, meta: res.meta as unknown as MenuMeta };
     },
+    enabled,
   });
 }
 

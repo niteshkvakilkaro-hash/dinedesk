@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useTabParam } from '@/lib/urlParams';
 import QRCode from 'qrcode';
 import { BellRing, CalendarCheck, LayoutGrid, Pencil, Plus, Printer, QrCode, ReceiptText, RefreshCw, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
@@ -527,7 +528,7 @@ export default function TablesPage() {
   const canRun = useCan('tables.manage');
   const qc = useQueryClient();
   const { data: session } = useSession();
-  const [tab, setTab] = useState<'live' | 'setup'>('live');
+  const [tab, setTab] = useTabParam(['live', 'setup'] as const, 'live');
   useLive(session?.tenant?.id, 'tables', canRun || canSetup, () => void qc.invalidateQueries({ queryKey: ['tables-live'] }));
   return (
     <div className="space-y-5">

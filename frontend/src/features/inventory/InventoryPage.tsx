@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { intlLocale } from '@/i18n/locale';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useTabParam } from '@/lib/urlParams';
 import { AlertTriangle, History, Package, Pencil, Plus, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatMoney } from '@/lib/format';
@@ -249,7 +250,7 @@ function RecipesTab() {
 
 export default function InventoryPage() {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<'stock' | 'recipes' | 'purchases' | 'suppliers'>('stock');
+  const [tab, setTab] = useTabParam(['stock', 'recipes', 'purchases', 'suppliers'] as const, 'stock');
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">

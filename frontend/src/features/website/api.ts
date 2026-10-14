@@ -24,8 +24,8 @@ export interface WebsiteData {
 
 export type ThemeUpdate = Partial<Pick<SiteTheme, 'key' | 'primary_color' | 'accent_color' | 'sections'>>;
 
-export function useWebsite() {
-  return useQuery({ queryKey: ['website'], queryFn: async () => (await api.get<WebsiteData>('/tenant/website')).data });
+export function useWebsite(enabled = true) {
+  return useQuery({ queryKey: ['website'], queryFn: async () => (await api.get<WebsiteData>('/tenant/website')).data, enabled });
 }
 
 export function useSaveTheme() {

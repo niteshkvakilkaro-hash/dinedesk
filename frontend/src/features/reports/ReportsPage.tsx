@@ -7,6 +7,7 @@ import { BellRing, Download, LineChart } from 'lucide-react';
 import { api, downloadFile } from '@/lib/api';
 import { GstPanel } from './GstPanel';
 import { DailySummaryDialog } from './DailySummaryDialog';
+import { scrollToSection, useOpenParam } from '@/lib/urlParams';
 import { formatMoney } from '@/lib/format';
 import { ErrorState, SkeletonRows, toast } from '@/components/ui';
 import { shiftDate, todayIn } from '@/features/reservations/api';
@@ -102,6 +103,8 @@ export default function ReportsPage() {
     placeholderData: keepPreviousData,
   });
   const r = q.data;
+  // From the dashboard search: ?open=daily-summary or ?open=gst (once the numbers have loaded).
+  useOpenParam((v) => (v === 'daily-summary' ? setDailyOpen(true) : scrollToSection(v)), !q.isLoading);
   const chart = useMemo(() => (r?.series ?? []).map((s) => ({ ...s, sales: Number(s.sales), label: by === 'month' ? s.period : s.period.slice(5) })), [r, by]);
   const csv = (type: string) => void downloadFile(`/tenant/reports/export/${type}`, `${type}-${range.from}-to-${range.to}.csv`, { ...range, by }).catch((e: Error) => toast.error(e.message));
 
@@ -232,7 +235,7 @@ export default function ReportsPage() {
           )}
         </>
       )}
-      <GstPanel />
+      <div id="find-gst" className="rounded-card"><GstPanel /></div>
       <DailySummaryDialog open={dailyOpen} onClose={() => setDailyOpen(false)} />
     </div>
   );

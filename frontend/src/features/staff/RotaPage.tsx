@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { intlLocale } from '@/i18n/locale';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useTabParam } from '@/lib/urlParams';
 import { CalendarClock, ChevronLeft, ChevronRight, Copy, Pencil, Plus, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { Badge, Dialog, EmptyState, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
@@ -275,7 +276,7 @@ function AttendanceTab() {
 
 export default function RotaPage() {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<'rota' | 'attendance'>('rota');
+  const [tab, setTab] = useTabParam(['rota', 'attendance'] as const, 'rota');
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">

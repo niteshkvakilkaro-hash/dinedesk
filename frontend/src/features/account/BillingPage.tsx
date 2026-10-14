@@ -7,6 +7,7 @@ import { formatDate, formatMoney } from '@/lib/format';
 import { loadRazorpay } from '@/site/ordering';
 import { Alert, Badge, EmptyState, ErrorState, SkeletonRows, Spinner, toast } from '@/components/ui';
 import { ReferralCard } from './ReferralCard';
+import { scrollToSection, useOpenParam } from '@/lib/urlParams';
 
 type Cycle = 'monthly' | 'yearly';
 
@@ -118,6 +119,8 @@ export default function BillingPage() {
   const q = useBilling();
   const [cycle, setCycle] = useState<Cycle | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  // From the dashboard search: ?open=refer or ?open=export scrolls to that card.
+  useOpenParam(scrollToSection, !!q.data);
 
   const refresh = async () => {
     await Promise.all([qc.invalidateQueries({ queryKey: ['billing'] }), qc.invalidateQueries({ queryKey: ['session'] })]);
@@ -260,9 +263,9 @@ export default function BillingPage() {
       )}
 
       {/* Branches are referred through their main business. */}
-      {!b.is_branch && <ReferralCard />}
+      {!b.is_branch && <div id="find-refer" className="rounded-card"><ReferralCard /></div>}
 
-      <DataExport />
+      <div id="find-export" className="rounded-card"><DataExport /></div>
     </div>
   );
 }

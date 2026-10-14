@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { scrollToSection, useOpenParam } from '@/lib/urlParams';
 import { Copy, Crosshair, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatINR } from '@/lib/format';
@@ -123,6 +124,8 @@ export default function OrderingSettingsPage() {
   const [rzp, setRzp] = useState({ key_id: '', key_secret: '', webhook_secret: '' });
   const [zone, setZone] = useState<Zone | 'new' | null>(null);
   const [locating, setLocating] = useState(false);
+  // From the dashboard search: ?open=payments (or whatsapp, apps, zones, charges, notify) scrolls there.
+  useOpenParam(scrollToSection, !!query.data && !!s);
 
   useEffect(() => {
     if (query.data) {
@@ -171,12 +174,12 @@ export default function OrderingSettingsPage() {
         <Toggle checked={s.accepting_orders} onChange={(v) => up({ accepting_orders: v })} label={t('orderingAdmin.accepting')} hint={s.accepting_orders ? t('orderingAdmin.acceptingOn', { host: data.site_host }) : t('orderingAdmin.acceptingOff')} />
       </section>
 
-      <section className="card p-5">
+      <section id="find-whatsapp" className="card p-5">
         <Toggle checked={!!s.whatsapp_orders} onChange={(v) => up({ whatsapp_orders: v })} label={t('orderingAdmin.waOrders')} hint={s.accepting_orders ? t('orderingAdmin.waOrdersOnline') : t('orderingAdmin.waOrdersHint')} />
         {s.whatsapp_orders && !data.whatsapp_number && <div className="mt-3"><Alert tone="warn">{t('orderingAdmin.waOrdersNoNumber')}</Alert></div>}
       </section>
 
-      <section className="card space-y-3 p-5" aria-labelledby="apps-h">
+      <section id="find-apps" className="card space-y-3 p-5" aria-labelledby="apps-h">
         <h2 id="apps-h" className="text-lg font-bold">{t('orderingAdmin.apps')}</h2>
         <p className="text-sm text-muted">{t('orderingAdmin.appsHint')}</p>
         {(['swiggy', 'zomato'] as const).map((k) => {
@@ -204,7 +207,7 @@ export default function OrderingSettingsPage() {
         {noType && <Alert tone="warn">{t('orderingAdmin.noType')}</Alert>}
       </section>
 
-      <section className="card p-5" aria-labelledby="pay-h">
+      <section id="find-payments" className="card p-5" aria-labelledby="pay-h">
         <h2 id="pay-h" className="text-lg font-bold">{t('orderingAdmin.payments')}</h2>
         <div className="divide-y divide-line">
           <Toggle checked={s.payments.cod} onChange={(v) => up({ payments: { ...s.payments, cod: v } })} label={t('order.pay.cod')} hint={t('orderingAdmin.codHint')} />
@@ -260,7 +263,7 @@ export default function OrderingSettingsPage() {
         )}
       </section>
 
-      <section className="card space-y-4 p-5" aria-labelledby="tax-h">
+      <section id="find-charges" className="card space-y-4 p-5" aria-labelledby="tax-h">
         <h2 id="tax-h" className="text-lg font-bold">{t('orderingAdmin.charges')}</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('orderingAdmin.defaultGst')} hint={t('orderingAdmin.defaultGstHint')}>
@@ -299,7 +302,7 @@ export default function OrderingSettingsPage() {
         </div>
       </section>
 
-      <section className="card p-5" aria-labelledby="zones-h">
+      <section id="find-zones" className="card p-5" aria-labelledby="zones-h">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id="zones-h" className="text-lg font-bold">{t('orderingAdmin.zones')}</h2>
           <button type="button" className="btn-outline !min-h-10 text-sm" onClick={() => setZone('new')}><Plus className="h-4 w-4" aria-hidden="true" /> {t('orderingAdmin.addZone')}</button>
@@ -321,7 +324,7 @@ export default function OrderingSettingsPage() {
         </ul>
       </section>
 
-      <section className="card p-5" aria-labelledby="notify-h">
+      <section id="find-notify" className="card p-5" aria-labelledby="notify-h">
         <h2 id="notify-h" className="text-lg font-bold">{t('orderingAdmin.notifications')}</h2>
         <p className="text-sm text-muted">{t('orderingAdmin.notificationsHint')}</p>
         <div className="divide-y divide-line">

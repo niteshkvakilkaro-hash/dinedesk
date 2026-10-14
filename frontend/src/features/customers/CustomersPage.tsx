@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useOpenParam, useTabParam } from '@/lib/urlParams';
 import { MessageSquareHeart, Search, Star, Users } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatMoney, formatPhone } from '@/lib/format';
@@ -106,6 +107,7 @@ function CustomersTab() {
   const [sort, setSort] = useState('recent');
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState<number | null>(null);
+  useOpenParam((v) => Number(v) > 0 && setOpen(Number(v)));
   useEffect(() => { const id = setTimeout(() => { setQ(search.trim()); setPage(1); }, 300); return () => clearTimeout(id); }, [search]);
   const list = useQuery({
     queryKey: ['customers', q, tag, sort, page],
@@ -218,7 +220,7 @@ function FeedbackTab() {
 
 export default function CustomersPage() {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<'customers' | 'feedback'>('customers');
+  const [tab, setTab] = useTabParam(['customers', 'feedback'] as const, 'customers');
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">

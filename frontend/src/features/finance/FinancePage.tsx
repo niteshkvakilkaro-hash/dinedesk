@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { intlLocale } from '@/i18n/locale';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useTabParam } from '@/lib/urlParams';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Plus, Trash2, Wallet } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
@@ -51,7 +52,7 @@ const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kol
 /** Profit and loss, expenses and dish costing (people who see reports). */
 export default function FinancePage() {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<'pnl' | 'expenses' | 'dishes'>('pnl');
+  const [tab, setTab] = useTabParam(['pnl', 'expenses', 'dishes'] as const, 'pnl');
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">

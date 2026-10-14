@@ -14,11 +14,12 @@ export function LogoMark({ className = 'h-8 w-8' }: { className?: string }) {
   );
 }
 
-export function Logo({ to = '/', light = false }: { to?: string; light?: boolean }) {
+/** compact: on narrow phones only the mark shows (the name stays for screen readers). */
+export function Logo({ to = '/', light = false, compact = false }: { to?: string; light?: boolean; compact?: boolean }) {
   return (
     <Link to={to} className="flex items-center gap-2.5 rounded-lg">
       <LogoMark />
-      <span className={`text-lg font-extrabold tracking-tight ${light ? 'text-paper' : 'text-ink'}`}>DineDesk</span>
+      <span className={`text-lg font-extrabold tracking-tight ${light ? 'text-paper' : 'text-ink'} ${compact ? 'max-[420px]:sr-only' : ''}`}>DineDesk</span>
     </Link>
   );
 }

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { ArrowDown, ArrowUp, EyeOff, FileSpreadsheet, Languages, Pencil, Plus, Search, Sparkles, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { formatINR } from '@/lib/format';
@@ -11,6 +11,7 @@ import type { AdminCategory, AdminGroup, AdminItem } from './api';
 import { useAdminMenu, useMenuMutation } from './api';
 import { DishEditor, GroupEditor, ImportDialog, SectionEditor } from './editors';
 import { AiImportDialog } from './AiImport';
+import { useOpenParam } from '@/lib/urlParams';
 
 type Tab = 'dishes' | 'extras';
 
@@ -27,7 +28,14 @@ export default function MenuPage() {
   const { data: session } = useSession();
   const query = useAdminMenu();
   const [tab, setTab] = useState<Tab>('dishes');
-  const [search, setSearch] = useState('');
+  // From the dashboard search: ?q=Paneer Tikka filters the list, ?open=ai-import opens the AI reader.
+  const [params] = useSearchParams();
+  const wantedQ = params.get('q');
+  const [search, setSearch] = useState(wantedQ ?? '');
+  useEffect(() => {
+    if (wantedQ !== null) setSearch(wantedQ);
+  }, [wantedQ]);
+  useOpenParam((v) => v === 'ai-import' && setAiImporting(true));
   const [section, setSection] = useState<{ open: boolean; category: AdminCategory | null }>({ open: false, category: null });
   const [dish, setDish] = useState<{ open: boolean; item: AdminItem | null; categoryId: number }>({ open: false, item: null, categoryId: 0 });
   const [group, setGroup] = useState<{ open: boolean; group: AdminGroup | null }>({ open: false, group: null });

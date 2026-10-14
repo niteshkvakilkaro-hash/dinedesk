@@ -198,6 +198,10 @@ class OrderLifecycleTest extends OrderingTestCase
             ->assertStatus(422)->assertJsonPath('meta.code', 'item_missing');
 
         $this->actingAsUser($this->ownerOf($this->tenant))->getJson('/api/v1/tenant/orders?view=all')->assertJsonCount(1, 'data');
+        // Search: by name or phone; a name with no match finds nothing (not every order).
+        $this->getJson('/api/v1/tenant/orders?view=all&search=asha')->assertJsonCount(1, 'data');
+        $this->getJson('/api/v1/tenant/orders?view=all&search=12345')->assertJsonCount(1, 'data');
+        $this->getJson('/api/v1/tenant/orders?view=all&search=ravi')->assertJsonCount(0, 'data');
     }
 
     public function test_staff_feed_reports_new_orders_for_the_alert_sound(): void

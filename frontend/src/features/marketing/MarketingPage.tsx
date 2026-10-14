@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useTabParam } from '@/lib/urlParams';
 import { Copy, Gift, Megaphone, Pencil, Plus, Send, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatMoney } from '@/lib/format';
@@ -340,7 +341,7 @@ export default function MarketingPage() {
   const hasCoupons = useFeature('coupons');
   const hasLoyalty = useFeature('loyalty');
   const tabs = [...(hasCoupons ? ['coupons'] : []), ...(hasLoyalty ? ['loyalty', 'cards'] : []), ...(hasCoupons ? ['banners', 'campaigns', 'automations'] : [])] as const;
-  const [tab, setTab] = useState<string>(tabs[0] ?? 'coupons');
+  const [tab, setTab] = useTabParam<string>(tabs, tabs[0] ?? 'coupons');
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">

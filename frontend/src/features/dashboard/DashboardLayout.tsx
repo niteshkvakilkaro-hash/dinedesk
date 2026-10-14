@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, CalendarClock, CalendarDays, ChefHat, Contact, CookingPot, CreditCard, Globe, Globe2, Hotel, Images, Network, LayoutDashboard, LineChart, LogOut, Megaphone, MoreHorizontal, Package, PanelLeftClose, PanelLeftOpen, QrCode, ReceiptText, Settings2, Smartphone, Store, UtensilsCrossed, Users, Wallet, Wifi } from 'lucide-react';
+import { LogOut, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Search, Wifi } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { disconnectLive, useLive, useLiveStatus } from '@/lib/realtime';
 import { useCan, useFeature, useSession, useSignOut } from '@/hooks/useSession';
@@ -13,6 +13,9 @@ import { useOrderAlerts } from '@/features/orders/alerts';
 import { useReservationAlerts } from '@/features/reservations/api';
 import { useTableAlerts } from '@/features/tables/api';
 import { BillingBanner, OutletSwitcher, SupportBar } from './AccountBanners';
+import { accessFrom, navGroups, SETTINGS_PAGES, type BadgeKey } from './navigation';
+import { CommandPalette, rememberPage, shortcutLabel } from './CommandPalette';
+import { SettingsBackLink } from './SettingsHub';
 
 export default function DashboardLayout() {
   const { t } = useTranslation();
@@ -20,41 +23,14 @@ export default function DashboardLayout() {
   const { pathname } = useLocation();
   const { data: session } = useSession();
   const signOut = useSignOut();
-  const canStaff = useCan('staff.manage');
-  const canSchedule = useCan('staff.schedule');
-  const canOrdersManage = useCan('orders.manage');
-  const canBusiness = useCan('business.manage');
-  const canTheme = useCan('theme.manage');
-  const canMenu = useCan('menu.manage');
   const canOrders = useCan('orders.view');
-  // Every hook runs on every render (no short-circuits), then the flags combine.
   const hasReservations = useFeature('reservations');
   const hasQr = useFeature('qr_ordering');
   const canManageReservations = useCan('reservations.manage');
   const canRunTables = useCan('tables.manage');
-  const canSetupTables = useCan('tables.setup');
   const canReservations = canManageReservations && hasReservations;
-  const canTables = (canRunTables || canSetupTables) && hasQr;
-  const hasPos = useFeature('pos');
-  const hasKds = useFeature('kds');
-  const canPosPerm = useCan('pos.use');
-  const canKitchenPerm = useCan('kot.update');
-  const canCreate = useCan('orders.create');
-  const canPos = canPosPerm && hasPos;
-  const canCustomers = useCan('customers.view');
-  const canMarketingPerm = useCan('marketing.manage');
-  const hasCoupons = useFeature('coupons');
-  const hasLoyaltyPlan = useFeature('loyalty');
-  const canInventoryPerm = useCan('inventory.manage');
-  const hasInventory = useFeature('inventory');
-  const canReports = useCan('reports.view');
-  const hasHotel = useFeature('hotel');
-  const canDesk = useCan('rooms.manage');
-  const canBilling = useCan('billing.manage');
-  const hasBranches = useFeature('multi_branch');
-  const canHousekeeping = useCan('housekeeping.update');
-  const canRoomSetup = useCan('rooms.setup');
-  const canKitchen = canKitchenPerm && hasKds;
+  // One set of gates for the sidebar, the Settings page and the search.
+  const access = useMemo(() => accessFrom(session), [session]);
 
   // Live updates: any change refreshes the screens that show it (polling stays as a fallback).
   const qc = useQueryClient();
@@ -98,66 +74,37 @@ export default function DashboardLayout() {
     for (const r of items) toast.success(t(`tablesAdmin.toast.${r.type}`, { table: r.table ?? '' }));
   });
   useEffect(() => setMore(false), [pathname]);
+  // Search: the header button, or Ctrl K / ⌘K from anywhere in the dashboard.
+  const [finding, setFinding] = useState(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setFinding((f) => !f);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+  useEffect(() => rememberPage(pathname), [pathname]);
   // Keep the current page visible in a long sidebar.
   const sideNav = useRef<HTMLElement>(null);
   useEffect(() => {
     sideNav.current?.querySelector('a[aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
   }, [pathname, collapsed]);
 
-  type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; show: boolean; end?: boolean; badge?: number };
-  const groups: { key: string; items: NavItem[] }[] = [
-    {
-      key: 'daily',
-      items: [
-        { to: '/dashboard', label: t('dashboard.nav.overview'), icon: LayoutDashboard, end: true, show: true },
-        { to: '/dashboard/orders', label: t('dashboard.nav.orders'), icon: ReceiptText, show: canOrders, badge: pending },
-        { to: '/dashboard/reservations', label: t('dashboard.nav.reservations'), icon: CalendarDays, show: canReservations, badge: bookings?.pending ?? 0 },
-        { to: '/dashboard/tables', label: t('dashboard.nav.tables'), icon: QrCode, show: canTables, badge: tableFeed?.open ?? 0 },
-        { to: '/dashboard/pos', label: t('dashboard.nav.pos'), icon: Store, show: canPos },
-        { to: '/kitchen', label: t('dashboard.nav.kitchen'), icon: ChefHat, show: canKitchen },
-        { to: '/waiter/', label: t('dashboard.nav.waiter'), icon: Smartphone, show: canRunTables && canCreate && hasQr && !canPosPerm },
-      ],
-    },
-    {
-      key: 'menuHotel',
-      items: [
-        { to: '/dashboard/menu', label: t('dashboard.nav.menu'), icon: UtensilsCrossed, show: canMenu },
-        { to: '/dashboard/tiffin', label: t('dashboard.nav.tiffin'), icon: CookingPot, show: canOrdersManage },
-        { to: '/dashboard/hotel', label: t('dashboard.nav.hotel'), icon: Hotel, show: hasHotel && (canDesk || canHousekeeping || canRoomSetup) },
-      ],
-    },
-    {
-      key: 'grow',
-      items: [
-        { to: '/dashboard/customers', label: t('dashboard.nav.customers'), icon: Contact, show: canCustomers },
-        { to: '/dashboard/marketing', label: t('dashboard.nav.marketing'), icon: Megaphone, show: canMarketingPerm && (hasCoupons || hasLoyaltyPlan) },
-        { to: '/dashboard/inventory', label: t('dashboard.nav.inventory'), icon: Package, show: canInventoryPerm && hasInventory },
-        { to: '/dashboard/reports', label: t('dashboard.nav.reports'), icon: LineChart, show: canReports },
-        { to: '/dashboard/finance', label: t('dashboard.nav.finance'), icon: Wallet, show: canReports },
-      ],
-    },
-    {
-      key: 'website',
-      items: [
-        { to: '/dashboard/website', label: t('dashboard.nav.website'), icon: Globe, show: canTheme },
-        { to: '/dashboard/gallery', label: t('dashboard.nav.gallery'), icon: Images, show: canTheme },
-        { to: '/dashboard/domains', label: t('dashboard.nav.domains'), icon: Globe2, show: canBusiness },
-      ],
-    },
-    {
-      key: 'settings',
-      items: [
-        { to: '/dashboard/ordering', label: t('dashboard.nav.ordering'), icon: Settings2, show: canBusiness },
-        { to: '/dashboard/team', label: t('dashboard.nav.team'), icon: Users, show: canStaff },
-        { to: '/dashboard/rota', label: t('dashboard.nav.rota'), icon: CalendarClock, show: canSchedule },
-        { to: '/dashboard/business', label: t('dashboard.nav.business'), icon: Building2, show: canBusiness },
-        { to: '/dashboard/branches', label: t('dashboard.nav.branches'), icon: Network, show: canBusiness && (hasBranches || (session?.branches.length ?? 0) > 1) },
-        { to: '/dashboard/billing', label: t('dashboard.nav.billing'), icon: CreditCard, show: canBilling || canBusiness },
-      ],
-    },
-  ]
-    .map((g) => ({ ...g, items: g.items.filter((i) => i.show) }))
-    .filter((g) => g.items.length > 0);
+  const badges: Record<BadgeKey, number> = { orders: pending, bookings: bookings?.pending ?? 0, tables: tableFeed?.open ?? 0 };
+  const groups = navGroups(access).map((g) => ({
+    key: g.key,
+    items: g.items.map((i) => ({ ...i, label: t(`dashboard.nav.${i.label}`), badge: i.badge ? badges[i.badge] : undefined })),
+  }));
+  type NavItem = (typeof groups)[number]['items'][number];
+  // Same rule as NavLink (the page or anything under it), plus Settings lighting up on every settings page.
+  const isActive = (i: NavItem) => {
+    if (i.activeFor) return i.activeFor(pathname);
+    const base = i.to.replace(/(.)\/+$/, '$1');
+    return pathname === base || pathname === `${base}/` || (!i.end && pathname.startsWith(`${base}/`));
+  };
   const nav = groups.flatMap((g) => g.items);
   // Phones and tablets: the first four as tabs, the rest (grouped) under "More".
   const tabs = nav.length > 5 ? nav.slice(0, 4) : nav;
@@ -165,7 +112,10 @@ export default function DashboardLayout() {
   const overflowGroups = groups.map((g) => ({ ...g, items: g.items.filter((i) => !tabSet.has(i.to)) })).filter((g) => g.items.length > 0);
   const overflow = overflowGroups.flatMap((g) => g.items);
   // Only one group (e.g. kitchen or housekeeping staff): no group headings.
-  const showHeadings = groups.length > 1;
+  // The single Settings item never needs a heading of its own.
+  const showHeadings = groups.filter((g) => g.key !== 'settings').length > 1;
+  const heading = (key: string) => showHeadings && key !== 'settings';
+  const shortcut = shortcutLabel();
 
   const badge = (n?: number) =>
     n ? (
@@ -180,7 +130,7 @@ export default function DashboardLayout() {
       <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
         <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <Logo to="/dashboard" />
+            <Logo to="/dashboard" compact />
             {tenant && (
               <span className="hidden min-w-0 items-center gap-2 border-l border-line pl-3 sm:flex">
                 <span className="truncate font-semibold">{tenant.name}</span>
@@ -188,7 +138,22 @@ export default function DashboardLayout() {
               </span>
             )}
           </div>
+          {/* Search: an input-like button on big screens, an icon on phones. */}
+          <button
+            type="button"
+            onClick={() => setFinding(true)}
+            aria-haspopup="dialog"
+            aria-keyshortcuts="Control+K Meta+K"
+            className="hidden h-10 min-w-0 max-w-sm flex-1 items-center gap-2.5 rounded-full border border-line bg-surface px-4 text-sm text-muted transition-colors hover:border-ink/30 md:flex"
+          >
+            <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">{t('dashboard.find.hint')}</span>
+            <kbd className="ms-auto shrink-0 rounded-md border border-line bg-paper px-1.5 py-0.5 font-sans text-[11px] font-semibold text-muted">{shortcut}</kbd>
+          </button>
           <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setFinding(true)} aria-haspopup="dialog" className="btn-ghost !min-h-10 !px-2.5 md:hidden" aria-label={t('dashboard.find.hint')}>
+              <Search className="h-5 w-5" aria-hidden="true" />
+            </button>
             {session && <OutletSwitcher session={session} />}
             {live && (
               <span className="hidden items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success sm:inline-flex" title={t('dashboard.liveHint')}>
@@ -208,29 +173,38 @@ export default function DashboardLayout() {
       <div className="lg:flex">
         {/* Desktop: grouped sidebar; it can shrink to icons to give big screens (POS, previews) more room. */}
         <aside className={`sticky top-16 hidden h-[calc(100vh-4rem)] shrink-0 flex-col border-r border-side-line bg-side text-side-ink transition-[width] duration-200 lg:flex ${collapsed ? 'w-[4.5rem]' : 'w-60'}`}>
-          <nav ref={sideNav} aria-label={t('dashboard.nav.label')} className="flex-1 overflow-y-auto px-3 py-4">
-            {groups.map((g) => (
+          <nav ref={sideNav} aria-label={t('dashboard.nav.label')} className="flex min-h-0 flex-1 flex-col">
+            {/* Settings stays pinned at the bottom; the rest scrolls. */}
+            {[groups.filter((g) => g.key !== 'settings'), groups.filter((g) => g.key === 'settings')].map((part, p) => !!part.length && (
+            <div key={p} className={p === 0 ? 'min-h-0 flex-1 overflow-y-auto px-3 py-4' : 'border-t border-side-line px-3 py-2'}>
+            {part.map((g) => (
               <div key={g.key} className="mb-3 last:mb-0">
-                {showHeadings && !collapsed && <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-side-heading">{t(`dashboard.groups.${g.key}`)}</p>}
-                {showHeadings && collapsed && <div className="mx-3 mb-2 border-t border-side-line" aria-hidden="true" />}
+                {heading(g.key) && !collapsed && <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-side-heading">{t(`dashboard.groups.${g.key}`)}</p>}
+                {heading(g.key) && collapsed && <div className="mx-3 mb-2 border-t border-side-line" aria-hidden="true" />}
                 <ul className="space-y-0.5">
-                  {g.items.map(({ to, label, icon: Icon, end, badge: n }) => (
-                    <li key={to}>
-                      <NavLink
-                        to={to}
-                        end={end}
-                        title={collapsed ? label : undefined}
-                        aria-label={collapsed ? label : undefined}
-                        className={({ isActive }) => `relative flex min-h-9 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition-colors ${isActive ? 'bg-side-active text-side-active-ink' : 'text-side-muted hover:bg-side-hover hover:text-side-ink'} ${collapsed ? 'justify-center' : ''}`}
-                      >
-                        <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
-                        {!collapsed && <span className="truncate">{label}</span>}
-                        {collapsed ? !!n && <span className="absolute right-1.5 top-1 h-2 w-2 rounded-full bg-brand" aria-label={t('orders.pendingCount', { count: n })} /> : badge(n)}
-                      </NavLink>
-                    </li>
-                  ))}
+                  {g.items.map((i) => {
+                    const { to, label, icon: Icon, badge: n } = i;
+                    const active = isActive(i);
+                    return (
+                      <li key={to}>
+                        <Link
+                          to={to}
+                          aria-current={active ? 'page' : undefined}
+                          title={collapsed ? label : undefined}
+                          aria-label={collapsed ? label : undefined}
+                          className={`relative flex min-h-9 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition-colors ${active ? 'bg-side-active text-side-active-ink' : 'text-side-muted hover:bg-side-hover hover:text-side-ink'} ${collapsed ? 'justify-center' : ''}`}
+                        >
+                          <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                          {!collapsed && <span className="truncate">{label}</span>}
+                          {collapsed ? !!n && <span className="absolute right-1.5 top-1 h-2 w-2 rounded-full bg-brand" aria-label={t('orders.pendingCount', { count: n })} /> : badge(n)}
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
+            ))}
+            </div>
             ))}
           </nav>
           <button type="button" onClick={toggleCollapsed} className="flex min-h-11 items-center gap-2 border-t border-side-line px-6 text-sm font-semibold text-side-muted hover:text-side-ink" aria-label={collapsed ? t('dashboard.expandMenu') : t('dashboard.collapseMenu')} aria-expanded={!collapsed}>
@@ -246,6 +220,7 @@ export default function DashboardLayout() {
                 <Alert tone="info">{t('dashboard.demoBanner')}</Alert>
               </div>
             )}
+            {SETTINGS_PAGES.some((p) => pathname === p || pathname === `${p}/`) && <SettingsBackLink />}
             <Outlet />
           </div>
         </main>
@@ -254,24 +229,24 @@ export default function DashboardLayout() {
       {/* Phones and tablets: app-style bottom tabs */}
       <nav aria-label={t('dashboard.nav.label')} className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <ul className="flex">
-          {tabs.map(({ to, label, icon: Icon, end, badge: n }) => (
-            <li key={to} className="min-w-0 flex-1">
-              <NavLink to={to} end={end} className={({ isActive }) => `flex h-16 flex-col items-center justify-center gap-1 px-0.5 text-[11px] font-semibold ${isActive ? 'text-ink' : 'text-muted'}`}>
-                {({ isActive }) => (
-                  <>
-                    <span className={`relative flex h-8 w-12 items-center justify-center rounded-full ${isActive ? 'bg-ink/10' : ''}`}>
-                      <Icon className="h-5 w-5" aria-hidden="true" />
-                      {!!n && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white">{n}</span>}
-                    </span>
-                    <span className="max-w-full truncate">{label}</span>
-                  </>
-                )}
-              </NavLink>
-            </li>
-          ))}
+          {tabs.map((i) => {
+            const { to, label, icon: Icon, badge: n } = i;
+            const active = isActive(i);
+            return (
+              <li key={to} className="min-w-0 flex-1">
+                <Link to={to} aria-current={active ? 'page' : undefined} className={`flex h-16 flex-col items-center justify-center gap-1 px-0.5 text-[11px] font-semibold ${active ? 'text-ink' : 'text-muted'}`}>
+                  <span className={`relative flex h-8 w-12 items-center justify-center rounded-full ${active ? 'bg-ink/10' : ''}`}>
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                    {!!n && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white">{n}</span>}
+                  </span>
+                  <span className="max-w-full truncate">{label}</span>
+                </Link>
+              </li>
+            );
+          })}
           {overflow.length > 0 && (
             <li className="min-w-0 flex-1">
-              <button type="button" onClick={() => setMore(true)} aria-expanded={more} className={`flex h-16 w-full flex-col items-center justify-center gap-1 text-[11px] font-semibold ${overflow.some((o) => pathname.startsWith(o.to)) ? 'text-ink' : 'text-muted'}`}>
+              <button type="button" onClick={() => setMore(true)} aria-expanded={more} className={`flex h-16 w-full flex-col items-center justify-center gap-1 text-[11px] font-semibold ${overflow.some(isActive) ? 'text-ink' : 'text-muted'}`}>
                 <span className="relative flex h-8 w-12 items-center justify-center rounded-full">
                   <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
                   {overflow.some((o) => o.badge) && <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-brand" aria-hidden="true" />}
@@ -286,21 +261,26 @@ export default function DashboardLayout() {
         <div className="space-y-4">
           {overflowGroups.map((g) => (
             <div key={g.key}>
-              {showHeadings && <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">{t(`dashboard.groups.${g.key}`)}</p>}
+              {heading(g.key) && <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">{t(`dashboard.groups.${g.key}`)}</p>}
               <ul className="grid grid-cols-2 gap-2">
-                {g.items.map(({ to, label, icon: Icon, badge: n }) => (
-                  <li key={to}>
-                    <button type="button" onClick={() => navigate(to)} className={`flex min-h-14 w-full items-center gap-3 rounded-xl border px-4 text-left font-semibold ${pathname.startsWith(to) ? 'border-ink bg-ink text-paper' : 'border-line'}`}>
-                      <Icon className="h-5 w-5 shrink-0" aria-hidden="true" /> <span className="truncate">{label}</span>
-                      {badge(n)}
-                    </button>
-                  </li>
-                ))}
+                {g.items.map((i) => {
+                  const { to, label, icon: Icon, badge: n } = i;
+                  const active = isActive(i);
+                  return (
+                    <li key={to}>
+                      <button type="button" onClick={() => navigate(to)} aria-current={active ? 'page' : undefined} className={`flex min-h-14 w-full items-center gap-3 rounded-xl border px-4 text-start font-semibold ${active ? 'border-ink bg-ink text-paper' : 'border-line'}`}>
+                        <Icon className="h-5 w-5 shrink-0" aria-hidden="true" /> <span className="truncate">{label}</span>
+                        {badge(n)}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
         </div>
       </Dialog>
+      <CommandPalette open={finding} onClose={() => setFinding(false)} access={access} />
     </div>
   );
 }

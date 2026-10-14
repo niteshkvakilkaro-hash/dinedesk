@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { intlLocale } from '@/i18n/locale';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router';
 import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Phone, Plus, RefreshCw, Search, Trash2, Users } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatPhone, formatTime, isIndianMobile } from '@/lib/format';
@@ -279,7 +280,13 @@ function BookingsTab({ timezone, enabled, onOpenSettings }: { timezone: string; 
   const today = todayIn(timezone);
   const [date, setDate] = useState(today);
   const [status, setStatus] = useState<(typeof FILTERS)[number]>('');
-  const [search, setSearch] = useState('');
+  // From the dashboard search: ?q=<booking code> looks it up.
+  const [params] = useSearchParams();
+  const wanted = params.get('q');
+  const [search, setSearch] = useState(wanted ?? '');
+  useEffect(() => {
+    if (wanted !== null) setSearch(wanted);
+  }, [wanted]);
   const [q, setQ] = useState('');
   const [adding, setAdding] = useState(false);
   const [asking, setAsking] = useState<{ r: StaffReservation; to: 'rejected' | 'cancelled' } | null>(null);

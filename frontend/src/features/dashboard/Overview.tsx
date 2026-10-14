@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { intlLocale } from '@/i18n/locale';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -13,6 +13,8 @@ import { useThemeColors } from '@/lib/adminTheme';
 import { useCan, useFeature, useSession } from '@/hooks/useSession';
 import { Badge, SkeletonRows } from '@/components/ui';
 import ClockCard from '@/features/staff/ClockCard';
+import { GetStarted } from './GetStarted';
+import { accessFrom } from './navigation';
 
 const SETUP = ['account', 'type', 'details', 'theme', 'branding', 'menu', 'live'] as const;
 // Where each finished step can be revisited.
@@ -51,6 +53,7 @@ export default function Overview() {
   const reduce = useReducedMotion();
   const { data: session } = useSession();
   const canTheme = useCan('theme.manage');
+  const access = useMemo(() => accessFrom(session), [session]);
   const dash = useQuery({ queryKey: ['dashboard-home'], queryFn: async () => (await api.get<DashboardData>('/tenant/dashboard')).data, refetchInterval: 60_000 });
   if (!session?.tenant) return null;
   const tenant = session.tenant;
@@ -84,6 +87,7 @@ export default function Overview() {
       )}
 
       {tenant.status === 'onboarding' && <SetupChecklist step={tenant.onboarding_step} />}
+      <GetStarted access={access} />
 
       {/* Staff clock in here; the owner doesn't need to. */}
       {tenant.status !== 'onboarding' && session.role !== 'owner' && !session.support && <ClockCard />}

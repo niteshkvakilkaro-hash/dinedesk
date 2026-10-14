@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useOpenParam } from '@/lib/urlParams';
 import { BedDouble, Bell, BellOff, Bike, Clock, MapPin, Phone, RefreshCw, Search, ShoppingBag, Store, UtensilsCrossed } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatINR } from '@/lib/format';
@@ -306,6 +307,8 @@ export default function OrdersPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [openId, setOpenId] = useState<number | null>(null);
+  // From the dashboard search: ?open=<order id> opens that order.
+  useOpenParam((v) => Number(v) > 0 && setOpenId(Number(v)));
   const [cancelling, setCancelling] = useState<{ id: number; number: number } | null>(null);
   const sound = useAlertPrefs((s) => s.sound);
   const setSound = useAlertPrefs((s) => s.setSound);

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useOpenParam, useTabParam } from '@/lib/urlParams';
 import { BedDouble, ChevronLeft, ChevronRight, Hotel, Phone, Plus, Search, Sparkles } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatDate, formatDateTime, formatPhone } from '@/lib/format';
@@ -312,9 +313,10 @@ export default function HotelPage() {
   const canHk = useCan('housekeeping.update');
   const canSetup = useCan('rooms.setup');
   const tabs = ([...(canDesk ? ['today', 'calendar', 'bookings'] : []), ...(canHk ? ['housekeeping'] : []), ...(canDesk ? ['events'] : []), ...(canSetup ? ['setup'] : [])] as Tab[]);
-  const [tab, setTab] = useState<Tab | null>(null);
+  const [tab, setTab] = useTabParam<Tab | ''>(tabs, '');
   const active = tab && tabs.includes(tab) ? tab : tabs[0];
   const [open, setOpen] = useState<number | null>(null);
+  useOpenParam((v) => Number(v) > 0 && setOpen(Number(v)));
   const [creating, setCreating] = useState(false);
   useLive(session?.tenant?.id, 'hotel', canDesk || canHk, () => void qc.invalidateQueries({ queryKey: ['hotel'], predicate: (q) => q.queryKey[1] !== 'settings' && q.queryKey[1] !== 'types' }));
 

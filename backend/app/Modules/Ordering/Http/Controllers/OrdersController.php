@@ -51,7 +51,10 @@ class OrdersController extends Controller
         }
         if (! empty($data['search'])) {
             $s = trim($data['search']);
-            $q->where(fn ($w) => $w->where('number', ltrim($s, '#'))->orWhere('customer_name', 'like', "%{$s}%")->orWhere('customer_phone', 'like', '%'.preg_replace('/\D+/', '', $s).'%'));
+            // Phone only when the search has digits: '%%' would match every order.
+            $digits = preg_replace('/\D+/', '', $s);
+            $q->where(fn ($w) => $w->where('number', ltrim($s, '#'))->orWhere('customer_name', 'like', "%{$s}%")
+                ->when($digits !== '', fn ($w) => $w->orWhere('customer_phone', 'like', "%{$digits}%")));
         }
         $active = ($data['view'] ?? 'active') === 'active';
         $page = $q->orderBy($active ? 'placed_at' : 'id', $active ? 'asc' : 'desc')->paginate(30);
