@@ -5,6 +5,7 @@ namespace App\Modules\Notify\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Notify\Models\PushSubscription;
 use App\Modules\Notify\Support\SendWebPush;
+use App\Modules\Notify\Support\StaffText;
 use App\Modules\Notify\Support\WebPushChannel;
 use App\Support\ApiException;
 use Illuminate\Http\JsonResponse;
@@ -57,7 +58,8 @@ class PushController extends Controller
 
     public function test(Request $request): JsonResponse
     {
-        SendWebPush::dispatch($request->user()->id, ['title' => 'DineDesk', 'body' => 'Test alert: push notifications work on this device.', 'url' => '/dashboard', 'tag' => 'test']);
+        $t = StaffText::for($request->user());
+        SendWebPush::dispatch($request->user()->id, ['title' => 'DineDesk', 'body' => $t('push_test'), 'url' => '/dashboard', 'tag' => 'test']);
 
         return $this->ok(null, 'Test alert sent.');
     }

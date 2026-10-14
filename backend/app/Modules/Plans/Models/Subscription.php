@@ -11,7 +11,7 @@ class Subscription extends Model
     use BelongsToTenant;
 
     protected $fillable = [
-        'tenant_id', 'plan_id', 'scheduled_plan_id', 'status', 'billing_cycle', 'trial_ends_at', 'current_period_starts_at', 'current_period_ends_at',
+        'tenant_id', 'plan_id', 'scheduled_plan_id', 'status', 'billing_cycle', 'trial_ends_at', 'starts_at', 'current_period_starts_at', 'current_period_ends_at',
         'grace_ends_at', 'cancel_at_period_end', 'provider', 'provider_subscription_id', 'checkout_url', 'last_charged_at', 'ended_at',
     ];
 
@@ -19,6 +19,7 @@ class Subscription extends Model
     {
         return [
             'trial_ends_at' => 'datetime',
+            'starts_at' => 'datetime',
             'current_period_starts_at' => 'datetime',
             'current_period_ends_at' => 'datetime',
             'grace_ends_at' => 'datetime',

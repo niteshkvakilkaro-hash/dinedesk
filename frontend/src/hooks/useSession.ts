@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api';
 import { isSupportTab, useAuthStore } from '@/stores/auth';
 import type { AuthResult, Session } from '@/types';
@@ -87,4 +88,30 @@ export function useFeature(feature: string): boolean {
 export function useCan(permission: string): boolean {
   const { data } = useSession();
   return Boolean(data?.permissions?.includes(permission));
+}
+
+/** My account changed: the session the server sent back replaces the cached one (and the offline copy). */
+export function useSetSession() {
+  const qc = useQueryClient();
+  const token = useAuthStore((s) => s.token);
+  return (session: Session) => {
+    qc.setQueryData(['session', token], session);
+    if (token) keepSession(token, session);
+  };
+}
+
+/**
+ * Switch the dashboard language and remember it on the account (users.locale): alerts and
+ * messages to this person (staff push alerts, the owner's morning summary) use it too.
+ * Not saved in a support session (that's someone else's account).
+ */
+export function useSaveLanguage() {
+  const { i18n } = useTranslation();
+  const { data: session } = useSession();
+  const setSession = useSetSession();
+  return async (code: string) => {
+    await i18n.changeLanguage(code);
+    if (!session || session.support || session.user.locale === code) return;
+    setSession((await api.patch<Session>('/account', { locale: code })).data);
+  };
 }

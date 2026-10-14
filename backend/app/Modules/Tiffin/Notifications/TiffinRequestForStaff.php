@@ -2,6 +2,7 @@
 
 namespace App\Modules\Tiffin\Notifications;
 
+use App\Modules\Notify\Support\StaffText;
 use App\Modules\Tiffin\Models\MealSubscription;
 use Illuminate\Notifications\Notification;
 
@@ -18,7 +19,13 @@ class TiffinRequestForStaff extends Notification
     public function toWebPush(object $notifiable): array
     {
         $s = $this->sub;
+        $t = StaffText::for($notifiable);
 
-        return ['title' => "Tiffin request · {$s->name}", 'body' => ($s->plan?->name ?? 'Meal plan')." · from {$s->starts_on->format('j M')} · {$s->code()}", 'url' => '/dashboard/tiffin', 'tag' => "tiffin-{$s->id}"];
+        return [
+            'title' => $t('tiffin.title', ['name' => $s->name]),
+            'body' => $t('tiffin.body', ['plan' => $s->plan?->name ?? $t('tiffin.default_plan'), 'date' => $t->date($s->starts_on->format('Y-m-d')), 'code' => $s->code()]),
+            'url' => '/dashboard/tiffin',
+            'tag' => "tiffin-{$s->id}",
+        ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Ordering\Notifications;
 
+use App\Modules\Notify\Support\StaffText;
 use App\Modules\Ordering\Models\Order;
 use Illuminate\Notifications\Notification;
 
@@ -15,13 +16,18 @@ class NewOrderForStaff extends Notification
         return ['database', 'webpush'];
     }
 
-    /** Push alert on staff phones (see Notify module). */
+    /** Push alert on staff phones (see Notify module), in the recipient's language. */
     public function toWebPush(object $notifiable): array
     {
         $o = $this->order;
-        $when = $o->scheduled_for ? ' · for '.$o->scheduled_for->setTimezone('Asia/Kolkata')->format('j M, g:i A') : '';
+        $t = StaffText::for($notifiable);
+        $body = array_filter([
+            $o->customer_name,
+            $t("order.types.{$o->type}"),
+            $o->scheduled_for ? $t('order.for', ['when' => $t->date($o->scheduled_for, 'D MMM, h:mm A', 'Asia/Kolkata')]) : null,
+        ]);
 
-        return ['title' => "New order #{$o->number} · ₹{$o->total}", 'body' => trim("{$o->customer_name} · ".str_replace('_', ' ', $o->type).$when, ' ·'), 'url' => '/dashboard/orders', 'tag' => "order-{$o->id}"];
+        return ['title' => $t('order.title', ['number' => $o->number, 'total' => $o->total]), 'body' => implode(' · ', $body), 'url' => '/dashboard/orders', 'tag' => "order-{$o->id}"];
     }
 
     public function toArray(object $notifiable): array

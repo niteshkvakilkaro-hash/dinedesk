@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\DB;
  *
  *  trialing ─(trial ends)→ past_due + grace ─(grace ends)→ business read-only
  *  pending (checkout started) ─(paid)→ active ─(renewal charged)→ active
+ *  during a trial: pending ─(authorised)→ scheduled ─(first charge at trial end)→ active
+ *    (Razorpay start_at = trial end, so the days left of the trial are not lost)
  *  active ─(payment fails)→ past_due / halted + grace ─(grace ends)→ read-only
  *  active ─(cancel)→ cancelled at period end → grace → read-only
  * Paying again at any point makes the business (and its branches) normal again.
@@ -60,14 +62,28 @@ class SubscriptionManager
         if ($current && $current->status === 'active' && $current->provider_subscription_id) {
             throw new ApiException('You already have an active subscription. Change your plan instead.', 422, 'already_subscribed');
         }
+        if ($current && $current->status === 'scheduled') {
+            throw new ApiException('Your plan is already set to start when your trial ends. Cancel it first to choose another one.', 422, 'already_scheduled');
+        }
         $rzpPlan = $this->razorpayPlan($plan, $cycle);
-        $sub = $this->razorpay->createSubscription($rzpPlan, $cycle, ['business' => $root->public_id, 'plan' => $plan->code]);
+        if ($current && $current->status === 'pending' && $current->starts_at) {
+            // An earlier checkout that was never completed is replaced below, so free days that
+            // waited for its start date can go to the trial first (and the new start uses them).
+            $current->update(['starts_at' => null]);
+            $this->referrals->applyPending($root);
+            $current = $current->fresh();
+        }
+        // Still on a trial: the first charge waits for its end (the trial days, referral days
+        // included, are kept). An hour of margin: Razorpay needs a start in the future.
+        $startsAt = $this->trialLeft($current);
+        $sub = $this->razorpay->createSubscription($rzpPlan, $cycle, ['business' => $root->public_id, 'plan' => $plan->code], $startsAt?->getTimestamp());
 
-        $row = DB::transaction(function () use ($root, $current, $plan, $cycle, $sub) {
+        $row = DB::transaction(function () use ($root, $current, $plan, $cycle, $sub, $startsAt) {
             $fields = [
                 'plan_id' => $plan->id,
                 'billing_cycle' => $cycle,
                 'status' => 'pending',
+                'starts_at' => $startsAt,
                 'provider' => 'razorpay',
                 'provider_subscription_id' => $sub['id'],
                 'checkout_url' => $sub['short_url'],
@@ -108,7 +124,10 @@ class SubscriptionManager
         if (! $sub || ! $this->razorpay->checkoutSignatureValid($paymentId, $subscriptionId, $signature)) {
             throw new ApiException('We could not verify this payment. If money was deducted, it will be confirmed automatically.', 422, 'payment_unverified');
         }
-        if ($sub->status !== 'active') {
+        if ($sub->starts_at && $sub->starts_at->isFuture()) {
+            // Authorised, first charge at the end of the trial: still on the trial until then.
+            $this->authorised($sub);
+        } elseif ($sub->status !== 'active') {
             $start = CarbonImmutable::now();
             $this->activate($sub, $start, $sub->billing_cycle === 'yearly' ? $start->addYear() : $start->addMonth());
         }
@@ -128,6 +147,8 @@ class SubscriptionManager
         $end = isset($entity['current_end']) ? CarbonImmutable::createFromTimestamp((int) $entity['current_end']) : null;
 
         match ($event) {
+            // The owner authorised a subscription that starts later (Checkout closed before verify, too).
+            'subscription.authenticated' => $this->authorised($sub),
             'subscription.activated' => $this->activate($sub, $start, $end),
             'subscription.charged' => $this->charged($sub, (array) ($payload['payment']['entity'] ?? []), $start, $end, $entity['plan_id'] ?? null),
             'subscription.pending', 'subscription.halted' => $this->lapse($sub, $event === 'subscription.halted' ? 'halted' : 'past_due'),
@@ -169,6 +190,9 @@ class SubscriptionManager
     public function cancel(Tenant $root): Subscription
     {
         $sub = $this->current($root);
+        if ($sub && $sub->status === 'scheduled') {
+            return $this->cancelScheduled($root, $sub);
+        }
         if (! $sub || $sub->status !== 'active' || ! $sub->provider_subscription_id) {
             throw new ApiException('There is no active subscription to cancel.', 422, 'not_subscribed');
         }
@@ -198,7 +222,8 @@ class SubscriptionManager
             }
             $now = CarbonImmutable::now();
             $lapsedAt = match (true) {
-                in_array($s->status, ['trialing', 'pending'], true) && $s->trial_ends_at && $s->trial_ends_at->lte($now) => $s->trial_ends_at,
+                // A scheduled plan is charged when the trial ends; until that charge arrives it is the trial that ran out.
+                in_array($s->status, ['trialing', 'pending', 'scheduled'], true) && $s->trial_ends_at && $s->trial_ends_at->lte($now) => $s->trial_ends_at,
                 $s->status === 'cancelled' && $s->current_period_ends_at && $s->current_period_ends_at->lte($now) => $s->current_period_ends_at,
                 // A renewal that never arrived (3 days of slack for the provider).
                 $s->status === 'active' && $s->current_period_ends_at && $s->current_period_ends_at->addDays(3)->lte($now) => $s->current_period_ends_at,
@@ -230,6 +255,8 @@ class SubscriptionManager
             'plan' => ['code' => $s->plan->code, 'name' => $s->plan->name],
             'billing_cycle' => $s->billing_cycle,
             'trial_ends_at' => $s->trial_ends_at?->toIso8601String(),
+            // Scheduled: the first charge (and the paid plan) starts then.
+            'starts_at' => $s->status === 'scheduled' ? $s->starts_at?->toIso8601String() : null,
             'current_period_ends_at' => $s->current_period_ends_at?->toIso8601String(),
             'grace_ends_at' => $s->grace_ends_at?->toIso8601String(),
             'cancel_at_period_end' => $s->cancel_at_period_end,
@@ -247,7 +274,7 @@ class SubscriptionManager
             $root = Tenant::findOrFail($sub->tenant_id);
             // Older rows (the trial, an abandoned checkout) are superseded.
             Subscription::withoutGlobalScope(TenantScope::class)->where('tenant_id', $root->id)->where('id', '<', $sub->id)
-                ->whereIn('status', ['trialing', 'pending', 'past_due', 'halted'])->update(['status' => 'expired', 'ended_at' => now()]);
+                ->whereIn('status', ['trialing', 'pending', 'scheduled', 'past_due', 'halted'])->update(['status' => 'expired', 'ended_at' => now()]);
             $this->access->setPlan($root, $sub->plan_id);
             $this->access->restore($root);
             AuditLog::record('billing.active', $root, ['plan_id' => $sub->plan_id, 'until' => $end?->toIso8601String()], $root->id);
@@ -283,6 +310,49 @@ class SubscriptionManager
         if ($root = Tenant::find($sub->tenant_id)) {
             $this->referrals->applyPending($root);
         }
+    }
+
+    /** The trial end, when a trial (or a checkout started during one) still has more than an hour left. */
+    private function trialLeft(?Subscription $current): ?CarbonImmutable
+    {
+        if (! $current || ! in_array($current->status, ['trialing', 'pending'], true) || ! $current->trial_ends_at) {
+            return null;
+        }
+        $end = CarbonImmutable::parse($current->trial_ends_at);
+
+        return $end->gt(CarbonImmutable::now()->addHour()) ? $end : null;
+    }
+
+    /** Authorised in Checkout, first charge later: the business stays on its trial until then. */
+    private function authorised(Subscription $sub): void
+    {
+        if ($sub->status !== 'pending' || ! $sub->starts_at || ! $sub->starts_at->isFuture()) {
+            return;
+        }
+        $sub->update(['status' => 'scheduled', 'checkout_url' => null]);
+        AuditLog::record('billing.scheduled', Tenant::find($sub->tenant_id), ['plan_id' => $sub->plan_id, 'starts' => $sub->starts_at->toIso8601String()], $sub->tenant_id);
+    }
+
+    /**
+     * Cancel a plan that hasn't started: Razorpay drops it now (nothing was charged) and the
+     * business is simply on its trial again, free to choose another plan.
+     */
+    private function cancelScheduled(Tenant $root, Subscription $sub): Subscription
+    {
+        $this->razorpay->cancel($sub->provider_subscription_id, false);
+        $sub->update([
+            'status' => 'trialing',
+            'plan_id' => $root->plan_id,
+            'starts_at' => null,
+            'provider' => null,
+            'provider_subscription_id' => null,
+            'checkout_url' => null,
+        ]);
+        AuditLog::record('billing.scheduled_cancelled', $root, [], $root->id);
+        // Free days waiting because of the scheduled charge can go to the trial now.
+        $this->referrals->applyPending($root);
+
+        return $sub->fresh(['plan', 'scheduledPlan']);
     }
 
     private function lapse(Subscription $sub, string $status): void

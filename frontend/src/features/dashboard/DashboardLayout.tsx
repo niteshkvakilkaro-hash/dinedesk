@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { LogOut, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Search, Wifi } from 'lucide-react';
+import { LogOut, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Search, UserRound, Wifi } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { disconnectLive, useLive, useLiveStatus } from '@/lib/realtime';
-import { useCan, useFeature, useSession, useSignOut } from '@/hooks/useSession';
+import { useCan, useFeature, useSaveLanguage, useSession, useSignOut } from '@/hooks/useSession';
 import { Alert, Dialog, DemoBadge, toast } from '@/components/ui';
 import { LanguageToggle, Logo } from '@/components/Brand';
 import { useAdminTheme } from '@/lib/adminTheme';
@@ -23,6 +23,8 @@ export default function DashboardLayout() {
   const { pathname } = useLocation();
   const { data: session } = useSession();
   const signOut = useSignOut();
+  // The header language menu also saves the choice on the account (alerts to this person use it).
+  const saveLanguage = useSaveLanguage();
   const canOrders = useCan('orders.view');
   const hasReservations = useFeature('reservations');
   const hasQr = useFeature('qr_ordering');
@@ -161,7 +163,11 @@ export default function DashboardLayout() {
               </span>
             )}
             <Appearance theme={theme} />
-            <LanguageToggle />
+            <LanguageToggle onPick={(code) => void saveLanguage(code).catch(() => undefined)} />
+            <Link to="/dashboard/account" className="btn-ghost !min-h-10 !px-2.5" aria-label={t('dashboard.nav.account')} title={t('dashboard.nav.account')} aria-current={pathname.startsWith('/dashboard/account') ? 'page' : undefined}>
+              <UserRound className="h-5 w-5" aria-hidden="true" />
+              {session && <span className="hidden max-w-[9rem] truncate xl:inline">{session.user.name}</span>}
+            </Link>
             <button type="button" onClick={() => { disconnectLive(); void signOut(); }} className="btn-ghost !min-h-10 !px-3" aria-label={t('common.signOut')}>
               <LogOut className="h-5 w-5" aria-hidden="true" />
               <span className="hidden sm:inline">{t('common.signOut')}</span>

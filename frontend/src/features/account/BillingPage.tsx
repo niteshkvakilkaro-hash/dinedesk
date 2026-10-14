@@ -24,10 +24,12 @@ interface PlanRow {
 }
 
 interface SubscriptionInfo {
-  status: 'trialing' | 'pending' | 'active' | 'past_due' | 'halted' | 'cancelled' | 'expired';
+  status: 'trialing' | 'pending' | 'scheduled' | 'active' | 'past_due' | 'halted' | 'cancelled' | 'expired';
   plan: { code: string; name: string };
   billing_cycle: Cycle;
   trial_ends_at: string | null;
+  /** Scheduled (paid for during the trial): the first charge and the paid plan start then. */
+  starts_at: string | null;
   current_period_ends_at: string | null;
   grace_ends_at: string | null;
   cancel_at_period_end: boolean;
@@ -63,7 +65,7 @@ function StatusCard({ b }: { b: Billing }) {
   const { t } = useTranslation();
   const s = b.subscription;
   if (!s) return null;
-  const tone = s.status === 'active' ? 'paid' : s.status === 'trialing' ? 'confirmed' : 'pending';
+  const tone = s.status === 'active' ? 'paid' : s.status === 'trialing' || s.status === 'scheduled' ? 'confirmed' : 'pending';
   return (
     <section className="card space-y-2 p-5" aria-labelledby="sub-h">
       <div className="flex flex-wrap items-center gap-2">
@@ -72,6 +74,7 @@ function StatusCard({ b }: { b: Billing }) {
         {s.paid && <span className="text-sm text-muted">{t(`billing.cycle.${s.billing_cycle}`)}</span>}
       </div>
       {s.status === 'trialing' && s.trial_ends_at && <p>{t('billing.trialEnds', { date: formatDate(s.trial_ends_at) })}</p>}
+      {s.status === 'scheduled' && s.starts_at && <p>{t('billing.startsOn', { date: formatDate(s.starts_at) })}</p>}
       {s.status === 'active' && s.current_period_ends_at && <p>{s.cancel_at_period_end ? t('billing.endsOn', { date: formatDate(s.current_period_ends_at) }) : t('billing.renewsOn', { date: formatDate(s.current_period_ends_at) })}</p>}
       {s.scheduled_plan && <p>{t('billing.scheduled', { plan: s.scheduled_plan.name, date: s.current_period_ends_at ? formatDate(s.current_period_ends_at) : '' })}</p>}
       {s.grace_ends_at && s.status !== 'active' && <Alert tone="warn">{t('billing.graceUntil', { date: formatDate(s.grace_ends_at) })}</Alert>}
@@ -131,6 +134,8 @@ export default function BillingPage() {
   const b = q.data;
   const s = b.subscription;
   const activePaid = s?.status === 'active' && s.paid;
+  // Paid for during the trial: starts when the trial ends (cancel it to choose another plan).
+  const scheduled = s?.status === 'scheduled';
   const shownCycle: Cycle = cycle ?? (s?.paid ? s.billing_cycle : 'monthly');
 
   const choose = async (plan: PlanRow) => {
@@ -142,6 +147,7 @@ export default function BillingPage() {
       } else {
         const r = await api.post<{ key_id: string; subscription_id: string; name: string; description: string; prefill: Record<string, string | null> }>('/tenant/subscription/checkout', { plan: plan.code, cycle: shownCycle });
         await loadRazorpay();
+        let startsLater = false;
         const paid = await new Promise<boolean>((resolve) => {
           const rzp = new window.Razorpay!({
             key: r.data.key_id,
@@ -151,7 +157,8 @@ export default function BillingPage() {
             prefill: r.data.prefill,
             handler: async (res: { razorpay_payment_id: string; razorpay_subscription_id: string; razorpay_signature: string }) => {
               try {
-                await api.post('/tenant/subscription/verify', res);
+                const v = await api.post<SubscriptionInfo>('/tenant/subscription/verify', res);
+                startsLater = v.data.status === 'scheduled';
               } catch {
                 /* the webhook still confirms it */
               }
@@ -161,7 +168,7 @@ export default function BillingPage() {
           });
           rzp.open();
         });
-        if (paid) toast.success(t('billing.thanks'));
+        if (paid) toast.success(t(startsLater ? 'billing.thanksScheduled' : 'billing.thanks'));
       }
       await refresh();
     } catch (e) {
@@ -172,10 +179,10 @@ export default function BillingPage() {
   };
 
   const cancel = async () => {
-    if (!window.confirm(t('billing.cancelConfirm'))) return;
+    if (!window.confirm(t(scheduled ? 'billing.cancelScheduledConfirm' : 'billing.cancelConfirm'))) return;
     try {
       await api.post('/tenant/subscription/cancel');
-      toast.success(t('billing.cancelled'));
+      toast.success(t(scheduled ? 'billing.cancelledScheduled' : 'billing.cancelled'));
       await refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -228,10 +235,12 @@ export default function BillingPage() {
                   </ul>
                   {!!over.length && !isCurrent && <p className="text-xs font-semibold text-warn">{t('billing.overLimit', { what: over.map((k) => t(`billing.limitName.${k}`)).join(', ') })}</p>}
                   <div className="mt-auto pt-2">
-                    {isCurrent && activePaid ? (
+                    {isCurrent && scheduled ? (
+                      <button type="button" className="btn-ghost !min-h-10 w-full text-sm text-danger" onClick={() => void cancel()}>{t('billing.cancelScheduled')}</button>
+                    ) : isCurrent && activePaid ? (
                       !s.cancel_at_period_end && <button type="button" className="btn-ghost !min-h-10 w-full text-sm text-danger" onClick={() => void cancel()}>{t('billing.cancel')}</button>
                     ) : (
-                      <button type="button" className="btn-primary w-full" disabled={!price || !b.payments_ready || !!busy} onClick={() => void choose(p)}>
+                      <button type="button" className="btn-primary w-full" disabled={!price || !b.payments_ready || !!busy || scheduled} onClick={() => void choose(p)}>
                         {busy === p.code ? <Spinner /> : activePaid ? t('billing.switchTo', { plan: p.name }) : t('billing.subscribe', { plan: p.name })}
                       </button>
                     )}

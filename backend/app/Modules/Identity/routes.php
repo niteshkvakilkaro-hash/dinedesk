@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Identity\Http\Controllers\AccountController;
 use App\Modules\Identity\Http\Controllers\AuthController;
 use App\Modules\Identity\Http\Controllers\StaffController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,14 @@ Route::prefix('auth')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
         Route::post('logout', [AuthController::class, 'logout']);
     });
+});
+
+// My account (anyone signed in: owner, staff, super admin). User-level, not tenant-scoped.
+Route::middleware(['auth:sanctum', 'throttle:api'])->prefix('account')->group(function () {
+    Route::patch('/', [AccountController::class, 'update']);
+    Route::put('password', [AccountController::class, 'password']);
+    Route::post('phone/code', [AccountController::class, 'phoneCode'])->middleware('throttle:otp-send');
+    Route::post('phone/verify', [AccountController::class, 'phoneVerify'])->middleware('throttle:otp-verify');
 });
 
 // Business team (owner)

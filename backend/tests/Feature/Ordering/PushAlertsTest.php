@@ -45,6 +45,26 @@ class PushAlertsTest extends OrderingTestCase
         Queue::assertNotPushed(SendWebPush::class, fn ($job) => $job->userId === $housekeeping->id);
     }
 
+    public function test_each_staff_member_gets_the_alert_in_their_own_language(): void
+    {
+        Queue::fake();
+        $owner = $this->ownerOf($this->tenant);
+        $cashier = $this->staff($this->tenant, 'cashier', ['locale' => 'hi']);
+        $this->postJson('/api/v1/site/orders', $this->orderPayload(), $this->site())->assertCreated();
+
+        Queue::assertPushed(SendWebPush::class, fn ($job) => $job->userId === $cashier->id
+            && preg_match('/^नया ऑर्डर #\S+ · ₹[\d.]+$/u', $job->payload['title']) && $job->payload['body'] === 'Asha Verma · टेकअवे');
+        Queue::assertPushed(SendWebPush::class, fn ($job) => $job->userId === $owner->id
+            && str_starts_with($job->payload['title'], 'New order #') && $job->payload['body'] === 'Asha Verma · Takeaway');
+
+        // The test alert too; an unsupported language falls back to English.
+        $this->actingAsUser($cashier)->postJson('/api/v1/tenant/push/test')->assertOk();
+        Queue::assertPushed(SendWebPush::class, fn ($job) => $job->userId === $cashier->id && $job->payload['body'] === 'टेस्ट अलर्ट: इस डिवाइस पर पुश नोटिफ़िकेशन काम कर रहे हैं।');
+        $owner->update(['locale' => 'xx']);
+        $this->actingAsUser($owner)->postJson('/api/v1/tenant/push/test')->assertOk();
+        Queue::assertPushed(SendWebPush::class, fn ($job) => $job->userId === $owner->id && $job->payload['body'] === 'Test alert: push notifications work on this device.');
+    }
+
     public function test_nothing_is_pushed_when_the_server_has_no_keys(): void
     {
         Queue::fake();

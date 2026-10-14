@@ -168,6 +168,57 @@ class ReferralTest extends SaasTestCase
         $this->assertTrue(AuditLog::where('action', 'platform.referral_reward.applied')->where('tenant_id', $this->tenant->id)->exists());
     }
 
+    public function test_free_days_wait_while_a_plan_is_scheduled_for_the_trial_end_and_go_to_the_trial_if_it_is_cancelled(): void
+    {
+        Http::fake([
+            'api.razorpay.com/v1/plans' => Http::response(['id' => 'plan_G_M']),
+            'api.razorpay.com/v1/subscriptions' => Http::response(['id' => 'sub_SCH', 'short_url' => 'https://rzp.io/i/s', 'status' => 'created']),
+            'api.razorpay.com/v1/subscriptions/sub_SCH/cancel' => Http::response(['id' => 'sub_SCH', 'status' => 'cancelled']),
+        ]);
+        $trialEnd = CarbonImmutable::parse($this->sub($this->tenant)->trial_ends_at);
+        $owner = $this->owner();
+        $this->actingAsUser($owner)->postJson('/api/v1/tenant/subscription/checkout', ['plan' => 'growth', 'cycle' => 'monthly'])->assertOk();
+        $this->actingAsUser($owner)->postJson('/api/v1/tenant/subscription/verify', ['razorpay_payment_id' => 'pay_a', 'razorpay_subscription_id' => 'sub_SCH', 'razorpay_signature' => hash_hmac('sha256', 'pay_a|sub_SCH', 'plat_secret')])
+            ->assertJsonPath('data.status', 'scheduled');
+
+        // Razorpay charges on the start date fixed at checkout, so moving the trial end now would
+        // not move that charge: the referrer's days wait (as on a renewing plan).
+        $referred = $this->signUp($this->tenant->fresh()->referral_code);
+        $this->pay($referred);
+        $mine = ReferralReward::where('tenant_id', $this->tenant->id)->sole();
+        $this->assertSame('pending', $mine->status);
+        $this->artisan('subscriptions:enforce')->assertSuccessful();
+        $this->assertSame('pending', $mine->fresh()->status);
+        $this->assertEqualsWithDelta($trialEnd->getTimestamp(), $this->sub($this->tenant)->trial_ends_at->getTimestamp(), 2);
+
+        // Cancelled before it started: back on the trial, and the waiting days are added to it.
+        $this->actingAsUser($this->owner())->postJson('/api/v1/tenant/subscription/cancel')->assertOk()->assertJsonPath('data.status', 'trialing');
+        $this->assertSame(['applied', 'trial'], [$mine->fresh()->status, $mine->fresh()->applied_to]);
+        $this->assertEqualsWithDelta($trialEnd->addDays(30)->getTimestamp(), $this->sub($this->tenant)->trial_ends_at->getTimestamp(), 2);
+    }
+
+    public function test_a_checkout_left_unfinished_gets_the_free_days_before_the_next_start_date(): void
+    {
+        Http::fake([
+            'api.razorpay.com/v1/plans' => Http::response(['id' => 'plan_G_M']),
+            'api.razorpay.com/v1/subscriptions' => Http::response(['id' => 'sub_X', 'short_url' => 'https://rzp.io/i/x', 'status' => 'created']),
+        ]);
+        $trialEnd = CarbonImmutable::parse($this->sub($this->tenant)->trial_ends_at);
+        $owner = $this->owner();
+        $this->actingAsUser($owner)->postJson('/api/v1/tenant/subscription/checkout', ['plan' => 'growth', 'cycle' => 'monthly'])->assertOk();
+        // Checkout open but not finished: that link would still charge on the old date, so the days wait.
+        $referred = $this->signUp($this->tenant->fresh()->referral_code);
+        $this->pay($referred);
+        $this->assertSame('pending', ReferralReward::where('tenant_id', $this->tenant->id)->sole()->status);
+
+        // Subscribing again replaces that checkout: the days go to the trial first, and the new start uses them.
+        $this->actingAsUser($this->owner())->postJson('/api/v1/tenant/subscription/checkout', ['plan' => 'growth', 'cycle' => 'monthly'])->assertOk();
+        $this->assertSame('applied', ReferralReward::where('tenant_id', $this->tenant->id)->sole()->status);
+        $newEnd = $trialEnd->addDays(30)->getTimestamp();
+        $this->assertEqualsWithDelta($newEnd, $this->sub($this->tenant)->trial_ends_at->getTimestamp(), 2);
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/subscriptions') && abs(($r['start_at'] ?? 0) - $newEnd) <= 2);
+    }
+
     public function test_owner_page_shows_names_and_progress_only_and_staff_cannot_see_it(): void
     {
         $code = $this->tenant->fresh()->referral_code;

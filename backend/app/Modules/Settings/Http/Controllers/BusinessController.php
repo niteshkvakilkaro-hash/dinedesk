@@ -65,6 +65,15 @@ class BusinessController extends Controller
         return $this->ok($this->payload(), 'Business details saved.');
     }
 
+    /** Dashboard "Get started" list: hidden for the whole business (every owner, every device). */
+    public function getStarted(Request $request): JsonResponse
+    {
+        $hidden = (bool) $request->validate(['hidden' => ['required', 'boolean']])['hidden'];
+        $this->settings->set('get_started_hidden', $hidden);
+
+        return $this->ok(['get_started_hidden' => $hidden]);
+    }
+
     private function payload(): array
     {
         $tenant = $this->context->require()->fresh();
@@ -77,6 +86,7 @@ class BusinessController extends Controller
             'timezone' => $tenant->timezone,
             'opening_hours' => $this->settings->get('opening_hours'),
             'holidays' => $this->settings->get('holidays', []),
+            'get_started_hidden' => (bool) $this->settings->get('get_started_hidden', false),
         ];
     }
 }

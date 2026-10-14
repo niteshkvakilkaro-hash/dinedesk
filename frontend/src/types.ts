@@ -19,7 +19,7 @@ export interface DayHours {
 export type OpeningHours = Record<DayKey, DayHours>;
 
 export interface Session {
-  user: { id: number; name: string; email: string | null; phone: string | null; locale: string; is_platform_admin: boolean };
+  user: { id: number; name: string; email: string | null; phone: string | null; phone_verified: boolean; has_password: boolean; locale: string; is_platform_admin: boolean };
   tenant: null | {
     id: string;
     name: string;

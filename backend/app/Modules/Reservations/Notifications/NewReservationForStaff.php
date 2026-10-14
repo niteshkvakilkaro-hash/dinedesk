@@ -2,6 +2,7 @@
 
 namespace App\Modules\Reservations\Notifications;
 
+use App\Modules\Notify\Support\StaffText;
 use App\Modules\Reservations\Models\Reservation;
 use Illuminate\Notifications\Notification;
 
@@ -18,8 +19,14 @@ class NewReservationForStaff extends Notification
     public function toWebPush(object $notifiable): array
     {
         $r = $this->reservation;
+        $t = StaffText::for($notifiable);
 
-        return ['title' => "Table booking · {$r->name}", 'body' => "{$r->party_size} guests · ".$r->date->format('j M')." at {$r->time} · #{$r->code}", 'url' => '/dashboard/reservations', 'tag' => "reservation-{$r->id}"];
+        return [
+            'title' => $t('reservation.title', ['name' => $r->name]),
+            'body' => $t('reservation.body', ['count' => $r->party_size, 'date' => $t->date($r->date->format('Y-m-d')), 'time' => $r->time, 'code' => $r->code]),
+            'url' => '/dashboard/reservations',
+            'tag' => "reservation-{$r->id}",
+        ];
     }
 
     public function toArray(object $notifiable): array

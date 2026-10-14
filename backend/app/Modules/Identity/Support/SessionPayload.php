@@ -37,6 +37,9 @@ final class SessionPayload
                 'email' => $user->email,
                 'phone' => $user->phone,
                 'locale' => $user->locale,
+                'phone_verified' => (bool) $user->phone_verified_at,
+                // Mobile sign-ups have none until they set one (My account).
+                'has_password' => (bool) $user->password,
                 'is_platform_admin' => $user->is_platform_admin,
             ],
             'tenant' => null,

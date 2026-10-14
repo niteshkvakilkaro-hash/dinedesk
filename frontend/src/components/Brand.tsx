@@ -24,8 +24,11 @@ export function Logo({ to = '/', light = false, compact = false }: { to?: string
   );
 }
 
-/** Language menu (each language in its own script). The choice is remembered on this device. */
-export function LanguageToggle({ light = false }: { light?: boolean }) {
+/**
+ * Language menu (each language in its own script). The choice is remembered on this device;
+ * onPick also saves it elsewhere (the dashboard saves it on the person's account).
+ */
+export function LanguageToggle({ light = false, onPick }: { light?: boolean; onPick?: (code: string) => void }) {
   const { i18n, t } = useTranslation();
   const current = languageCode(i18n.resolvedLanguage);
   return (
@@ -34,7 +37,7 @@ export function LanguageToggle({ light = false }: { light?: boolean }) {
       <span className="sr-only">{t('common.language')}</span>
       <select
         value={current}
-        onChange={(e) => void i18n.changeLanguage(e.target.value)}
+        onChange={(e) => (onPick ? onPick(e.target.value) : void i18n.changeLanguage(e.target.value))}
         className="min-h-8 cursor-pointer appearance-none bg-transparent pr-1 text-sm font-semibold outline-none"
         style={{ fontFamily: 'system-ui, sans-serif' }}
       >

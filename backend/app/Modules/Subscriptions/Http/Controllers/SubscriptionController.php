@@ -87,7 +87,9 @@ class SubscriptionController extends Controller
         ]);
         $sub = $this->subscriptions->verify($this->root(), $data['razorpay_payment_id'], $data['razorpay_subscription_id'], $data['razorpay_signature']);
 
-        return $this->ok($this->subscriptions->present($sub), 'Thank you! Your subscription is active.');
+        return $this->ok($this->subscriptions->present($sub), $sub->status === 'scheduled'
+            ? 'Thank you! Your plan starts when your trial ends; you won’t be charged until then.'
+            : 'Thank you! Your subscription is active.');
     }
 
     public function change(Request $request): JsonResponse
@@ -100,7 +102,9 @@ class SubscriptionController extends Controller
 
     public function cancel(): JsonResponse
     {
-        return $this->ok($this->subscriptions->present($this->subscriptions->cancel($this->root())), 'Your subscription will end with this billing period.');
+        $sub = $this->subscriptions->cancel($this->root());
+
+        return $this->ok($this->subscriptions->present($sub), $sub->status === 'trialing' ? 'Cancelled. You are on your free trial until it ends.' : 'Your subscription will end with this billing period.');
     }
 
     public function invoice(string $id): Response

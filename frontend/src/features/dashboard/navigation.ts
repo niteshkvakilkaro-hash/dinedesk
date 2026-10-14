@@ -1,7 +1,7 @@
 import {
   BedDouble, BellRing, Building2, CalendarClock, CalendarDays, CalendarRange, ChefHat, ClipboardList, Contact, CookingPot, CreditCard, Download, FileSpreadsheet, Gift, Globe, Globe2,
   Hotel, ImageIcon, Images, IndianRupee, Languages, LayoutDashboard, LineChart, Megaphone, MessageCircle, MessageSquareHeart, Network, Package, PartyPopper, Percent, Printer,
-  QrCode, ReceiptText, Repeat, Settings, Settings2, Smartphone, Sparkles, Star, Store, Tag, Timer, Truck, UserCheck, Users, UtensilsCrossed, Wallet, WifiOff, Workflow, Bike, MapPin, Bell,
+  QrCode, ReceiptText, Repeat, Settings, Settings2, Smartphone, Sparkles, Star, Store, Tag, Timer, Truck, UserCheck, UserRound, Users, UtensilsCrossed, Wallet, WifiOff, Workflow, Bike, MapPin, Bell,
 } from 'lucide-react';
 import type { Session } from '@/types';
 
@@ -44,6 +44,8 @@ export function accessFrom(session: Pick<Session, 'permissions' | 'features' | '
     branches: business && (has('multi_branch') || (session?.branches.length ?? 0) > 1),
     billing: can('billing.manage') || business,
     referral: can('billing.manage') && !session?.tenant?.is_branch,
+    // My account: everyone signed in (their own name, mobile, password, language).
+    account: true,
   };
 }
 
@@ -51,7 +53,7 @@ type AccessKey = keyof Access;
 type Icon = typeof LayoutDashboard;
 
 /** The pages that live under Settings (they keep their own URLs). */
-export const SETTINGS_PAGES = ['/dashboard/business', '/dashboard/ordering', '/dashboard/team', '/dashboard/rota', '/dashboard/branches', '/dashboard/domains', '/dashboard/billing'] as const;
+export const SETTINGS_PAGES = ['/dashboard/business', '/dashboard/ordering', '/dashboard/team', '/dashboard/rota', '/dashboard/branches', '/dashboard/domains', '/dashboard/billing', '/dashboard/account'] as const;
 const SETTINGS_GATES: AccessKey[] = ['business', 'team', 'rota', 'branches', 'billing'];
 
 export function isSettingsPath(pathname: string) {
@@ -197,6 +199,7 @@ export const DESTINATIONS: Destination[] = [
   page('gallery', '/dashboard/gallery', Images, 'website', (a) => a.website),
   // Settings
   page('settings', '/dashboard/settings', Settings, 'settings', (a) => SETTINGS_GATES.some((k) => a[k])),
+  page('account', '/dashboard/account', UserRound, 'settings', (a) => a.account),
   page('business', '/dashboard/business', Building2, 'settings', (a) => a.business),
   item('hours', '/dashboard/business?open=hours', Timer, 'settings', (a) => a.business),
   item('ordering', '/dashboard/ordering', Settings2, 'settings', (a) => a.business),
@@ -226,7 +229,8 @@ export function destinationsFor(access: Access) {
 }
 
 /** Cards on the Settings page, in sections. Each card reuses its search entry (title and description). */
-export const SETTINGS_SECTIONS: { key: 'business' | 'people' | 'tools'; ids: string[] }[] = [
+export const SETTINGS_SECTIONS: { key: 'account' | 'business' | 'people' | 'tools'; ids: string[] }[] = [
+  { key: 'account', ids: ['account'] },
   { key: 'business', ids: ['business', 'ordering', 'payments', 'billing', 'domains', 'branches', 'referral', 'dataExport'] },
   { key: 'people', ids: ['team', 'rota'] },
   { key: 'tools', ids: ['tableQr', 'printers', 'menuLanguages', 'dailySummary', 'calendarSync', 'alerts'] },

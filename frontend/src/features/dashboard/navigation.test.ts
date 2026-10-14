@@ -45,7 +45,10 @@ describe('Settings page and search use the same gates', () => {
   it('shows a manager with only rota rights just the shifts card', () => {
     const a = accessFrom(session(['staff.schedule']));
     expect(navGroups(a).some((g) => g.key === 'settings')).toBe(true);
-    expect(settingsSections(a)).toEqual([{ key: 'people', items: [expect.objectContaining({ id: 'rota' })] }]);
+    expect(settingsSections(a)).toEqual([
+      { key: 'account', items: [expect.objectContaining({ id: 'account' })] },
+      { key: 'people', items: [expect.objectContaining({ id: 'rota' })] },
+    ]);
   });
 
   it('gives an owner every settings card, and branches only with the plan or several outlets', () => {
@@ -67,6 +70,13 @@ describe('Settings page and search use the same gates', () => {
     expect(waiter).not.toContain('reports');
     expect(waiter).not.toContain('settings');
     expect(waiter).not.toContain('tableQr');
+  });
+
+  it('gives everyone My account, in search and on the Settings page', () => {
+    const kitchen = accessFrom(session(['kot.update'], ['kds']));
+    expect(destinationsFor(kitchen).find((d) => d.id === 'account')?.to).toBe('/dashboard/account');
+    expect(settingsSections(kitchen)[0]).toEqual({ key: 'account', items: [expect.objectContaining({ id: 'account' })] });
+    expect(isSettingsPath('/dashboard/account')).toBe(true);
   });
 
   it('sends kitchen staff to the kitchen screen for the printer', () => {

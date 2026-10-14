@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Check, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useFeature, useSession } from '@/hooks/useSession';
@@ -23,12 +23,35 @@ export interface Step {
   done: boolean;
 }
 
+/** Where hiding was remembered before it was saved for the business (one device only). */
 const hiddenKey = (tenantId: string) => `dd_get_started_hidden:${tenantId}`;
+
+function hiddenOnDevice(tenantId: string | undefined) {
+  try {
+    return !!tenantId && localStorage.getItem(hiddenKey(tenantId)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function rememberOnDevice(tenantId: string, hidden: boolean) {
+  try {
+    if (hidden) localStorage.setItem(hiddenKey(tenantId), '1');
+    else localStorage.removeItem(hiddenKey(tenantId));
+  } catch {
+    /* private mode */
+  }
+}
+
+interface BusinessPayload {
+  opening_hours: OpeningHours;
+  get_started_hidden: boolean;
+}
 
 /**
  * "Get started" for owners: a short list of what's left to set up, worked out from the
  * business's own data (dishes, hours, logo, ordering, payments, website, team). Shown until
- * everything is done or the owner hides it (remembered on this device, per business).
+ * everything is done or an owner hides it (saved for the business: every owner, every device).
  * A step whose data this person can't load is simply left out.
  */
 export function GetStarted({ access }: { access: Access }) {
@@ -36,22 +59,31 @@ export function GetStarted({ access }: { access: Access }) {
   const { data: session } = useSession();
   const tenant = session?.tenant;
   const owner = access.business && !!tenant && tenant.status !== 'onboarding' && !session?.support;
-  const [hidden, setHidden] = useState(() => {
-    try {
-      return !!tenant && localStorage.getItem(hiddenKey(tenant.id)) === '1';
-    } catch {
-      return false;
-    }
+  const qc = useQueryClient();
+  const [hiddenNow, setHiddenNow] = useState(false);
+  const onDevice = hiddenOnDevice(tenant?.id);
+  // Same query as the Business page (the cache is shared); it also says whether the list is hidden.
+  const business = useQuery({
+    queryKey: ['business'],
+    queryFn: async () => (await api.get<BusinessPayload>('/tenant/business')).data,
+    enabled: owner,
   });
-  const on = owner && !hidden;
+  const saveHidden = async (tenantId: string) => {
+    await api.put('/tenant/business/get-started', { hidden: true });
+    qc.setQueryData<BusinessPayload>(['business'], (b) => (b ? { ...b, get_started_hidden: true } : b));
+    rememberOnDevice(tenantId, false);
+  };
+  // Hidden on this device before it was saved for the business: save it there, once.
+  const migrate = owner && !!tenant && onDevice && business.data?.get_started_hidden === false;
+  useEffect(() => {
+    if (migrate && tenant) void saveHidden(tenant.id).catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [migrate, tenant?.id]);
+  const hidden = hiddenNow || onDevice || !!business.data?.get_started_hidden;
+  const on = owner && !!business.data && !hidden;
   const hasWebsite = useFeature('website');
 
   const menu = useAdminMenu(on && access.menu);
-  const business = useQuery({
-    queryKey: ['business'],
-    queryFn: async () => (await api.get<{ opening_hours: OpeningHours }>('/tenant/business')).data,
-    enabled: on,
-  });
   const website = useWebsite(on && access.website && hasWebsite);
   const ordering = useQuery({ queryKey: ['ordering'], queryFn: async () => (await api.get<OrderingPayload>('/tenant/ordering')).data, enabled: on });
   const tables = useTables(on && access.tablesSetup);
@@ -83,12 +115,9 @@ export function GetStarted({ access }: { access: Access }) {
   if (done === steps.length) return null;
 
   const hide = () => {
-    try {
-      localStorage.setItem(hiddenKey(tenant.id), '1');
-    } catch {
-      /* private mode: hidden for this visit only */
-    }
-    setHidden(true);
+    setHiddenNow(true);
+    // Not saved (offline...): remembered on this device and saved on a later visit.
+    void saveHidden(tenant.id).catch(() => rememberOnDevice(tenant.id, true));
   };
   const pct = Math.round((done / steps.length) * 100);
 

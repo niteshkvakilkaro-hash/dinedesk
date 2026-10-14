@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Mail, MessageCircle, Send } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { intlLocale } from '@/i18n/locale';
+import { useSession } from '@/hooks/useSession';
 import { Dialog, ErrorState, SkeletonRows, Spinner, toast, Toggle } from '@/components/ui';
 
 interface Settings { enabled: boolean; whatsapp: boolean; email: boolean; hour: number }
@@ -22,6 +24,8 @@ const KEY = ['daily-summary'];
 export function DailySummaryDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
+  // The summary goes to the owner: they add their mobile number in My account.
+  const isOwner = useSession().data?.role === 'owner';
   const query = useQuery({ queryKey: KEY, queryFn: async () => (await api.get<Payload>('/tenant/reports/daily-summary')).data, enabled: open });
   const [s, setS] = useState<Settings | null>(null);
   useEffect(() => {
@@ -63,7 +67,12 @@ export function DailySummaryDialog({ open, onClose }: { open: boolean; onClose: 
                 <input type="checkbox" className="mt-1 h-4 w-4 accent-current" checked={s.whatsapp} onChange={(e) => setS({ ...s, whatsapp: e.target.checked })} />
                 <span className="min-w-0">
                   <span className="flex items-center gap-1.5 font-semibold"><MessageCircle className="h-4 w-4" aria-hidden="true" /> WhatsApp</span>
-                  <span className="block break-words text-xs text-muted">{d.owner?.phone ?? t('reports.daily.noPhone')}</span>
+                  <span className="block break-words text-xs text-muted">
+                    {d.owner?.phone ?? t('reports.daily.noPhone')}
+                    {!d.owner?.phone && isOwner && (
+                      <> <Link to="/dashboard/account?open=mobile" className="font-semibold text-ink underline">{t('reports.daily.addPhone')}</Link></>
+                    )}
+                  </span>
                 </span>
               </label>
               <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3 ${s.email ? 'border-ink' : 'border-line'}`}>

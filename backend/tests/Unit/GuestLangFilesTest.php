@@ -8,7 +8,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Every language's message files match English key for key and placeholder for placeholder:
- * lang/<code>/guest.php (messages to guests) and lang/<code>/owner.php (the owner's daily summary).
+ * lang/<code>/guest.php (messages to guests), lang/<code>/owner.php (the owner's daily summary)
+ * and lang/<code>/staff.php (push alerts to staff).
  */
 class GuestLangFilesTest extends TestCase
 {
@@ -16,7 +17,7 @@ class GuestLangFilesTest extends TestCase
 
     public static function files(): array
     {
-        return ['guest messages' => ['guest'], 'owner summary' => ['owner']];
+        return ['guest messages' => ['guest'], 'owner summary' => ['owner'], 'staff alerts' => ['staff']];
     }
 
     #[DataProvider('files')]

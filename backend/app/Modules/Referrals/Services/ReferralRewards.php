@@ -27,6 +27,9 @@ use Illuminate\Support\Facades\DB;
  * so there the reward stays pending: it is added on its own as soon as the business is in
  * one of the states above, or the super admin applies it by hand (e.g. as a refund or a
  * Razorpay offer) and marks it applied. Nothing is ever shown as added before it is.
+ * The same goes for a plan paid for during the trial (scheduled to start when the trial
+ * ends): its first charge is fixed on Razorpay, so moving the trial end would not move it.
+ * Cancelling that plan (back to the plain trial) adds the waiting days to the trial.
  */
 class ReferralRewards
 {
@@ -229,6 +232,9 @@ class ReferralRewards
     private function target(Subscription $s): ?string
     {
         return match (true) {
+            // Paying during the trial: Razorpay charges on the start date fixed at checkout
+            // (the trial end then). Moving the trial end would not move that charge, so wait.
+            $s->status === 'scheduled', $s->status === 'pending' && $s->starts_at?->isFuture() => null,
             in_array($s->status, ['trialing', 'pending'], true) => 'trial',
             $s->status === 'past_due' && ! $s->provider_subscription_id => 'trial',
             $s->status === 'cancelled', $s->status === 'active' && $s->cancel_at_period_end => 'period',

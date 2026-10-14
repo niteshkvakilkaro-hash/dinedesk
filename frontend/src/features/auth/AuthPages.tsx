@@ -1,16 +1,17 @@
-import { forwardRef, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Eye, EyeOff, Gift, Mail, Smartphone } from 'lucide-react';
+import { Gift, Mail, Smartphone } from 'lucide-react';
 import { api, ApiError, applyServerErrors } from '@/lib/api';
 import { formatPhone, isIndianMobile } from '@/lib/format';
 import { clearReferral, normalizeReferral, storedReferral } from '@/lib/referral';
 import { useSignIn } from '@/hooks/useSession';
 import { Alert, Field, Spinner } from '@/components/ui';
+import { PasswordInput } from '@/components/PasswordInput';
 import { LanguageToggle, Logo } from '@/components/Brand';
 import type { AuthResult } from '@/types';
 
@@ -191,19 +192,6 @@ function OtpFlow() {
 
 // ---------- Email ----------
 
-// forwardRef: react-hook-form's register() attaches a ref to read the value.
-const PasswordInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(function PasswordInput(props, ref) {
-  const { t } = useTranslation();
-  const [show, setShow] = useState(false);
-  return (
-    <div className="relative">
-      <input {...props} ref={ref} type={show ? 'text' : 'password'} className="field-input pr-12" />
-      <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:bg-ink/5" aria-label={show ? t('auth.hidePassword') : t('auth.showPassword')}>
-        {show ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
-      </button>
-    </div>
-  );
-});
 
 function EmailSignup() {
   const { t } = useTranslation();

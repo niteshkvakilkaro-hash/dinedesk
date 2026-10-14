@@ -8,4 +8,5 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api', 'tenant.can:bu
     ->group(function () {
         Route::get('/', [BusinessController::class, 'show']);
         Route::put('/', [BusinessController::class, 'update']);
+        Route::put('get-started', [BusinessController::class, 'getStarted']);
     });

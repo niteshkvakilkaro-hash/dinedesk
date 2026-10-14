@@ -18,6 +18,8 @@ class SubscriptionTest extends SaasTestCase
             'api.razorpay.com/v1/plans' => Http::response(['id' => 'plan_G_M', 'period' => 'monthly']),
             'api.razorpay.com/v1/subscriptions' => Http::response(['id' => 'sub_1', 'short_url' => 'https://rzp.io/i/x', 'status' => 'created']),
         ]);
+        // The trial is over (paying during a trial: see test_paying_during_the_trial_starts_the_plan_when_the_trial_ends).
+        Subscription::withoutTenancy()->where('tenant_id', $this->tenant->id)->update(['trial_ends_at' => now()->subDay()]);
         $owner = $this->owner();
         // A manager can't touch billing.
         $this->actingAsUser($this->staff($this->tenant, 'manager'))->getJson('/api/v1/tenant/subscription')->assertForbidden();
@@ -30,7 +32,8 @@ class SubscriptionTest extends SaasTestCase
         $this->actingAsUser($owner)->postJson('/api/v1/tenant/subscription/checkout', ['plan' => 'growth', 'cycle' => 'monthly'])
             ->assertOk()->assertJsonPath('data.subscription_id', 'sub_1')->assertJsonPath('data.amount', 235882)->assertJsonPath('data.key_id', 'rzp_test_PLATFORM');
         Http::assertSent(fn ($r) => str_ends_with($r->url(), '/plans') && $r['item']['amount'] === 235882);
-        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/subscriptions') && $r['plan_id'] === 'plan_G_M');
+        // No trial left: charged now, no start date.
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/subscriptions') && $r['plan_id'] === 'plan_G_M' && ! isset($r['start_at']));
 
         $this->actingAsUser($owner)->postJson('/api/v1/tenant/subscription/verify', ['razorpay_payment_id' => 'pay_1', 'razorpay_subscription_id' => 'sub_1', 'razorpay_signature' => 'forged'])
             ->assertStatus(422)->assertJsonPath('meta.code', 'payment_unverified');
@@ -128,5 +131,78 @@ class SubscriptionTest extends SaasTestCase
         $this->actingAsUser($this->admin)->putJson('/api/v1/platform/settings', ['seller' => ['gstin' => null, 'invoice_prefix' => 'DD'], 'billing' => ['grace_days' => 7, 'gst_rate' => 18, 'sac' => '998315']])->assertOk();
         $this->actingAsUser($this->owner())->getJson('/api/v1/tenant/subscription')->assertJsonPath('data.gst_rate', 0);
         $this->assertNull(Tenant::find($this->tenant->id)->parent_tenant_id);
+    }
+
+    public function test_paying_during_the_trial_starts_the_plan_when_the_trial_ends(): void
+    {
+        Http::fake([
+            'api.razorpay.com/v1/plans' => Http::response(['id' => 'plan_PRO_M']),
+            'api.razorpay.com/v1/subscriptions' => Http::sequence()->push(['id' => 'sub_T1', 'short_url' => 'https://rzp.io/i/t1', 'status' => 'created'])
+                ->push(['id' => 'sub_T2', 'short_url' => 'https://rzp.io/i/t2', 'status' => 'created']),
+        ]);
+        $trialEnd = Subscription::withoutTenancy()->where('tenant_id', $this->tenant->id)->sole()->trial_ends_at->toImmutable();
+        $this->assertTrue($trialEnd->gt(now()->addDays(10)));
+        $owner = $this->owner();
+
+        // Razorpay's first charge is at the end of the trial.
+        $this->actingAsUser($owner)->postJson('/api/v1/tenant/subscription/checkout', ['plan' => 'pro', 'cycle' => 'monthly'])->assertOk()->assertJsonPath('data.subscription_id', 'sub_T1');
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/subscriptions') && $r['start_at'] === $trialEnd->getTimestamp());
+
+        // Authorised in Checkout: scheduled, still on the trial (plan and features unchanged).
+        $this->actingAsUser($owner)->postJson('/api/v1/tenant/subscription/verify', ['razorpay_payment_id' => 'pay_auth', 'razorpay_subscription_id' => 'sub_T1', 'razorpay_signature' => hash_hmac('sha256', 'pay_auth|sub_T1', 'plat_secret')])
+            ->assertOk()->assertJsonPath('data.status', 'scheduled')->assertJsonPath('data.paid', false)->assertJsonPath('data.plan.code', 'pro')
+            ->assertJsonPath('data.starts_at', $trialEnd->toIso8601String())->assertJsonPath('data.trial_ends_at', $trialEnd->toIso8601String());
+        $this->assertSame('growth', $this->tenant->fresh()->plan->code);
+        $this->actingAsUser($this->owner())->getJson('/api/v1/auth/me')->assertJsonPath('data.tenant.subscription.status', 'scheduled')->assertJsonPath('data.features.hotel', false);
+        $this->actingAsUser($owner)->postJson('/api/v1/tenant/subscription/checkout', ['plan' => 'growth', 'cycle' => 'monthly'])->assertStatus(422)->assertJsonPath('meta.code', 'already_scheduled');
+        $this->artisan('subscriptions:enforce')->assertSuccessful();
+        $this->assertSame('scheduled', Subscription::withoutTenancy()->where('provider_subscription_id', 'sub_T1')->value('status'));
+
+        // The trial ends and Razorpay charges: now on the paid plan.
+        $this->travelTo($trialEnd->addMinutes(5));
+        $period = $this->subEntity('sub_T1', 'plan_PRO_M', $trialEnd->getTimestamp(), $trialEnd->addMonth()->getTimestamp());
+        $this->webhook('subscription.activated', $period)->assertOk();
+        $this->webhook('subscription.charged', $period + ['payment' => ['entity' => ['id' => 'pay_T1', 'amount' => 471882]]])->assertOk();
+        $s = Subscription::withoutTenancy()->where('provider_subscription_id', 'sub_T1')->sole();
+        $this->assertSame(['active', 'pro'], [$s->status, $this->tenant->fresh()->plan->code]);
+        $this->assertSame($trialEnd->addMonth()->getTimestamp(), $s->current_period_ends_at->getTimestamp());
+        $this->assertSame(1, PlatformInvoice::withoutTenancy()->count());
+        $this->assertSame(['expired', 'active'], Subscription::withoutTenancy()->where('tenant_id', $this->tenant->id)->orderBy('id')->pluck('status')->all());
+    }
+
+    public function test_a_plan_scheduled_by_webhook_can_be_cancelled_back_to_the_trial(): void
+    {
+        Http::fake([
+            'api.razorpay.com/v1/plans' => Http::response(['id' => 'plan_PRO_Y']),
+            'api.razorpay.com/v1/subscriptions' => Http::response(['id' => 'sub_W', 'short_url' => 'https://rzp.io/i/w', 'status' => 'created']),
+            'api.razorpay.com/v1/subscriptions/sub_W/cancel' => Http::response(['id' => 'sub_W', 'status' => 'cancelled']),
+        ]);
+        $owner = $this->owner();
+        $this->actingAsUser($owner)->postJson('/api/v1/tenant/subscription/checkout', ['plan' => 'pro', 'cycle' => 'yearly'])->assertOk();
+        // Checkout was closed before it reported back: Razorpay's webhook says it was authorised.
+        $this->webhook('subscription.authenticated', ['subscription' => ['entity' => ['id' => 'sub_W', 'plan_id' => 'plan_PRO_Y', 'status' => 'authenticated']]])->assertOk();
+        $this->actingAsUser($owner)->getJson('/api/v1/tenant/subscription')->assertJsonPath('data.subscription.status', 'scheduled');
+
+        // Cancelled before it started: nothing charged, back on the plain trial.
+        $this->actingAsUser($owner)->postJson('/api/v1/tenant/subscription/cancel')->assertOk()
+            ->assertJsonPath('data.status', 'trialing')->assertJsonPath('data.plan.code', 'growth')->assertJsonPath('data.starts_at', null);
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/sub_W/cancel') && $r['cancel_at_cycle_end'] === 0);
+        $this->assertTrue(AuditLog::where('action', 'billing.scheduled_cancelled')->exists());
+        // A late webhook for the cancelled one changes nothing.
+        $this->webhook('subscription.cancelled', ['subscription' => ['entity' => ['id' => 'sub_W']]])->assertOk();
+        $this->assertSame('trialing', Subscription::withoutTenancy()->where('tenant_id', $this->tenant->id)->latest('id')->value('status'));
+    }
+
+    public function test_a_trial_with_less_than_an_hour_left_is_charged_at_once(): void
+    {
+        Http::fake([
+            'api.razorpay.com/v1/plans' => Http::response(['id' => 'plan_G_M']),
+            'api.razorpay.com/v1/subscriptions' => Http::response(['id' => 'sub_N', 'short_url' => 'https://rzp.io/i/n', 'status' => 'created']),
+        ]);
+        Subscription::withoutTenancy()->where('tenant_id', $this->tenant->id)->update(['trial_ends_at' => now()->addMinutes(30)]);
+        $this->actingAsUser($this->owner())->postJson('/api/v1/tenant/subscription/checkout', ['plan' => 'growth', 'cycle' => 'monthly'])->assertOk();
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/subscriptions') && ! isset($r['start_at']));
+        $this->actingAsUser($this->owner())->postJson('/api/v1/tenant/subscription/verify', ['razorpay_payment_id' => 'pay_N', 'razorpay_subscription_id' => 'sub_N', 'razorpay_signature' => hash_hmac('sha256', 'pay_N|sub_N', 'plat_secret')])
+            ->assertOk()->assertJsonPath('data.status', 'active');
     }
 }

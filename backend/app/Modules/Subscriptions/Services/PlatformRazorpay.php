@@ -39,16 +39,22 @@ class PlatformRazorpay
         return (string) $r->json('id');
     }
 
-    /** @return array{id: string, short_url: ?string, status: string} */
-    public function createSubscription(string $planId, string $cycle, array $notes): array
+    /**
+     * With $startAt (unix time) the owner authorises now and the first charge happens then
+     * (Razorpay start_at): used to keep the rest of a free trial.
+     *
+     * @return array{id: string, short_url: ?string, status: string}
+     */
+    public function createSubscription(string $planId, string $cycle, array $notes, ?int $startAt = null): array
     {
-        $r = $this->call('post', '/subscriptions', [
+        $r = $this->call('post', '/subscriptions', array_filter([
             'plan_id' => $planId,
             // Billed until cancelled: 10 years of cycles.
             'total_count' => $cycle === 'yearly' ? 10 : 120,
             'customer_notify' => 1,
             'notes' => $notes,
-        ]);
+            'start_at' => $startAt,
+        ], fn ($v) => $v !== null));
 
         return ['id' => (string) $r->json('id'), 'short_url' => $r->json('short_url'), 'status' => (string) $r->json('status')];
     }
