@@ -10,6 +10,7 @@ use App\Modules\Identity\Support\Roles;
 use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Support\ApiException;
+use App\Support\Locale;
 use App\Support\Phone;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -70,13 +71,16 @@ class StaffController extends Controller
 
         $this->features->assertWithinLimit($tenant, 'staff_accounts', $this->staffCount());
 
-        $user = DB::transaction(function () use ($data, $tenant) {
+        // New staff start in the language the owner is using; they can change it in My account.
+        $locale = Locale::guest($request->header('X-Locale'));
+        $user = DB::transaction(function () use ($data, $tenant, $locale) {
             $user = User::create([
                 'tenant_id' => $tenant->id,
                 'name' => strip_tags($data['name']),
                 'email' => isset($data['email']) ? strtolower($data['email']) : null,
                 'phone' => $data['phone'] ?? null,
                 'password' => $data['password'] ?? null,
+                'locale' => $locale,
             ]);
             $user->assignRole($data['role']);
             AuditLog::record('staff.created', $user, ['role' => $data['role']]);

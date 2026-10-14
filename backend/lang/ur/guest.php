@@ -33,6 +33,16 @@ return [
         'button' => 'بکنگ دیکھیں',
     ],
 
+    'tiffin' => [
+        'confirmed' => ':business: آپ کا ٹفن پلان :plan کنفرم ہو گیا ہے (سبسکرپشن :code)۔ کھانا :from سے :until تک ملے گا۔',
+        'declined' => 'معذرت، :business آپ کا ٹفن پلان :plan شروع نہیں کر سکتا (درخواست :code)۔ کوئی سوال ہو تو ہمیں کال کریں۔',
+        'paused' => ':business: آپ کی ٹفن سبسکرپشن :code روک دی گئی ہے۔ دوبارہ شروع ہونے تک کھانا نہیں آئے گا۔',
+        'resumed' => ':business: آپ کی ٹفن سبسکرپشن :code دوبارہ شروع ہو گئی ہے۔ اب یہ :until تک چلے گی۔',
+        'cancelled' => ':business کے ساتھ آپ کی ٹفن سبسکرپشن :code منسوخ کر دی گئی ہے۔',
+        'default_plan' => 'ٹفن',
+        'subject' => ':business — ٹفن :code',
+    ],
+
     'reason' => 'وجہ: :reason',
 
     'mail' => [

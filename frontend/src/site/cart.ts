@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import type { MenuItem, OrderType } from './types';
-import type { Translations } from './localize';
+import { localize, type Translations } from './localize';
+
+/** A size or add-on's name in every language, kept on the cart line so the cart can show it in the guest's language. */
+export interface CartChoice {
+  name: string;
+  name_hi: string | null;
+  translations?: Translations;
+}
 
 /**
  * The visitor's cart for this restaurant, remembered on this device.
@@ -18,8 +25,12 @@ export interface CartLine {
   name: string;
   name_hi: string | null;
   translations?: Translations;
+  /** English (what the business sees, e.g. in a WhatsApp order). */
   variant_name: string | null;
   addon_names: string[];
+  /** The same size and add-ons in every language (lines saved before these existed have only the English names). */
+  variant?: CartChoice | null;
+  addons?: CartChoice[];
   unit_price: number;
   food_type: MenuItem['food_type'];
   image: string | null;
@@ -96,6 +107,16 @@ export const useCart = create<CartState>((set, get) => ({
 
 export const cartCount = (lines: CartLine[]) => lines.reduce((n, l) => n + l.quantity, 0);
 export const cartEstimate = (lines: CartLine[]) => lines.reduce((n, l) => n + l.unit_price * l.quantity, 0);
+
+/** The parts of a menu size or add-on a cart line keeps. */
+export const cartChoice = (c: CartChoice): CartChoice => ({ name: c.name, name_hi: c.name_hi, translations: c.translations });
+
+/** A line's size and add-on names in the guest's language (English when there is no translation). */
+export function lineExtras(line: Pick<CartLine, 'variant_name' | 'addon_names' | 'variant' | 'addons'>, lang?: string | null): string[] {
+  const variant = line.variant ? localize(line.variant, 'name', lang) : line.variant_name;
+  const addons = line.addons && line.addons.length === line.addon_names.length ? line.addons.map((a) => localize(a, 'name', lang) ?? a.name) : line.addon_names;
+  return [variant, ...addons].filter((x): x is string => !!x);
+}
 
 /** Lines in the shape the API expects. */
 export const apiLines = (lines: CartLine[]) =>

@@ -16,6 +16,8 @@ return [
         'bookings' => 'ടേബിൾ ബുക്കിംഗുകൾ: :count · അതിഥികൾ: :guests',
         'hotel' => 'മുറികൾ: :occupancy% നിറഞ്ഞു · ഇന്ന് ചെക്ക്-ഇൻ: :checkins',
         'low_stock' => 'സ്റ്റോക്ക് കുറവ് (:count): :names',
+        'tiffin' => 'ടിഫിൻ: :active സജീവം · ഇന്നത്തെ ഭക്ഷണം: :lunch ഉച്ച, :dinner രാത്രി',
+        'tiffin_requests' => 'പുതിയ ടിഫിൻ അഭ്യർത്ഥനകൾ: :count',
         'link' => 'പൂർണ്ണ റിപ്പോർട്ട്: :url',
     ],
     // Refer a business: a business that signed up with the owner's link started paying.

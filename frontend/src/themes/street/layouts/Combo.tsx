@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { Check } from 'lucide-react';
-import { useCart } from '@/site/cart';
+import { cartChoice, useCart } from '@/site/cart';
 import { useLocalized, useSite, useSiteMenu } from '@/site/data';
 import { useMoney } from '@/site/ordering';
 import { FoodTypeMark } from '@/site/components/bits';
@@ -40,6 +40,7 @@ export function ComboBuilder() {
       add({
         item_id: i.id, variant_id: variant?.id ?? null, addon_ids: [], quantity: 1, notes: '',
         name: i.name, name_hi: i.name_hi, translations: i.translations, variant_name: variant?.name ?? null, addon_names: [], unit_price: priceOf(i), food_type: i.food_type, image: i.image?.src ?? null,
+        variant: variant ? cartChoice(variant) : null, addons: [],
       });
     }
     chilliConfetti({ x: e.clientX, y: e.clientY });

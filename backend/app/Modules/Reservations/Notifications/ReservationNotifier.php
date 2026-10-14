@@ -6,7 +6,7 @@ use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Reservations\Models\Reservation;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Modules\Website\Services\SitePresenter;
-use Carbon\CarbonImmutable;
+use App\Support\LocalDate;
 use Illuminate\Notifications\AnonymousNotifiable;
 
 /** Guest messages about bookings, on the channels the business chose (Ordering → notifications). */
@@ -47,10 +47,10 @@ class ReservationNotifier
         $route->notify(new ReservationMessage($booking, $kind, $tenant->name, self::manageUrl($this->presenter->primaryHost($tenant), $r), $channels));
     }
 
-    /** "Sat 14 Nov, 7:30 PM" in the business's timezone. */
+    /** "Sat 14 Nov, 7:30 PM" in the business's timezone and the guest's language. */
     public static function when(Reservation $r, string $timezone): string
     {
-        return CarbonImmutable::parse($r->starts_at)->setTimezone($timezone)->format('D j M, g:i A');
+        return LocalDate::format($r->starts_at, 'ddd D MMM, h:mm A', $r->locale, $timezone);
     }
 
     public static function manageUrl(string $host, Reservation $r): string

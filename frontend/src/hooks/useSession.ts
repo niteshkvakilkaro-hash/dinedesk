@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api';
 import { isSupportTab, useAuthStore } from '@/stores/auth';
 import type { AuthResult, Session } from '@/types';
+import { adoptAccountLanguage } from './accountLanguage';
 
 /** The last session, so the POS still opens with no internet (the token is already on the device). */
 const SESSION_KEY = 'dd_session';
@@ -42,6 +43,7 @@ export function useSession() {
       try {
         const session = (await api.get<Session>('/auth/me')).data;
         keepSession(token!, session);
+        adoptAccountLanguage(session, false);
         return session;
       } catch (e) {
         // No connection (not a rejected sign-in): carry on with the last session.
@@ -61,6 +63,8 @@ export function useSignIn() {
   return (result: AuthResult) => {
     setToken(result.token);
     qc.setQueryData(['session', result.token], result.session);
+    // The dashboard in the language saved on the account.
+    adoptAccountLanguage(result.session, true);
   };
 }
 

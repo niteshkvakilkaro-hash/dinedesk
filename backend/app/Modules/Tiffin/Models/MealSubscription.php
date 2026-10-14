@@ -15,7 +15,7 @@ class MealSubscription extends Model
 
     protected $fillable = [
         'tenant_id', 'number', 'meal_plan_id', 'customer_id', 'name', 'phone', 'address', 'slot', 'status',
-        'starts_on', 'ends_on', 'paused_on', 'meals_total', 'meals_used', 'amount_paid', 'notes', 'source',
+        'starts_on', 'ends_on', 'paused_on', 'meals_total', 'meals_used', 'amount_paid', 'notes', 'source', 'locale',
     ];
 
     protected function casts(): array

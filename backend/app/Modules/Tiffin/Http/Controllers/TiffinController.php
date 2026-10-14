@@ -118,10 +118,7 @@ class TiffinController extends Controller
 
     public function cancel(int $id): JsonResponse
     {
-        $sub = MealSubscription::with('plan')->findOrFail($id);
-        if (in_array($sub->status, MealSubscription::OPEN, true)) {
-            $sub->update(['status' => 'cancelled']);
-        }
+        $sub = $this->tiffin->cancel(MealSubscription::with('plan')->findOrFail($id));
 
         return $this->ok($this->tiffin->present($sub), 'Cancelled.');
     }

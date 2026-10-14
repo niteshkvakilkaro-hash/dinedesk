@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Modules\Tiffin\Models\MealPlan;
 use App\Modules\Tiffin\Services\Tiffin;
+use App\Support\Locale;
 use App\Support\Phone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ class PublicTiffinController extends Controller
             'starts_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$today->format('Y-m-d'), 'before_or_equal:'.$today->addDays(30)->format('Y-m-d')],
             'notes' => ['nullable', 'string', 'max:300'],
         ], ['phone.regex' => Phone::MESSAGE]);
-        $sub = $this->tiffin->request($tenant, MealPlan::findOrFail($d['meal_plan_id']), $d);
+        $sub = $this->tiffin->request($tenant, MealPlan::findOrFail($d['meal_plan_id']), $d + ['locale' => Locale::guest($request->header('X-Locale'))]);
 
         return $this->created(['code' => $sub->code(), 'plan' => $sub->plan?->name, 'starts_on' => $sub->starts_on->format('Y-m-d')], 'Request received. We will call you to confirm.');
     }

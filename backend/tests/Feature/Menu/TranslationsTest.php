@@ -48,7 +48,10 @@ class TranslationsTest extends TestCase
             Room::create(['room_type_id' => $room->id, 'number' => '101', 'qr_token' => Str::random(32)]);
             $banner = Banner::create(['placement' => 'offer', 'title' => 'Diwali offer', 'text' => '10% off', 'is_active' => true]);
             $content = app(SiteContent::class);
-            $content->save(['tagline' => 'Royal food since 1990', 'about' => null] + SiteContent::empty());
+            $content->save(['tagline' => 'Royal food since 1990', 'about' => null, 'milestones' => [
+                ['year' => '1990', 'title' => 'First kitchen', 'text' => 'A small dhaba'],
+                ['year' => '2010', 'title' => 'New hall'],
+            ]] + SiteContent::empty());
             $this->ids = ['starters' => $starters->id, 'mains' => $mains->id, 'tikka' => $tikka->id, 'dal' => $dal->id, 'half' => $half->id, 'group' => $group->id, 'butter' => $butter->id, 'room' => $room->id, 'banner' => $banner->id];
         });
     }
@@ -98,7 +101,11 @@ class TranslationsTest extends TestCase
             $this->key('banner', 'banner', 'title'),
             $this->key('banner', 'banner', 'text'),
             'site:0:tagline', // about is empty
+            'milestone:0:title',
+            'milestone:0:text',
+            'milestone:1:title', // no text
         ], array_column($entries, 'key'));
+        $this->assertSame(['1990', 'First kitchen', 80], [$entries[13]['label'], $entries[13]['source'], $entries[13]['max']]);
 
         $tikka = $entries[1];
         $this->assertSame(['menu', 'Starters', 'Paneer Tikka', 'பனீர் டிக்கா', 'पनीर टिक्का', 150], [$tikka['group'], $tikka['label'], $tikka['source'], $tikka['value'], $tikka['hi'], $tikka['max']]);
@@ -155,6 +162,51 @@ class TranslationsTest extends TestCase
         // Clearing the tagline removes it.
         $this->putJson('/api/v1/tenant/translations', ['lang' => 'ta', 'values' => ['site:0:tagline' => '']])->assertOk();
         $this->assertSame([], $this->getJson('/api/v1/site', $host)->json('data.content.translations'));
+    }
+
+    public function test_milestones_and_search_description_follow_their_texts(): void
+    {
+        $this->actingAsUser($this->ownerOf($this->tenant));
+        $form = fn () => $this->getJson('/api/v1/tenant/website')->assertOk()->json('data.content');
+        $base = $form();
+        $this->putJson('/api/v1/tenant/website/content', ['seo' => ['description' => 'Royal thalis in Jaipur', 'description_hi' => null]] + $base)->assertOk();
+
+        $entries = $this->getJson('/api/v1/tenant/translations?lang=ta')->assertOk()->json('data.entries');
+        $this->assertSame(['site:0:tagline', 'milestone:0:title', 'milestone:0:text', 'milestone:1:title', 'seo:0:description'], array_values(array_slice(array_column($entries, 'key'), -5)));
+        $this->assertSame([160, 'website'], [end($entries)['max'], end($entries)['group']]);
+
+        $this->putJson('/api/v1/tenant/translations', ['lang' => 'ta', 'values' => [
+            'milestone:0:title' => 'முதல் சமையலறை',
+            'milestone:1:title' => 'புதிய அரங்கம்',
+            'seo:0:description' => 'ஜெய்ப்பூரில் அரச தாலி',
+        ]])->assertOk();
+        $this->putJson('/api/v1/tenant/translations', ['lang' => 'bn', 'values' => ['milestone:1:title' => 'নতুন হল']])->assertOk();
+
+        // The owner removes the first milestone and saves the form as loaded: the second keeps its texts.
+        $content = $form();
+        $this->assertSame(['ta' => ['title' => 'புதிய அரங்கம்'], 'bn' => ['title' => 'নতুন হল']], $content['milestones'][1]['translations']);
+        $content['milestones'] = [$content['milestones'][1], ['year' => '2020', 'title' => 'Rooftop']];
+        $this->putJson('/api/v1/tenant/website/content', $content)->assertOk();
+
+        $host = ['X-Tenant-Host' => $this->host($this->tenant)];
+        $site = $this->getJson('/api/v1/site', $host)->assertOk();
+        $site->assertJsonPath('data.content.milestones.0.title', 'New hall')
+            ->assertJsonPath('data.content.milestones.0.translations.ta.title', 'புதிய அரங்கம்')
+            ->assertJsonPath('data.content.milestones.0.translations.bn.title', 'নতুন হল')
+            ->assertJsonPath('data.content.seo.translations.ta.description', 'ஜெய்ப்பூரில் அரச தாலி')
+            ->assertJsonPath('data.seo.description', 'Royal thalis in Jaipur')
+            ->assertJsonPath('data.seo.translations.ta.description', 'ஜெய்ப்பூரில் அரச தாலி');
+        $this->assertSame([], $site->json('data.content.milestones.1.translations'));
+        $this->assertSame('milestone:0:title', $this->getJson('/api/v1/tenant/translations?lang=ta')->json('data.entries.13.key'));
+        $this->assertSame('புதிய அரங்கம்', $this->getJson('/api/v1/tenant/translations?lang=ta')->json('data.entries.13.value'));
+
+        // Without its own description the site describes itself with the tagline, in each language too.
+        $this->putJson('/api/v1/tenant/translations', ['lang' => 'ta', 'values' => ['site:0:tagline' => 'அரச உணவு']])->assertOk();
+        $content = $form();
+        $content['seo']['description'] = null;
+        $this->putJson('/api/v1/tenant/website/content', $content)->assertOk();
+        $this->getJson('/api/v1/site', $host)->assertJsonPath('data.seo.description', 'Royal food since 1990')
+            ->assertJsonPath('data.seo.translations.ta.description', 'அரச உணவு');
     }
 
     public function test_keys_must_be_this_business_and_within_length(): void

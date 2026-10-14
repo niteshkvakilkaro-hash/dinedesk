@@ -16,6 +16,8 @@ return [
         'bookings' => 'टेबल बुकिंग: :count · मेहमान: :guests',
         'hotel' => 'कमरे: :occupancy% भरे · आज चेक-इन: :checkins',
         'low_stock' => 'कम स्टॉक (:count): :names',
+        'tiffin' => 'टिफ़िन: :active चालू · आज का खाना: :lunch लंच, :dinner डिनर',
+        'tiffin_requests' => 'नए टिफ़िन अनुरोध: :count',
         'link' => 'पूरी रिपोर्ट: :url',
     ],
     // Refer a business: a business that signed up with the owner's link started paying.

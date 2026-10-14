@@ -2103,7 +2103,10 @@
         "banner_title": "ಆಫರ್ ಶೀರ್ಷಿಕೆ",
         "banner_text": "ಆಫರ್ ಪಠ್ಯ",
         "site_tagline": "ಟ್ಯಾಗ್‌ಲೈನ್",
-        "site_about": "ನಮ್ಮ ಬಗ್ಗೆ"
+        "site_about": "ನಮ್ಮ ಬಗ್ಗೆ",
+        "milestone_title": "ಮೈಲಿಗಲ್ಲು",
+        "milestone_text": "ಮೈಲಿಗಲ್ಲಿನ ವಿವರ",
+        "seo_description": "ಸರ್ಚ್ ವಿವರಣೆ"
       }
     }
   },

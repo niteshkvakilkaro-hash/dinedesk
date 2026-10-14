@@ -30,6 +30,11 @@ function load(code: string) {
   return loading.get(code)!;
 }
 
+/** Makes sure a language's texts are loaded (English always is). Used by the server renderer. */
+export function loadLanguage(code: string): Promise<void> {
+  return bundles[`./${code}.json`] ? load(code) : Promise.resolve();
+}
+
 i18n.on('languageChanged', (lng) => {
   // Also runs at build time when pages are pre-rendered (no document there).
   if (typeof document !== 'undefined') {
@@ -43,6 +48,18 @@ i18n.on('languageChanged', (lng) => {
     void load(code).then(() => i18n.changeLanguage(lng));
   }
 });
+
+/**
+ * Whether this device already had a language of its own (dd_lang) before this page load. Read
+ * before init: i18next stores the detected (browser) language there as soon as it starts.
+ */
+export const languageChosenOnDevice = (() => {
+  try {
+    return typeof localStorage !== 'undefined' && !!localStorage.getItem('dd_lang');
+  } catch {
+    return false;
+  }
+})();
 
 void i18n
   .use(LanguageDetector)

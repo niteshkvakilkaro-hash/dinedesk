@@ -79,12 +79,27 @@ class SitePresenter
                 'title' => $tenant->city ? "{$tenant->name}, {$tenant->city}" : $tenant->name,
                 'description' => $content['seo']['description'] ?? $content['tagline'] ?? $this->factualDescription($tenant),
                 'description_hi' => $content['seo']['description_hi'] ?? $content['tagline_hi'],
+                // The other languages, from the same source as the English description (else English shows).
+                'translations' => $this->seoTranslations($content),
                 'canonical' => "https://{$host}",
                 'image' => $this->images->present($theme->cover)['src'] ?? null,
                 // Only real, published sites ask to be indexed.
                 'indexable' => $tenant->status === 'live' && ! $tenant->is_demo,
             ],
         ];
+    }
+
+    /** {"ta": {"description": "..."}}: the translated SEO description, or the translated tagline when that is the description. */
+    private function seoTranslations(array $content): object
+    {
+        if ($content['seo']['description'] !== null) {
+            return $content['seo']['translations'];
+        }
+        if ($content['tagline'] === null) {
+            return (object) [];
+        }
+
+        return (object) array_filter(array_map(fn ($t) => isset($t['tagline']) ? ['description' => $t['tagline']] : null, (array) $content['translations']));
     }
 
     public function theme(ThemeSetting $theme): array

@@ -23,6 +23,8 @@ return [
         'bookings' => 'Table bookings: :count · guests: :guests',
         'hotel' => 'Rooms: :occupancy% occupied · check-ins today: :checkins',
         'low_stock' => 'Low stock (:count): :names',
+        'tiffin' => 'Tiffin: :active active · meals today: :lunch lunch, :dinner dinner',
+        'tiffin_requests' => 'New tiffin requests: :count',
         'link' => 'Full report: :url',
     ],
     // Refer a business: a business that signed up with the owner's link started paying.

@@ -2,8 +2,8 @@
 
 namespace App\Modules\Notify\Support;
 
+use App\Support\LocalDate;
 use App\Support\Locale;
-use Carbon\CarbonImmutable;
 use DateTimeInterface;
 
 /**
@@ -28,11 +28,6 @@ final class StaffText
     /** "14 Nov" in the recipient's language (Western digits). */
     public function date(DateTimeInterface|string $date, string $format = 'D MMM', ?string $timezone = null): string
     {
-        $d = CarbonImmutable::parse($date);
-        if ($timezone) {
-            $d = $d->setTimezone($timezone);
-        }
-
-        return $d->locale($this->locale === 'en' ? 'en_IN' : $this->locale)->isoFormat($format);
+        return LocalDate::format($date, $format, $this->locale, $timezone);
     }
 }

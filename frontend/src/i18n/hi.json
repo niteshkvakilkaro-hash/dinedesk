@@ -2103,7 +2103,10 @@
         "banner_title": "ऑफ़र का शीर्षक",
         "banner_text": "ऑफ़र का टेक्स्ट",
         "site_tagline": "टैगलाइन",
-        "site_about": "हमारे बारे में"
+        "site_about": "हमारे बारे में",
+        "milestone_title": "उपलब्धि",
+        "milestone_text": "उपलब्धि का विवरण",
+        "seo_description": "सर्च विवरण"
       }
     }
   },

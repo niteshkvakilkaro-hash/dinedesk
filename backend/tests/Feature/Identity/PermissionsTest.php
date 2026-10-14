@@ -37,8 +37,10 @@ class PermissionsTest extends TestCase
         $t = $this->business();
         $this->actingAsUser($this->ownerOf($t));
 
-        $id = $this->postJson('/api/v1/tenant/staff', ['name' => 'Ravi', 'phone' => '98111 22233', 'role' => 'waiter'])
+        $id = $this->postJson('/api/v1/tenant/staff', ['name' => 'Ravi', 'phone' => '98111 22233', 'role' => 'waiter'], ['X-Locale' => 'hi'])
             ->assertCreated()->assertJsonPath('data.role', 'waiter')->assertJsonPath('data.phone', '+919811122233')->json('data.id');
+        // New staff start in the owner's language.
+        $this->assertSame('hi', \App\Models\User::find($id)->locale);
 
         $this->postJson('/api/v1/tenant/staff', ['name' => 'Bad', 'phone' => '9811122244', 'role' => 'owner'])
             ->assertStatus(422)->assertJsonValidationErrors('role');

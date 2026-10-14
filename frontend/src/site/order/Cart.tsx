@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { MessageCircle, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
-import { cartCount, cartEstimate, MAX_QTY, useCart, type CartLine } from '../cart';
+import { cartCount, cartEstimate, lineExtras, MAX_QTY, useCart, type CartLine } from '../cart';
 import { useLocalized, useOpenStatus, useSite, whatsappHref } from '../data';
 import { FoodTypeMark } from '../components/bits';
 import { useMoney, useQuote } from '../ordering';
@@ -52,7 +52,7 @@ export function BillSummary({ quote, showDeliveryHint = false, deliveryPending =
 }
 
 function CartLines() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const l = useLocalized();
   const money = useMoney();
   const skin = useSkin();
@@ -68,7 +68,7 @@ function CartLines() {
               <FoodTypeMark type={line.food_type} />
               <span className="truncate">{l(line, 'name')}</span>
             </p>
-            {(line.variant_name || line.addon_names.length > 0) && <p className="text-sm text-t-muted">{[line.variant_name, ...line.addon_names].filter(Boolean).join(' · ')}</p>}
+            {(line.variant_name || line.addon_names.length > 0) && <p className="text-sm text-t-muted">{lineExtras(line, i18n.language).join(' · ')}</p>}
             {line.notes && <p className="text-sm italic text-t-muted">“{line.notes}”</p>}
             <div className="mt-2 flex items-center justify-between gap-3">
               <div className={`inline-flex items-center ${skin.chip}`} role="group" aria-label={t('order.quantityOf', { name: l(line, 'name') })}>

@@ -31,8 +31,8 @@ const EDITABLE = LANGUAGES.filter((l) => l.code !== 'en' && l.code !== 'hi');
 const GROUPS: Group[] = ['menu', 'rooms', 'banners', 'website'];
 /** The server takes at most this many texts per AI request. */
 const AI_CHUNK = 120;
-const TOP = new Set(['category.name', 'item.name', 'group.name', 'room.name', 'banner.title', 'site.tagline', 'site.about']);
-const LONG = new Set(['item.description', 'room.description', 'banner.text', 'site.about']);
+const TOP = new Set(['category.name', 'item.name', 'group.name', 'room.name', 'banner.title', 'site.tagline', 'site.about', 'milestone.title', 'seo.description']);
+const LONG = new Set(['item.description', 'room.description', 'banner.text', 'site.about', 'milestone.text', 'seo.description']);
 
 function useTranslations(lang: string) {
   return useQuery({ queryKey: ['translations', lang], queryFn: async () => (await api.get<Payload>('/tenant/translations', { lang })).data });

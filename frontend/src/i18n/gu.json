@@ -2103,7 +2103,10 @@
         "banner_title": "ઑફરનું શીર્ષક",
         "banner_text": "ઑફરનું લખાણ",
         "site_tagline": "ટૅગલાઇન",
-        "site_about": "અમારા વિશે"
+        "site_about": "અમારા વિશે",
+        "milestone_title": "સીમાચિહ્ન",
+        "milestone_text": "સીમાચિહ્નનું વર્ણન",
+        "seo_description": "સર્ચ વર્ણન"
       }
     }
   },

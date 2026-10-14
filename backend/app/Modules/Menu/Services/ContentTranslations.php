@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * The owner's own words (menu, rooms, offers, website tagline/about) in the site languages
+ * The owner's own words (menu, rooms, offers, website tagline/about/milestones/search description) in the site languages
  * other than English and Hindi. One flat list of entries keyed "item:12:name", in menu order;
  * the AI only drafts, the owner saves. Runs in the tenant's context, so every query is that
  * business's own.
@@ -35,6 +35,8 @@ class ContentTranslations
         'room' => ['name' => 80, 'description' => 1500],
         'banner' => ['title' => 120, 'text' => 300],
         'site' => ['tagline' => 140, 'about' => 3000],
+        'milestone' => ['title' => 80, 'text' => 300],
+        'seo' => ['description' => 160],
     ];
 
     public const MAX_AI_KEYS = 120;
@@ -104,6 +106,11 @@ class ContentTranslations
         if ($this->features->enabled($tenant, 'website') && $this->can($user, 'theme.manage')) {
             $site = $this->content->get();
             $add('website', 'site', 0, null, null, $site, $site['translations']);
+            // Keyed by position; the texts live inside each milestone, so they move with it.
+            foreach ($site['milestones'] as $i => $m) {
+                $add('website', 'milestone', $i, null, $m['year'] ?? null, $m, $m['translations'] ?? []);
+            }
+            $add('website', 'seo', 0, null, null, $site['seo'], $site['seo']['translations'] ?? []);
         }
 
         return $out;
@@ -130,7 +137,7 @@ class ContentTranslations
 
         $changed = 0;
         $records = [];
-        $site = [];
+        $site = ['site' => [], 'milestone' => [], 'seo' => []];
         foreach ($values as $key => $text) {
             $e = $entries[$key];
             $text = trim(strip_tags((string) $text));
@@ -141,16 +148,18 @@ class ContentTranslations
             if ($e['record']) {
                 $e['record']->translations = Translations::put($e['record']->translations, $lang, $e['field'], $text);
                 $records[spl_object_id($e['record'])] = $e['record'];
+            } elseif ($e['type'] === 'milestone') {
+                $site['milestone'][(int) explode(':', $key)[1]][$e['field']] = $text;
             } else {
-                $site[$e['field']] = $text;
+                $site[$e['type']][$e['field']] = $text;
             }
         }
         DB::transaction(function () use ($records, $site, $lang) {
             foreach ($records as $record) {
                 $record->save();
             }
-            if ($site) {
-                $this->content->saveTranslations($lang, $site);
+            if (array_filter($site)) {
+                $this->content->saveTranslations($lang, $site['site'], $site['milestone'], $site['seo']);
             }
         });
 
@@ -243,6 +252,9 @@ class ContentTranslations
             'banner.text' => 'offer banner text',
             'site.tagline' => 'website tagline',
             'site.about' => 'website "about us" text',
+            'milestone.title' => 'title of a milestone in the business\'s story',
+            'milestone.text' => 'text of a milestone in the business\'s story',
+            'seo.description' => 'short website description shown in search results',
         ][$e['type'].'.'.$e['field']];
 
         return $e['label'] ? "{$what} ({$e['label']})" : $what;

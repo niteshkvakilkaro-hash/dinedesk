@@ -4,6 +4,7 @@ import type { PageKey } from '@/themes/types';
 import type { SiteData } from './types';
 import { useSiteMenu } from './data';
 import { actionsSchema, geoSchema, menuSchema } from './schema';
+import { localize } from './localize';
 import { htmlLang, isRtl, LANGUAGE_CODES } from '@/i18n/locale';
 
 const PATHS: Record<PageKey, string> = { home: '/', menu: '/menu', about: '/about', gallery: '/gallery', contact: '/contact' };
@@ -20,9 +21,9 @@ const DAY_NAMES: Record<string, string> = { mon: 'Monday', tue: 'Tuesday', wed: 
  */
 export function Seo({ site, page, themeColor, title = null, path }: { site: SiteData; page: PageKey; themeColor: string; title?: string | null; path?: string }) {
   const { t, i18n } = useTranslation();
-  const hi = i18n.language?.startsWith('hi');
   const pageTitle = title ? `${title} · ${site.name}` : page === 'home' ? site.seo.title : `${t(`site.nav.${page}`)} · ${site.name}`;
-  const description = (hi && site.seo.description_hi) || site.seo.description;
+  // In the page's language (Hindi field, translations, else English).
+  const description = localize(site.seo, 'description', i18n.language) ?? site.seo.description;
   const url = `${site.seo.canonical}${path ?? PATHS[page]}`;
   const c = site.content.contact;
   const { data: menu } = useSiteMenu();

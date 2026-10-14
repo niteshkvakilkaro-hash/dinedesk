@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Minus, Plus } from 'lucide-react';
-import { lineKey, MAX_QTY, useCart } from '../cart';
+import { cartChoice, lineKey, MAX_QTY, useCart } from '../cart';
 import { useLocalized, useSite } from '../data';
 import { FoodTypeMark } from '../components/bits';
 import type { MenuItem } from '../types';
@@ -116,6 +116,8 @@ export function DishOptions({ item, open, onClose }: { item: MenuItem; open: boo
       item_id: item.id, variant_id: variantId, addon_ids: addonIds, quantity: qty, notes: notes.trim(),
       name: item.name, name_hi: item.name_hi, translations: item.translations, variant_name: variant?.name ?? null,
       addon_names: addonIds.map((id) => allAddons.find((a) => a.id === id)?.name ?? ''), unit_price: unit, food_type: item.food_type, image: item.image?.src ?? null,
+      variant: variant ? cartChoice(variant) : null,
+      addons: addonIds.map((id) => allAddons.find((a) => a.id === id)).map((a) => (a ? cartChoice(a) : { name: '', name_hi: null })),
     });
     skin.onAdd?.({ x: e.clientX, y: e.clientY });
     onClose();

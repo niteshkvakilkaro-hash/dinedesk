@@ -20,6 +20,12 @@ class SiteContent
     /** Fields that can be shown in the other site languages (Dashboard → Menu → Languages). */
     public const TRANSLATED = ['tagline', 'about'];
 
+    /** Each milestone's translated fields, kept inside the milestone so they follow it when the list changes. */
+    public const MILESTONE_TRANSLATED = ['title', 'text'];
+
+    /** The search-engine description's translated field (kept in seo.translations). */
+    public const SEO_TRANSLATED = ['description'];
+
     public function __construct(private readonly TenantSettings $settings) {}
 
     public static function empty(): array
@@ -41,7 +47,8 @@ class SiteContent
                 'parking' => null,
             ],
             'socials' => array_fill_keys(self::SOCIALS, null),
-            'seo' => ['description' => null, 'description_hi' => null],
+            // The description in the other languages: {"ta": {"description": "..."}}.
+            'seo' => ['description' => null, 'description_hi' => null, 'translations' => []],
             // Footer: FSSAI licence number, and whether to show the GSTIN from business details.
             'legal' => ['fssai' => null, 'show_gstin' => false],
             // Tagline and about in the other languages: {"ta": {"tagline": "...", "about": "..."}}.
@@ -64,6 +71,8 @@ class SiteContent
             'milestones.*.title_hi' => ['nullable', 'string', 'max:80'],
             'milestones.*.text' => ['nullable', 'string', 'max:300'],
             'milestones.*.text_hi' => ['nullable', 'string', 'max:300'],
+            // Sent back as loaded, so a milestone keeps its translations when others are added or removed.
+            'milestones.*.translations' => ['sometimes', 'nullable', 'array'],
             'contact' => ['required', 'array'],
             'contact.phone' => ['nullable', 'string', 'regex:/^\+?[0-9][0-9\s\-()]{5,19}$/'],
             'contact.whatsapp' => ['nullable', 'string', Phone::RULE],
@@ -113,6 +122,7 @@ class SiteContent
             'title_hi' => $text($m['title_hi'] ?? null),
             'text' => $text($m['text'] ?? null),
             'text_hi' => $text($m['text_hi'] ?? null),
+            'translations' => self::fromForm($m['translations'] ?? null, self::MILESTONE_TRANSLATED),
         ], $data['milestones'] ?? []));
 
         $c = $data['contact'] ?? [];
@@ -139,7 +149,9 @@ class SiteContent
             'show_gstin' => (bool) ($data['legal']['show_gstin'] ?? false),
         ];
         // Edited on their own page, so saving this form keeps them.
-        $clean['translations'] = $this->get()['translations'];
+        $current = $this->get();
+        $clean['translations'] = $current['translations'];
+        $clean['seo']['translations'] = $current['seo']['translations'];
 
         $this->settings->set(self::KEY, $clean);
 
@@ -150,15 +162,27 @@ class SiteContent
      * Sets (or, when a text is empty, removes) fields in one language.
      *
      * @param  array<string, string>  $fields  e.g. ['tagline' => '...']
+     * @param  array<int, array<string, string>>  $milestones  milestone index => ['title' => '...']
+     * @param  array<string, string>  $seo  e.g. ['description' => '...']
      */
-    public function saveTranslations(string $lang, array $fields): void
+    public function saveTranslations(string $lang, array $fields, array $milestones = [], array $seo = []): void
     {
         $content = $this->get();
-        $translations = $content['translations'] ?: null;
-        foreach (array_intersect_key($fields, array_flip(self::TRANSLATED)) as $field => $text) {
-            $translations = Translations::put($translations, $lang, $field, strip_tags($text));
+        $put = function (mixed $translations, array $values, array $allowed) use ($lang): array {
+            $translations = $translations ?: null;
+            foreach (array_intersect_key($values, array_flip($allowed)) as $field => $text) {
+                $translations = Translations::put($translations, $lang, $field, strip_tags($text));
+            }
+
+            return $translations ?? [];
+        };
+        $content['translations'] = $put($content['translations'], $fields, self::TRANSLATED);
+        foreach ($milestones as $i => $values) {
+            if (isset($content['milestones'][$i])) {
+                $content['milestones'][$i]['translations'] = $put($content['milestones'][$i]['translations'] ?? [], $values, self::MILESTONE_TRANSLATED);
+            }
         }
-        $content['translations'] = $translations ?? [];
+        $content['seo']['translations'] = $put($content['seo']['translations'] ?? [], $seo, self::SEO_TRANSLATED);
         $this->settings->set(self::KEY, $content);
     }
 
@@ -171,7 +195,26 @@ class SiteContent
         }
         unset($content['contact']['whatsapp_verified']);
         $content['translations'] = Translations::clean($content['translations'], self::TRANSLATED);
+        $content['milestones'] = array_map(fn ($m) => ['translations' => Translations::clean($m['translations'] ?? [], self::MILESTONE_TRANSLATED)] + $m, $content['milestones']);
+        $content['seo']['translations'] = Translations::clean($content['seo']['translations'] ?? [], self::SEO_TRANSLATED);
 
         return $content;
+    }
+
+    /** Translations sent back by the website form: known languages and fields, plain non-empty text. */
+    private static function fromForm(mixed $translations, array $fields): array
+    {
+        $out = [];
+        foreach (Translations::languages() as $lang) {
+            foreach ($fields as $f) {
+                $v = is_array($translations) ? ($translations[$lang][$f] ?? null) : null;
+                $v = is_string($v) ? trim(strip_tags($v)) : '';
+                if ($v !== '') {
+                    $out[$lang][$f] = $v;
+                }
+            }
+        }
+
+        return $out;
     }
 }

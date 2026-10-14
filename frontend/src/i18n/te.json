@@ -2103,7 +2103,10 @@
         "banner_title": "ఆఫర్ శీర్షిక",
         "banner_text": "ఆఫర్ టెక్స్ట్",
         "site_tagline": "ట్యాగ్‌లైన్",
-        "site_about": "మా గురించి"
+        "site_about": "మా గురించి",
+        "milestone_title": "మైలురాయి",
+        "milestone_text": "మైలురాయి వివరణ",
+        "seo_description": "సెర్చ్ వివరణ"
       }
     }
   },

@@ -16,6 +16,8 @@ return [
         'bookings' => 'ಟೇಬಲ್ ಬುಕಿಂಗ್‌ಗಳು: :count · ಅತಿಥಿಗಳು: :guests',
         'hotel' => 'ಕೊಠಡಿಗಳು: :occupancy% ಭರ್ತಿ · ಇಂದು ಚೆಕ್-ಇನ್: :checkins',
         'low_stock' => 'ಕಡಿಮೆ ಸ್ಟಾಕ್ (:count): :names',
+        'tiffin' => 'ಟಿಫಿನ್: :active ಸಕ್ರಿಯ · ಇಂದಿನ ಊಟ: :lunch ಮಧ್ಯಾಹ್ನ, :dinner ರಾತ್ರಿ',
+        'tiffin_requests' => 'ಹೊಸ ಟಿಫಿನ್ ವಿನಂತಿಗಳು: :count',
         'link' => 'ಪೂರ್ಣ ವರದಿ: :url',
     ],
     // Refer a business: a business that signed up with the owner's link started paying.

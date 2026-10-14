@@ -2103,7 +2103,10 @@
         "banner_title": "Offer title",
         "banner_text": "Offer text",
         "site_tagline": "Tagline",
-        "site_about": "About us"
+        "site_about": "About us",
+        "milestone_title": "Milestone",
+        "milestone_text": "Milestone text",
+        "seo_description": "Search description"
       }
     }
   },

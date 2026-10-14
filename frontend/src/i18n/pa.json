@@ -2103,7 +2103,10 @@
         "banner_title": "ਆਫ਼ਰ ਦਾ ਸਿਰਲੇਖ",
         "banner_text": "ਆਫ਼ਰ ਦੀ ਲਿਖਤ",
         "site_tagline": "ਟੈਗਲਾਈਨ",
-        "site_about": "ਸਾਡੇ ਬਾਰੇ"
+        "site_about": "ਸਾਡੇ ਬਾਰੇ",
+        "milestone_title": "ਮੀਲ ਪੱਥਰ",
+        "milestone_text": "ਮੀਲ ਪੱਥਰ ਦਾ ਵੇਰਵਾ",
+        "seo_description": "ਸਰਚ ਵੇਰਵਾ"
       }
     }
   },

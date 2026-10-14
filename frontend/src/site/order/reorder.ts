@@ -1,4 +1,4 @@
-import type { CartLine } from '../cart';
+import { cartChoice, type CartLine } from '../cart';
 import type { CustomerOrder, MenuCategory } from '../types';
 
 type NewLine = Omit<CartLine, 'key'>;
@@ -41,6 +41,8 @@ export function reorderLines(order: Pick<CustomerOrder, 'items'>, menu: MenuCate
       translations: item.translations,
       variant_name: variant?.name ?? null,
       addon_names: addons.map((a) => a.name),
+      variant: variant ? cartChoice(variant) : null,
+      addons: addons.map(cartChoice),
       unit_price: Number(variant?.price ?? item.price) + addons.reduce((s, a) => s + Number(a.price), 0),
       food_type: item.food_type,
       image: item.image?.src ?? null,

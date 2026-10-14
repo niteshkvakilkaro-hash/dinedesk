@@ -2103,7 +2103,10 @@
         "banner_title": "অফারের শিরোনাম",
         "banner_text": "অফারের লেখা",
         "site_tagline": "ট্যাগলাইন",
-        "site_about": "আমাদের কথা"
+        "site_about": "আমাদের কথা",
+        "milestone_title": "মাইলফলক",
+        "milestone_text": "মাইলফলকের বিবরণ",
+        "seo_description": "সার্চের বিবরণ"
       }
     }
   },

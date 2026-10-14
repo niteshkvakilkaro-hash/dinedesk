@@ -11,6 +11,8 @@ use App\Modules\Reports\Notifications\DailySummaryMessage;
 use App\Modules\Reservations\Models\Reservation;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Tenancy\Models\Tenant;
+use App\Modules\Tiffin\Models\MealSubscription;
+use App\Support\LocalDate;
 use App\Support\Locale;
 use Carbon\CarbonImmutable;
 use Illuminate\Notifications\AnonymousNotifiable;
@@ -160,6 +162,7 @@ class DailySummary
             'bookings' => null,
             'hotel' => null,
             'low_stock' => null,
+            'tiffin' => null,
         ];
         // Table bookings: only for businesses that take them.
         if ($this->features->enabled($tenant, 'reservations') && Reservation::exists()) {
@@ -169,6 +172,18 @@ class DailySummary
             $facts['hotel'] = [
                 'occupancy' => $r['hotel']['occupancy'],
                 'check_ins' => RoomBooking::whereIn('status', ['confirmed', 'checked_in'])->whereDate('check_in', $today)->count(),
+            ];
+        }
+        // Tiffin: only for businesses with subscribers. Meals due today = active subscriptions running
+        // today with meals left, per slot (the kitchen's lunch and dinner lists).
+        if (MealSubscription::whereIn('status', MealSubscription::OPEN)->exists()) {
+            $due = MealSubscription::where('status', 'active')->where('starts_on', '<=', $today)->where('ends_on', '>=', $today)
+                ->whereColumn('meals_used', '<', 'meals_total')->pluck('slot');
+            $facts['tiffin'] = [
+                'active' => MealSubscription::where('status', 'active')->count(),
+                'lunch' => $due->filter(fn ($s) => in_array($s, ['lunch', 'both'], true))->count(),
+                'dinner' => $due->filter(fn ($s) => in_array($s, ['dinner', 'both'], true))->count(),
+                'requests' => MealSubscription::where('status', 'requested')->count(),
             ];
         }
         if ($this->features->enabled($tenant, 'inventory')) {
@@ -204,6 +219,12 @@ class DailySummary
         if ($facts['hotel'] !== null) {
             $lines[] = $t('hotel', ['occupancy' => $facts['hotel']['occupancy'], 'checkins' => $facts['hotel']['check_ins']]);
         }
+        if ($facts['tiffin'] !== null) {
+            $lines[] = $t('tiffin', ['active' => $facts['tiffin']['active'], 'lunch' => $facts['tiffin']['lunch'], 'dinner' => $facts['tiffin']['dinner']]);
+            if ($facts['tiffin']['requests'] > 0) {
+                $lines[] = $t('tiffin_requests', ['count' => $facts['tiffin']['requests']]);
+            }
+        }
         if ($facts['low_stock'] !== null) {
             $lines[] = $t('low_stock', ['count' => $facts['low_stock']['count'], 'names' => collect($facts['low_stock']['names'])->map(fn ($n) => Str::limit($n, 20, '…'))->implode(', ')]);
         }
@@ -214,8 +235,8 @@ class DailySummary
 
     public function subject(Tenant $tenant, array $facts, string $locale, bool $soFar = false): string
     {
-        // Weekday and month in the owner's language; Carbon keeps Western digits for all 12.
-        $date = CarbonImmutable::parse($facts['date'])->locale($locale === 'en' ? 'en_IN' : $locale)->isoFormat('ddd, D MMM');
+        // Weekday and month in the owner's language, Western digits.
+        $date = LocalDate::format($facts['date'], 'ddd, D MMM', $locale);
 
         return $soFar
             ? trans('owner.summary.title_so_far', ['business' => $tenant->name, 'date' => $date, 'time' => CarbonImmutable::now($tenant->timezone)->format('H:i')], $locale)

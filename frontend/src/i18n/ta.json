@@ -2103,7 +2103,10 @@
         "banner_title": "சலுகைத் தலைப்பு",
         "banner_text": "சலுகை உரை",
         "site_tagline": "டேக்லைன்",
-        "site_about": "எங்களைப் பற்றி"
+        "site_about": "எங்களைப் பற்றி",
+        "milestone_title": "மைல்கல்",
+        "milestone_text": "மைல்கல் விவரம்",
+        "seo_description": "தேடல் விவரம்"
       }
     }
   },

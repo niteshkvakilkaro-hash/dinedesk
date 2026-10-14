@@ -8,6 +8,7 @@ use App\Modules\Identity\Actions\IssueToken;
 use App\Modules\Identity\Services\OtpService;
 use App\Modules\Identity\Support\SessionPayload;
 use App\Support\ApiException;
+use App\Support\Locale;
 use App\Support\Phone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,6 +35,8 @@ class AuthController extends Controller
             'name' => strip_tags($data['name']),
             'email' => strtolower($data['email']),
             'password' => $data['password'],
+            // The language they signed up in becomes the account's (the dashboard opens in it on any device).
+            'locale' => Locale::guest($request->header('X-Locale')),
         ]);
 
         return $this->created(($this->issueToken)($user), 'Account created.');
@@ -86,8 +89,9 @@ class AuthController extends Controller
             throw new ApiException('Tell us your name to create your account.', 422, 'name_required', ['field' => 'name']);
         }
 
-        $user = DB::transaction(function () use ($user, $data, $otp, $otpId) {
-            $user ??= User::create(['name' => strip_tags($data['name']), 'phone' => $data['phone']]);
+        $locale = Locale::guest($request->header('X-Locale'));
+        $user = DB::transaction(function () use ($user, $data, $otp, $otpId, $locale) {
+            $user ??= User::create(['name' => strip_tags($data['name']), 'phone' => $data['phone'], 'locale' => $locale]);
             $user->forceFill(['phone_verified_at' => $user->phone_verified_at ?? now()])->save();
             $otp->consume($otpId);
 

@@ -77,8 +77,11 @@ function get(host, endpoint) {
   });
 }
 
-async function page(host, pathname) {
-  const key = `${host}${pathname}`;
+// ?lang=ta (the address search engines list for each language): the page is rendered in that language.
+const LANGS = ['en', 'hi', 'bn', 'mr', 'te', 'ta', 'gu', 'ur', 'kn', 'or', 'ml', 'pa'];
+
+async function page(host, pathname, lang) {
+  const key = `${host}${pathname}?${lang}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL) return hit.body;
 
@@ -91,7 +94,7 @@ async function page(host, pathname) {
     site.hotel?.has_rooms ? get(host, '/site/hotel') : null,
   ]);
   const data = { site, menu, gallery, hotel };
-  const { html, head } = await renderSite(pathname, data);
+  const { html, head } = await renderSite(pathname, data, lang);
 
   let doc = template;
   if (head) {
@@ -99,6 +102,7 @@ async function page(host, pathname) {
     // The page's own description replaces the generic one.
     if (/name="description"/.test(head.tags)) doc = doc.replace(/<meta name="description" content="[^"]*" \/>\s*/, '');
     doc = doc.replace('</head>', `    ${head.tags}\n  </head>`);
+    if (head.lang) doc = doc.replace(/<html([^>]*?)\s+lang="[^"]*"([^>]*)>/, `<html$1 lang="${esc(head.lang)}" dir="${esc(head.dir)}"$2>`);
   }
   const links = themeCss(site.theme?.key).map((href) => `<link rel="stylesheet" href="${esc(href)}" />`);
   doc = doc
@@ -116,11 +120,12 @@ async function page(host, pathname) {
 http
   .createServer(async (req, res) => {
     const host = String(req.headers['x-forwarded-host'] ?? req.headers.host ?? '').split(',')[0].trim().toLowerCase();
-    const { pathname } = new URL(req.url ?? '/', 'http://x');
+    const { pathname, searchParams } = new URL(req.url ?? '/', 'http://x');
+    const lang = LANGS.includes(searchParams.get('lang')) ? searchParams.get('lang') : 'en';
     let body = null;
     if ((req.method === 'GET' || req.method === 'HEAD') && SSR_PATHS.includes(pathname) && host) {
       try {
-        body = await page(host, pathname);
+        body = await page(host, pathname, lang);
       } catch (e) {
         console.warn(`ssr: ${host}${pathname} → plain page (${e.message})`);
       }

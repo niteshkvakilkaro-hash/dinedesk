@@ -1,7 +1,7 @@
 <?php
 
 /*
-| Messages to guests (WhatsApp / SMS / email) about their orders and bookings.
+| Messages to guests (WhatsApp / SMS / email) about their orders, bookings and tiffin plans.
 | One file per language (config dinedesk.languages); English is the fallback.
 | Keep every :placeholder as it is. "party" and "nights" are counts (trans_choice).
 */
@@ -37,6 +37,16 @@ return [
         'nights' => '{1} :count night|[2,*] :count nights',
         'subject' => ':business — room booking :code',
         'button' => 'View your booking',
+    ],
+
+    'tiffin' => [
+        'confirmed' => ':business: your tiffin plan :plan is confirmed (subscription :code). Meals from :from to :until.',
+        'declined' => 'Sorry, :business cannot start your tiffin plan :plan (request :code). Please call us if you have any questions.',
+        'paused' => ':business: your tiffin subscription :code is paused. No meals until it is resumed.',
+        'resumed' => ':business: your tiffin subscription :code has restarted. It now runs until :until.',
+        'cancelled' => 'Your tiffin subscription :code with :business has been cancelled.',
+        'default_plan' => 'Tiffin',
+        'subject' => ':business — tiffin :code',
     ],
 
     // Added after a booking update when the business gave a reason.

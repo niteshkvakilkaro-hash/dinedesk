@@ -38,3 +38,21 @@ describe('localize', () => {
     expect(localize({ tagline: null }, 'tagline', 'hi')).toBeNull();
   });
 });
+
+describe('localize website milestones and search description', () => {
+  const milestone = { year: '1990', title: 'First kitchen', title_hi: 'पहली रसोई', text: 'A small dhaba', text_hi: null, translations: { ta: { title: 'முதல் சமையலறை' } } };
+  const seo = { description: 'Royal thalis', description_hi: null, translations: { bn: { description: 'রাজকীয় থালি' } } };
+
+  it('uses each milestone’s own translations', () => {
+    expect(localize(milestone, 'title', 'ta')).toBe('முதல் சமையலறை');
+    expect(localize(milestone, 'title', 'hi')).toBe('पहली रसोई');
+    expect(localize(milestone, 'text', 'ta')).toBe('A small dhaba');
+    expect(localize(milestone, 'title', 'bn')).toBe('First kitchen');
+  });
+
+  it('picks the search description in the page language', () => {
+    expect(localize(seo, 'description', 'bn')).toBe('রাজকীয় থালি');
+    expect(localize(seo, 'description', 'hi')).toBe('Royal thalis');
+    expect(localize(seo, 'description', 'en')).toBe('Royal thalis');
+  });
+});

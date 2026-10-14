@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Ordering;
 
+use App\Modules\Hotel\Models\RoomBooking;
 use App\Modules\Hotel\Notifications\StayMessage;
+use App\Modules\Hotel\Notifications\StayNotifier;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Notifications\OrderMessage;
 use App\Modules\Reservations\Models\Reservation;
 use App\Modules\Reservations\Notifications\ReservationMessage;
+use App\Modules\Reservations\Notifications\ReservationNotifier;
 use App\Modules\Reservations\Services\ReservationSettings;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
@@ -58,7 +61,21 @@ class GuestLanguageTest extends OrderingTestCase
 
         $this->assertSame('ta', Reservation::withoutTenancy()->where('code', $code)->value('locale'));
         Notification::assertSentTo(new AnonymousNotifiable(), ReservationMessage::class, fn (ReservationMessage $n) => $n->kind === 'received'
-            && str_starts_with($n->toText(), 'Spice Route: Wed 11 Nov, 7:00 PM, 2 பேருக்கு டேபிள் கோரிக்கை கிடைத்தது. புக்கிங் ID '.$code));
+            && str_starts_with($n->toText(), 'Spice Route: புதன் 11 நவம்பர், 7:00 மாலை, 2 பேருக்கு டேபிள் கோரிக்கை கிடைத்தது. புக்கிங் ID '.$code));
+    }
+
+    public function test_booking_dates_follow_the_guest_language_with_western_digits(): void
+    {
+        $r = fn (string $locale) => ReservationNotifier::when(new Reservation(['starts_at' => '2026-11-11 13:30:00', 'locale' => $locale]), 'Asia/Kolkata');
+        $this->assertSame('Wed 11 Nov, 7:00 PM', $r('en'));
+        $this->assertSame('बुध 11 नव., 7:00 शाम', $r('hi'));
+        $this->assertSame('புதன் 11 நவம்பர், 7:00 மாலை', $r('ta'));
+        $this->assertSame('Wed 11 Nov, 7:00 PM', $r('xx'));
+
+        $stay = fn (string $locale) => StayNotifier::dates(new RoomBooking(['check_in' => '2026-11-12', 'check_out' => '2026-11-14', 'locale' => $locale]));
+        $this->assertSame('12 Nov – 14 Nov 2026', $stay('en'));
+        $this->assertSame('12 नव. – 14 नव. 2026', $stay('hi'));
+        $this->assertSame('12 நவம்பர் – 14 நவம்பர் 2026', $stay('ta'));
     }
 
     public function test_counts_and_reasons_follow_each_language(): void

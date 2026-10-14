@@ -9,6 +9,7 @@ use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Modules\Website\Services\SitePresenter;
+use App\Support\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
@@ -46,7 +47,7 @@ class StayNotifier
             'code' => $b->code,
             'dates' => self::dates($b),
             'nights' => $b->nights,
-            'checkin' => CarbonImmutable::createFromFormat('H:i', $this->settings->get()['check_in_time'])->format('g:i A'),
+            'checkin' => LocalDate::format(CarbonImmutable::createFromFormat('H:i', $this->settings->get()['check_in_time']), 'h:mm A', $b->locale),
             'locale' => $b->locale,
             'reason' => $reason ? strip_tags($reason) : null,
         ], $kind, $tenant->name, self::manageUrl($this->presenter->primaryHost($tenant), $b), $channels));
@@ -60,10 +61,10 @@ class StayNotifier
         Notification::send($staff, new HotelForStaff(['tenant_id' => $tenant->id] + $data));
     }
 
-    /** "12 Nov – 14 Nov". */
+    /** "12 Nov – 14 Nov 2026" in the guest's language. */
     public static function dates(RoomBooking $b): string
     {
-        return $b->check_in->format('j M').' – '.$b->check_out->format('j M Y');
+        return LocalDate::format($b->check_in, 'D MMM', $b->locale).' – '.LocalDate::format($b->check_out, 'D MMM YYYY', $b->locale);
     }
 
     public static function manageUrl(string $host, RoomBooking $b): string

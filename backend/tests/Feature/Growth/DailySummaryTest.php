@@ -7,6 +7,8 @@ use App\Modules\Inventory\Models\InventoryItem;
 use App\Modules\Reports\Notifications\DailySummaryMessage;
 use App\Modules\Reports\Services\DailySummary;
 use App\Modules\Reservations\Models\Reservation;
+use App\Modules\Tiffin\Models\MealPlan;
+use App\Modules\Tiffin\Models\MealSubscription;
 use Carbon\CarbonImmutable;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
@@ -143,6 +145,37 @@ class DailySummaryTest extends OperationsTestCase
                 && str_contains($n->text, 'குறைந்த இருப்பு (1): Paneer')
                 && ! preg_match('/[^\P{Nd}0-9]/u', $n->text); // Western digits
         });
+    }
+
+    public function test_tiffin_numbers_only_for_businesses_with_subscribers(): void
+    {
+        $this->yesterday();
+        $this->at('2026-11-10 09:00');
+        $facts = fn () => $this->asTenant(fn () => app(DailySummary::class)->facts($this->tenant, '2026-11-09'));
+        $this->assertNull($facts()['tiffin']);
+
+        $this->asTenant(function () {
+            $plan = MealPlan::create(['name' => 'Thali', 'slot' => 'both', 'meals' => 40, 'days_valid' => 30, 'price' => 3000]);
+            $sub = fn (int $n, string $slot, string $status, string $from, ?string $to, int $used = 0) => MealSubscription::create([
+                'number' => $n, 'meal_plan_id' => $plan->id, 'name' => "S{$n}", 'phone' => '+91982900000'.$n, 'address' => 'Road', 'slot' => $slot,
+                'status' => $status, 'starts_on' => $from, 'ends_on' => $to, 'meals_total' => 40, 'meals_used' => $used,
+            ]);
+            $sub(1, 'both', 'active', '2026-11-01', '2026-11-30');
+            $sub(2, 'lunch', 'active', '2026-11-01', '2026-11-30');
+            $sub(3, 'dinner', 'active', '2026-11-11', '2026-12-10'); // starts tomorrow
+            $sub(4, 'lunch', 'active', '2026-11-01', '2026-11-30', 40); // every meal used
+            $sub(5, 'lunch', 'paused', '2026-11-01', '2026-11-30');
+            $sub(6, 'lunch', 'requested', '2026-11-12', null);
+            $sub(7, 'lunch', 'cancelled', '2026-11-01', '2026-11-30');
+        });
+        $this->assertSame(['active' => 4, 'lunch' => 2, 'dinner' => 1, 'requests' => 1], $facts()['tiffin']);
+
+        $this->owner->update(['locale' => 'hi']);
+        $this->switchOn(['email' => false]);
+        $this->artisan('reports:daily-summary')->assertSuccessful();
+        Notification::assertSentTo(new AnonymousNotifiable, DailySummaryMessage::class, fn ($n) => str_contains($n->text, 'टिफ़िन: 4 चालू · आज का खाना: 2 लंच, 1 डिनर')
+            && str_contains($n->text, 'नए टिफ़िन अनुरोध: 1')
+            && str_contains($n->text, 'सोम, 9 नव.'));
     }
 
     public function test_settings_rules_and_the_test_button(): void

@@ -2103,7 +2103,10 @@
         "banner_title": "ഓഫർ തലക്കെട്ട്",
         "banner_text": "ഓഫർ വാചകം",
         "site_tagline": "ടാഗ്‌ലൈൻ",
-        "site_about": "ഞങ്ങളെക്കുറിച്ച്"
+        "site_about": "ഞങ്ങളെക്കുറിച്ച്",
+        "milestone_title": "നാഴികക്കല്ല്",
+        "milestone_text": "നാഴികക്കല്ലിന്റെ വിവരണം",
+        "seo_description": "സെർച്ച് വിവരണം"
       }
     }
   },

@@ -11,6 +11,7 @@ use App\Modules\Reports\Services\DailySummary;
 use App\Modules\Subscriptions\Services\TenantAccess;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Support\TenantScope;
+use App\Support\LocalDate;
 use App\Support\Locale;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -250,7 +251,7 @@ class ReferralRewards
         }
         $locale = Locale::guest($owner->locale);
         $t = fn (string $key, array $replace = []) => trans("owner.referral.{$key}", $replace, $locale);
-        $date = $reward->new_end ? CarbonImmutable::parse($reward->new_end)->setTimezone($referrer->timezone)->locale($locale === 'en' ? 'en_IN' : $locale)->isoFormat('D MMM YYYY') : '';
+        $date = $reward->new_end ? LocalDate::format($reward->new_end, 'D MMM YYYY', $locale, $referrer->timezone) : '';
         $url = rtrim((string) config('dinedesk.dashboard_url'), '/').'/dashboard/billing';
         $lines = [
             $t('paid', ['business' => $referred->name]),

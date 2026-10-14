@@ -16,6 +16,8 @@ return [
         'bookings' => 'ଟେବୁଲ ବୁକିଂ: :count · ଅତିଥି: :guests',
         'hotel' => 'ରୁମ: :occupancy% ଭର୍ତ୍ତି · ଆଜି ଚେକ-ଇନ: :checkins',
         'low_stock' => 'କମ ଷ୍ଟକ (:count): :names',
+        'tiffin' => 'ଟିଫିନ: :active ସକ୍ରିୟ · ଆଜିର ଖାଦ୍ୟ: :lunch ମଧ୍ୟାହ୍ନ, :dinner ରାତି',
+        'tiffin_requests' => 'ନୂଆ ଟିଫିନ ଅନୁରୋଧ: :count',
         'link' => 'ପୂରା ରିପୋର୍ଟ: :url',
     ],
     // Refer a business: a business that signed up with the owner's link started paying.

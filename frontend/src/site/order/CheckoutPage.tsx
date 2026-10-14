@@ -6,7 +6,7 @@ import { ArrowLeft, Crosshair, Loader2, MapPin } from 'lucide-react';
 import { useGuestAccount, useGuestUpdate, type GuestAddress } from '../account';
 import { api, ApiError } from '@/lib/api';
 import { isIndianMobile } from '@/lib/format';
-import { apiLines, cartCount, useCart } from '../cart';
+import { apiLines, cartCount, lineExtras, useCart } from '../cart';
 import { useLocalized, useOpenStatus } from '../data';
 import { loadRazorpay, rememberOrder, useMoney, useQuote } from '../ordering';
 import type { CustomerOrder, OrderType, PaymentMethod, SiteData } from '../types';
@@ -422,16 +422,21 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
           <div className={`p-5 ${skin.card}`}>
             <h2 className={`text-2xl ${skin.heading}`}>{t('order.summary', { count: cartCount(lines) })}</h2>
             <ul className="mt-3 space-y-2 text-sm">
-              {(q?.lines ?? []).map((line, i) => (
-                <li key={i} className="flex gap-2">
-                  <FoodTypeMark type={line.food_type} className="mt-0.5" />
-                  <span className="flex-1">
-                    {line.quantity} × {l(line, 'name')}
-                    {(line.variant_name || line.addons.length > 0) && <span className="block text-xs text-t-muted">{[line.variant_name, ...line.addons.map((a) => a.name)].filter(Boolean).join(' · ')}</span>}
-                  </span>
-                  <span className="tabular-nums">{money(Number(line.unit_price) * line.quantity)}</span>
-                </li>
-              ))}
+              {(q?.lines ?? []).map((line, i) => {
+                // The quote lists the cart's lines in order; the cart line has the names in every language.
+                const own = lines[i]?.item_id === line.menu_item_id ? lines[i] : null;
+                const extras = own ? lineExtras(own, i18n.language) : [line.variant_name, ...line.addons.map((a) => a.name)].filter(Boolean);
+                return (
+                  <li key={i} className="flex gap-2">
+                    <FoodTypeMark type={line.food_type} className="mt-0.5" />
+                    <span className="flex-1">
+                      {line.quantity} × {l(own ?? line, 'name')}
+                      {extras.length > 0 && <span className="block text-xs text-t-muted">{extras.join(' · ')}</span>}
+                    </span>
+                    <span className="tabular-nums">{money(Number(line.unit_price) * line.quantity)}</span>
+                  </li>
+                );
+              })}
             </ul>
             <div className="mt-4">{q ? <BillSummary quote={q} deliveryPending={type === 'delivery' && !q.zone} /> : quote.isLoading && <p className="text-sm">{t('common.loading')}</p>}</div>
             {quote.isError && (

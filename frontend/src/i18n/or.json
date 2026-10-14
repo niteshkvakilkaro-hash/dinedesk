@@ -2103,7 +2103,10 @@
         "banner_title": "ଅଫର ଶୀର୍ଷକ",
         "banner_text": "ଅଫର ଲେଖା",
         "site_tagline": "ଟ୍ୟାଗଲାଇନ୍",
-        "site_about": "ଆମ ବିଷୟରେ"
+        "site_about": "ଆମ ବିଷୟରେ",
+        "milestone_title": "ମାଇଲଖୁଣ୍ଟ",
+        "milestone_text": "ମାଇଲଖୁଣ୍ଟର ବିବରଣୀ",
+        "seo_description": "ସର୍ଚ୍ଚ ବିବରଣୀ"
       }
     }
   },

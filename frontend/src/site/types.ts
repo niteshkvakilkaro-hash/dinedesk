@@ -20,6 +20,8 @@ export interface Milestone {
   title_hi: string | null;
   text: string | null;
   text_hi: string | null;
+  /** Title and text in the other site languages; kept inside the milestone so they move with it. */
+  translations?: Translations;
 }
 
 export interface SiteContent {
@@ -32,7 +34,7 @@ export interface SiteContent {
   milestones: Milestone[];
   contact: { phone: string | null; whatsapp: string | null; email: string | null; address: string | null; map_url: string | null; parking?: string | null };
   socials: { instagram: string | null; facebook: string | null; youtube: string | null; google_maps: string | null; google_review?: string | null };
-  seo: { description: string | null; description_hi: string | null };
+  seo: { description: string | null; description_hi: string | null; translations?: Translations };
   legal?: { fssai: string | null; show_gstin: boolean };
 }
 
@@ -72,7 +74,8 @@ export interface SiteData {
   reservations: ReservationInfo;
   growth: GrowthInfo;
   ordering: OrderingInfo;
-  seo: { title: string; description: string; description_hi: string | null; canonical: string; image: string | null; indexable: boolean };
+  /** `translations`: the description in the other site languages. */
+  seo: { title: string; description: string; description_hi: string | null; translations?: Translations; canonical: string; image: string | null; indexable: boolean };
 }
 
 /** Diet labels an owner can set on a dish (same list as the backend's MenuItem::DIETS). */

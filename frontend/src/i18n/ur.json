@@ -2103,7 +2103,10 @@
         "banner_title": "آفر کا عنوان",
         "banner_text": "آفر کی تحریر",
         "site_tagline": "ٹیگ لائن",
-        "site_about": "ہمارے بارے میں"
+        "site_about": "ہمارے بارے میں",
+        "milestone_title": "سنگِ میل",
+        "milestone_text": "سنگِ میل کی تفصیل",
+        "seo_description": "سرچ کی تفصیل"
       }
     }
   },

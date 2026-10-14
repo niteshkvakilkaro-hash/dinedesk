@@ -10,6 +10,7 @@ use App\Modules\Tiffin\Models\MealDelivery;
 use App\Modules\Tiffin\Models\MealPayment;
 use App\Modules\Tiffin\Models\MealPlan;
 use App\Modules\Tiffin\Models\MealSubscription;
+use App\Modules\Tiffin\Notifications\TiffinNotifier;
 use App\Modules\Tiffin\Notifications\TiffinRequestForStaff;
 use App\Support\ApiException;
 use App\Support\Phone;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Notification;
  */
 class Tiffin
 {
+    public function __construct(private readonly TiffinNotifier $notifier) {}
+
     /** The business's calendar date, as a plain date (like the date columns) so day counts line up. */
     public function today(Tenant $tenant): CarbonImmutable
     {
@@ -77,8 +80,11 @@ class Tiffin
             ]);
             $this->pay($sub, $amount, $mode, 'start', $by);
             AuditLog::record('tiffin.started', $sub, ['code' => $sub->code(), 'amount' => $amount]);
+            $sub = $sub->fresh('plan');
+            // Sent once the transaction commits.
+            $this->notifier->send($sub, 'confirmed');
 
-            return $sub->fresh('plan');
+            return $sub;
         });
     }
 
@@ -112,6 +118,7 @@ class Tiffin
             throw new ApiException('Only an active subscription can be paused.', 422, 'not_active');
         }
         $sub->update(['status' => 'paused', 'paused_on' => $this->today($tenant)->format('Y-m-d')]);
+        $this->notifier->send($sub, 'paused');
 
         return $sub;
     }
@@ -124,6 +131,19 @@ class Tiffin
         }
         $away = $sub->paused_on ? (int) $sub->paused_on->diffInDays($this->today($tenant)) : 0;
         $sub->update(['status' => 'active', 'paused_on' => null, 'ends_on' => $sub->ends_on?->addDays($away)->format('Y-m-d')]);
+        $this->notifier->send($sub, 'resumed');
+
+        return $sub;
+    }
+
+    /** A request turned down, or a running subscription stopped; the subscriber is told either way. */
+    public function cancel(MealSubscription $sub): MealSubscription
+    {
+        if (in_array($sub->status, MealSubscription::OPEN, true)) {
+            $kind = $sub->status === 'requested' ? 'declined' : 'cancelled';
+            $sub->update(['status' => 'cancelled']);
+            $this->notifier->send($sub, $kind);
+        }
 
         return $sub;
     }
@@ -248,6 +268,7 @@ class Tiffin
             'starts_on' => $d['starts_on'],
             'notes' => isset($d['notes']) ? strip_tags($d['notes']) : null,
             'source' => $d['source'],
+            'locale' => $d['locale'] ?? 'en',
         ])->load('plan'));
     }
 

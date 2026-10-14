@@ -16,6 +16,8 @@ return [
         'bookings' => 'టేబుల్ బుకింగ్‌లు: :count · అతిథులు: :guests',
         'hotel' => 'గదులు: :occupancy% నిండాయి · ఈరోజు చెక్-ఇన్‌లు: :checkins',
         'low_stock' => 'తక్కువ స్టాక్ (:count): :names',
+        'tiffin' => 'టిఫిన్: :active యాక్టివ్ · ఈరోజు భోజనాలు: :lunch మధ్యాహ్నం, :dinner రాత్రి',
+        'tiffin_requests' => 'కొత్త టిఫిన్ అభ్యర్థనలు: :count',
         'link' => 'పూర్తి నివేదిక: :url',
     ],
     // Refer a business: a business that signed up with the owner's link started paying.

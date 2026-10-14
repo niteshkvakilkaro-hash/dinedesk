@@ -16,6 +16,8 @@ return [
         'bookings' => 'மேசை முன்பதிவுகள்: :count · விருந்தினர்: :guests',
         'hotel' => 'அறைகள்: :occupancy% நிரம்பியது · இன்று செக்-இன்: :checkins',
         'low_stock' => 'குறைந்த இருப்பு (:count): :names',
+        'tiffin' => 'டிஃபின்: :active செயலில் · இன்றைய உணவு: :lunch மதியம், :dinner இரவு',
+        'tiffin_requests' => 'புதிய டிஃபின் கோரிக்கைகள்: :count',
         'link' => 'முழு அறிக்கை: :url',
     ],
     // Refer a business: a business that signed up with the owner's link started paying.

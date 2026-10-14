@@ -24,9 +24,10 @@ class AuthTest extends TestCase
 
     public function test_email_sign_up_and_sign_in(): void
     {
-        $this->postJson('/api/v1/auth/register', ['name' => 'Asha', 'email' => 'Asha@Example.test', 'password' => 'Password123'])
+        $this->postJson('/api/v1/auth/register', ['name' => 'Asha', 'email' => 'Asha@Example.test', 'password' => 'Password123'], ['X-Locale' => 'ta'])
             ->assertCreated()
             ->assertJsonPath('data.session.user.email', 'asha@example.test')
+            ->assertJsonPath('data.session.user.locale', 'ta') // the language she signed up in
             ->assertJsonPath('data.session.next', 'onboarding');
 
         $this->postJson('/api/v1/auth/register', ['name' => 'Asha', 'email' => 'asha@example.test', 'password' => 'Password123'])
@@ -54,7 +55,7 @@ class AuthTest extends TestCase
             ->assertStatus(422)->assertJsonPath('meta.code', 'name_required');
 
         $this->postJson('/api/v1/auth/otp/verify', ['phone' => '09829012345', 'code' => $code, 'name' => 'Ravi'])
-            ->assertOk()->assertJsonPath('data.session.user.phone', '+919829012345');
+            ->assertOk()->assertJsonPath('data.session.user.phone', '+919829012345')->assertJsonPath('data.session.user.locale', 'en');
 
         // Used once: the same code no longer works.
         $this->postJson('/api/v1/auth/otp/verify', ['phone' => '9829012345', 'code' => $code])->assertStatus(422);
