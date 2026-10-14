@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hotel\Notifications;
 
+use App\Support\Locale;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -14,19 +15,6 @@ use Illuminate\Notifications\Notification;
 class StayMessage extends Notification implements ShouldQueue
 {
     use Queueable;
-
-    public const TEXTS = [
-        'en' => [
-            'received' => ':business: we have received your room request for :dates (:nights). Booking ID :code. We will confirm it soon: :url',
-            'confirmed' => ':business: your room for :dates (:nights) is confirmed. Booking ID :code. Check-in from :checkin. Details: :url',
-            'cancelled' => 'Your room booking at :business for :dates (booking ID :code) has been cancelled.:reason',
-        ],
-        'hi' => [
-            'received' => ':business: :dates (:nights) के लिए आपका कमरे का अनुरोध मिल गया है। बुकिंग ID :code। हम जल्द कन्फ़र्म करेंगे: :url',
-            'confirmed' => ':business: :dates (:nights) के लिए आपका कमरा कन्फ़र्म है। बुकिंग ID :code। चेक-इन :checkin से। विवरण: :url',
-            'cancelled' => ':business में :dates की आपकी कमरा बुकिंग (ID :code) रद्द हो गई है।:reason',
-        ],
-    ];
 
     /**
      * @param  array{code: string, dates: string, nights: int, checkin: string, locale: string, reason: ?string}  $stay
@@ -47,29 +35,37 @@ class StayMessage extends Notification implements ShouldQueue
         return $this->channels;
     }
 
+    /** Texts live in lang/<code>/guest.php (stay.*). */
     public function toText(): string
     {
-        $hi = $this->stay['locale'] === 'hi';
-        $n = $this->stay['nights'];
-        $nights = $hi ? "{$n} रात" : ($n === 1 ? '1 night' : "{$n} nights");
-        $reason = $this->stay['reason'] ? ($hi ? ' कारण: ' : ' Reason: ').$this->stay['reason'] : '';
+        $l = $this->guestLocale();
+        $reason = $this->stay['reason'] ? ' '.trans('guest.reason', ['reason' => $this->stay['reason']], $l) : '';
 
-        return strtr(self::TEXTS[$hi ? 'hi' : 'en'][$this->kind], [
-            ':business' => $this->business,
-            ':dates' => $this->stay['dates'],
-            ':nights' => $nights,
-            ':checkin' => $this->stay['checkin'],
-            ':code' => $this->stay['code'],
-            ':url' => $this->url,
-            ':reason' => $reason,
-        ]);
+        return trans('guest.stay.'.$this->kind, [
+            'business' => $this->business,
+            'dates' => $this->stay['dates'],
+            'nights' => trans_choice('guest.stay.nights', (int) $this->stay['nights'], [], $l),
+            'checkin' => $this->stay['checkin'],
+            'code' => $this->stay['code'],
+            'url' => $this->url,
+            'reason' => $reason,
+        ], $l);
     }
 
     public function toMail(object $notifiable): MailMessage
     {
+        $l = $this->guestLocale();
+
         return (new MailMessage)
-            ->subject("{$this->business} — room booking {$this->stay['code']}")
+            ->subject(trans('guest.stay.subject', ['business' => $this->business, 'code' => $this->stay['code']], $l))
+            ->greeting(trans('guest.mail.greeting', [], $l))
             ->line($this->toText())
-            ->action($this->stay['locale'] === 'hi' ? 'बुकिंग देखें' : 'View your booking', $this->url);
+            ->action(trans('guest.stay.button', [], $l), $this->url)
+            ->salutation(trans('guest.mail.salutation', ['business' => $this->business], $l));
+    }
+
+    private function guestLocale(): string
+    {
+        return Locale::guest($this->stay['locale'] ?? null);
     }
 }

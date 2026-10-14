@@ -18,6 +18,7 @@ use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Ordering\Services\Razorpay;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Support\ApiException;
+use App\Support\Locale;
 use App\Support\Phone;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -224,7 +225,7 @@ class PublicHotelController extends Controller
             'guests' => $data['guests'] ?? null,
             'message' => isset($data['message']) ? strip_tags($data['message']) : null,
             'status' => 'new',
-            'locale' => $request->header('X-Locale') === 'hi' ? 'hi' : 'en',
+            'locale' => Locale::guest($request->header('X-Locale')),
         ]);
         StayNotifier::staff($tenant, ['kind' => 'banquet', 'enquiry_id' => $e->id, 'name' => $e->name, 'event_type' => $e->event_type, 'event_date' => $e->event_date?->format('Y-m-d')]);
 

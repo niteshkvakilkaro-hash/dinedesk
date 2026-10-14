@@ -27,6 +27,7 @@ use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Support\ApiException;
+use App\Support\Locale;
 use App\Support\Phone;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -157,7 +158,7 @@ class OrderFlow
                 'payment_method' => $data['payment_method'],
                 'payment_status' => $data['payment_method'] === 'online' ? 'pending' : 'unpaid',
                 'source' => $table ? 'qr' : 'website',
-                'locale' => $locale === 'hi' ? 'hi' : 'en',
+                'locale' => Locale::guest($locale),
                 'placed_at' => now(),
             ]);
 
@@ -266,7 +267,7 @@ class OrderFlow
                 'payment_method' => 'room',
                 'payment_status' => 'unpaid',
                 'source' => 'room',
-                'locale' => $locale === 'hi' ? 'hi' : 'en',
+                'locale' => Locale::guest($locale),
                 'placed_at' => now(),
             ]);
             foreach ($quote['lines'] as $line) {

@@ -11,6 +11,7 @@ use App\Modules\Reservations\Notifications\ReservationNotifier;
 use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Support\ApiException;
+use App\Support\Locale;
 use App\Support\Phone;
 use App\Support\Realtime\Live;
 use Carbon\CarbonImmutable;
@@ -96,7 +97,7 @@ class Bookings
                 'notes' => isset($data['notes']) ? strip_tags($data['notes']) : null,
                 'decided_at' => $website && ! $s['auto_confirm'] ? null : now(),
                 'decided_by' => $by?->id,
-                'locale' => $locale === 'hi' ? 'hi' : 'en',
+                'locale' => Locale::guest($locale),
             ]);
         });
 

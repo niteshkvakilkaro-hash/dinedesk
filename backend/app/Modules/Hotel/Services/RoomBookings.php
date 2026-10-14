@@ -18,6 +18,7 @@ use App\Modules\Ordering\Services\Razorpay;
 use App\Modules\Ordering\Support\Money;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Support\ApiException;
+use App\Support\Locale;
 use App\Support\Phone;
 use App\Support\Realtime\Live;
 use Carbon\CarbonImmutable;
@@ -125,7 +126,7 @@ class RoomBookings
                 'gstin' => ! empty($data['gstin']) ? strtoupper($data['gstin']) : null,
                 'hold_expires_at' => $online ? now()->addMinutes($s['hold_minutes']) : null,
                 'confirmed_at' => $status === 'confirmed' ? now() : null,
-                'locale' => $locale === 'hi' ? 'hi' : 'en',
+                'locale' => Locale::guest($locale),
             ]);
         });
 

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Ordering\Notifications;
 
+use App\Support\Locale;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -15,27 +16,6 @@ use Illuminate\Notifications\Notification;
 class OrderMessage extends Notification implements ShouldQueue
 {
     use Queueable;
-
-    public const TEXTS = [
-        'en' => [
-            'placed' => ':business: we have received your order #:number (₹:total). Track it here: :url',
-            'confirmed' => ':business has confirmed your order #:number. Track it: :url',
-            'ready_takeaway' => 'Your order #:number from :business is ready for pickup.',
-            'ready_dine_in' => 'Your order #:number from :business is ready.',
-            'out_for_delivery' => 'Your order #:number from :business is out for delivery. Track it: :url',
-            'completed' => 'Thank you for ordering from :business! Order #:number is complete.',
-            'cancelled' => 'Sorry, :business had to cancel your order #:number. Reason: :reason',
-        ],
-        'hi' => [
-            'placed' => ':business: आपका ऑर्डर #:number (₹:total) मिल गया है। यहाँ ट्रैक करें: :url',
-            'confirmed' => ':business ने आपका ऑर्डर #:number कन्फ़र्म कर दिया है। ट्रैक करें: :url',
-            'ready_takeaway' => ':business से आपका ऑर्डर #:number पिकअप के लिए तैयार है।',
-            'ready_dine_in' => ':business से आपका ऑर्डर #:number तैयार है।',
-            'out_for_delivery' => ':business से आपका ऑर्डर #:number डिलीवरी के लिए निकल चुका है। ट्रैक करें: :url',
-            'completed' => ':business से ऑर्डर करने के लिए धन्यवाद! ऑर्डर #:number पूरा हुआ।',
-            'cancelled' => 'माफ़ कीजिए, :business को आपका ऑर्डर #:number रद्द करना पड़ा। कारण: :reason',
-        ],
-    ];
 
     /**
      * @param  array{number: int, total: string, locale: string, cancel_reason: ?string}  $order
@@ -56,24 +36,32 @@ class OrderMessage extends Notification implements ShouldQueue
         return $this->channels;
     }
 
+    /** Texts live in lang/<code>/guest.php (order.*). */
     public function toText(): string
     {
-        $texts = self::TEXTS[$this->order['locale']] ?? self::TEXTS['en'];
-
-        return strtr($texts[$this->kind], [
-            ':business' => $this->business,
-            ':number' => (string) $this->order['number'],
-            ':total' => $this->order['total'],
-            ':url' => $this->trackUrl,
-            ':reason' => (string) $this->order['cancel_reason'],
-        ]);
+        return trans('guest.order.'.$this->kind, [
+            'business' => $this->business,
+            'number' => (string) $this->order['number'],
+            'total' => $this->order['total'],
+            'url' => $this->trackUrl,
+            'reason' => (string) $this->order['cancel_reason'],
+        ], $this->guestLocale());
     }
 
     public function toMail(object $notifiable): MailMessage
     {
+        $l = $this->guestLocale();
+
         return (new MailMessage)
-            ->subject("{$this->business} — order #{$this->order['number']}")
+            ->subject(trans('guest.order.subject', ['business' => $this->business, 'number' => (string) $this->order['number']], $l))
+            ->greeting(trans('guest.mail.greeting', [], $l))
             ->line($this->toText())
-            ->action($this->order['locale'] === 'hi' ? 'ऑर्डर देखें' : 'View your order', $this->trackUrl);
+            ->action(trans('guest.order.button', [], $l), $this->trackUrl)
+            ->salutation(trans('guest.mail.salutation', ['business' => $this->business], $l));
+    }
+
+    private function guestLocale(): string
+    {
+        return Locale::guest($this->order['locale'] ?? null);
     }
 }

@@ -17,6 +17,10 @@ return [
 
     'default_timezone' => 'Asia/Kolkata',
 
+    // Languages guests can use (same codes as the frontend's LANGUAGE_CODES). Guest messages
+    // come from lang/<code>/guest.php; anything else falls back to English.
+    'languages' => ['en', 'hi', 'bn', 'mr', 'te', 'ta', 'gu', 'ur', 'kn', 'or', 'ml', 'pa'],
+
     // New businesses get a free trial of this plan.
     'trial' => [
         'plan' => 'growth',

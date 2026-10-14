@@ -23,7 +23,7 @@ return [
     'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     'allowed_origins' => $exact,
     'allowed_origins_patterns' => $patterns,
-    'allowed_headers' => ['Content-Type', 'Accept', 'Authorization', 'X-Requested-With', 'X-Tenant-Host', 'Accept-Language', 'X-Guest-Token'],
+    'allowed_headers' => ['Content-Type', 'Accept', 'Authorization', 'X-Requested-With', 'X-Tenant-Host', 'X-Locale', 'Accept-Language', 'X-Guest-Token'],
     'exposed_headers' => ['Retry-After'],
     'max_age' => 3600,
     'supports_credentials' => false,

@@ -6,7 +6,13 @@
  * to from the host the visitor is on. Because the API may live on another
  * origin (or behind the dev proxy, which rewrites Host), we always send the
  * page's host in X-Tenant-Host.
+ *
+ * X-Locale carries the visitor's language, so guest messages (order updates,
+ * booking confirmations) go out in the language they used on the site.
  */
+
+import i18n from 'i18next';
+import { languageCode } from '@/i18n/locale';
 
 const ROOT = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 export const API_BASE = `${ROOT}/api/v1`;
@@ -78,6 +84,7 @@ export async function request<T>(path: string, { method = 'GET', body, params, s
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-Tenant-Host': window.location.host,
+    'X-Locale': languageCode(i18n.language),
     ...extra,
   };
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
