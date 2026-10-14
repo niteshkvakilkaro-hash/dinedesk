@@ -36,7 +36,7 @@ class OrderLifecycleTest extends OrderingTestCase
 
         // Staff with orders.view get an in-app alert; the customer an email (prefs default to email).
         Notification::assertSentTo([$owner, $waiter, $kitchen], NewOrderForStaff::class);
-        Notification::assertSentTo(new AnonymousNotifiable(), OrderMessage::class, fn ($n, $channels, $notifiable) => $n->kind === 'placed' && $notifiable->routes['mail'] === 'asha@example.com' && str_contains($n->toText(), '#1001'));
+        Notification::assertSentTo(new AnonymousNotifiable, OrderMessage::class, fn ($n, $channels, $notifiable) => $n->kind === 'placed' && $notifiable->routes['mail'] === 'asha@example.com' && str_contains($n->toText(), '#1001'));
 
         // Tracking needs the private token.
         $this->getJson("/api/v1/site/orders/{$id}", $this->site())->assertNotFound();
@@ -58,8 +58,8 @@ class OrderLifecycleTest extends OrderingTestCase
         $this->getJson("/api/v1/site/orders/{$id}?t={$token}", $this->site())
             ->assertJsonPath('data.status', 'completed')
             ->assertJsonCount(5, 'data.timeline');
-        Notification::assertSentTo(new AnonymousNotifiable(), OrderMessage::class, fn ($n) => $n->kind === 'ready_takeaway');
-        Notification::assertSentTo(new AnonymousNotifiable(), OrderMessage::class, fn ($n) => $n->kind === 'completed');
+        Notification::assertSentTo(new AnonymousNotifiable, OrderMessage::class, fn ($n) => $n->kind === 'ready_takeaway');
+        Notification::assertSentTo(new AnonymousNotifiable, OrderMessage::class, fn ($n) => $n->kind === 'completed');
 
         // Second order gets the next number.
         $this->postJson('/api/v1/site/orders', $this->orderPayload(), $this->site())->assertJsonPath('data.order.number', 1002);
@@ -86,7 +86,7 @@ class OrderLifecycleTest extends OrderingTestCase
         $this->postJson("/api/v1/tenant/orders/{$internal}/status", ['status' => 'cancelled'])->assertStatus(422)->assertJsonPath('meta.code', 'reason_required');
         $this->postJson("/api/v1/tenant/orders/{$internal}/status", ['status' => 'cancelled', 'note' => 'Kitchen closed early'])->assertOk()->assertJsonPath('data.cancel_reason', 'Kitchen closed early');
         $this->assertDatabaseHas('audit_logs', ['tenant_id' => $this->tenant->id, 'action' => 'order.cancelled']);
-        Notification::assertSentTo(new AnonymousNotifiable(), OrderMessage::class, fn ($n) => $n->kind === 'cancelled' && str_contains($n->toText(), 'Kitchen closed early'));
+        Notification::assertSentTo(new AnonymousNotifiable, OrderMessage::class, fn ($n) => $n->kind === 'cancelled' && str_contains($n->toText(), 'Kitchen closed early'));
     }
 
     public function test_ordering_rules_paused_types_and_opening_hours(): void

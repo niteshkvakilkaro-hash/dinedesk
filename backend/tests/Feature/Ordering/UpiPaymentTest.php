@@ -3,6 +3,7 @@
 namespace Tests\Feature\Ordering;
 
 use App\Modules\Audit\Models\AuditLog;
+use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Services\OrderingSettings;
 
 /** Paying the restaurant's own UPI ID: offered once set up, reference from the guest, confirmed by staff. */
@@ -63,7 +64,7 @@ class UpiPaymentTest extends OrderingTestCase
             ->assertJsonPath('data.payment_status', 'pending')->assertJsonPath('data.payment_reference', '412345678901');
 
         $owner = $this->ownerOf($this->tenant);
-        $internal = $this->asTenant(fn () => \App\Modules\Ordering\Models\Order::where('public_id', $id)->value('id'));
+        $internal = $this->asTenant(fn () => Order::where('public_id', $id)->value('id'));
         $this->actingAsUser($owner)->getJson("/api/v1/tenant/orders/{$internal}")->assertJsonPath('data.payment_reference', '412345678901');
         $this->postJson("/api/v1/tenant/orders/{$internal}/upi-received")->assertOk()->assertJsonPath('data.payment_status', 'paid');
         $this->postJson("/api/v1/tenant/orders/{$internal}/upi-received")->assertStatus(422);
@@ -76,7 +77,7 @@ class UpiPaymentTest extends OrderingTestCase
     public function test_completing_an_upi_order_settles_it_and_waiters_cannot_confirm(): void
     {
         $this->enableUpi();
-        $internal = $this->asTenant(fn () => \App\Modules\Ordering\Models\Order::where('public_id', $this->place()['order']['id'])->value('id'));
+        $internal = $this->asTenant(fn () => Order::where('public_id', $this->place()['order']['id'])->value('id'));
 
         $this->actingAsUser($this->staff($this->tenant, 'kitchen'))->postJson("/api/v1/tenant/orders/{$internal}/upi-received")->assertForbidden();
         $owner = $this->ownerOf($this->tenant);

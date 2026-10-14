@@ -3,8 +3,8 @@
 namespace App\Modules\Kitchen\Services;
 
 use App\Models\User;
-use App\Modules\Kitchen\Models\Kot;
 use App\Modules\Inventory\Services\Stock;
+use App\Modules\Kitchen\Models\Kot;
 use App\Modules\Kitchen\Models\KotItem;
 use App\Modules\Menu\Models\MenuCategory;
 use App\Modules\Menu\Models\MenuItem;

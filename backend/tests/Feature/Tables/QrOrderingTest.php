@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Tables;
 
+use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Services\OrderingSettings;
+use App\Modules\Plans\Models\Plan;
 use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tables\Models\TableRequest;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
 use Tests\Feature\Ordering\OrderingTestCase;
 
 /** QR table ordering: running table bills, waiter / bill requests and settling. */
@@ -27,7 +30,7 @@ class QrOrderingTest extends OrderingTestCase
         return $this->asTenant(fn () => DiningTable::where('label', $label)->value('qr_token'));
     }
 
-    private function tableOrder(string $token, string $name, array $items): \Illuminate\Testing\TestResponse
+    private function tableOrder(string $token, string $name, array $items): TestResponse
     {
         return $this->postJson('/api/v1/site/orders', [
             'type' => 'dine_in', 'payment_method' => 'counter', 'table_token' => $token,
@@ -80,7 +83,7 @@ class QrOrderingTest extends OrderingTestCase
         $this->actingAsUser($waiter)->postJson("/api/v1/tenant/tables/sessions/{$sessionId}/close", ['payment_mode' => 'upi'])->assertOk();
         $this->actingAsUser($waiter)->postJson("/api/v1/tenant/tables/sessions/{$sessionId}/close", ['payment_mode' => 'upi'])->assertStatus(422);
         $this->assertDatabaseHas('table_sessions', ['id' => $sessionId, 'status' => 'closed', 'payment_mode' => 'upi']);
-        $this->assertSame(2, $this->asTenant(fn () => \App\Modules\Ordering\Models\Order::where('status', 'completed')->where('payment_status', 'paid')->count()));
+        $this->assertSame(2, $this->asTenant(fn () => Order::where('status', 'completed')->where('payment_status', 'paid')->count()));
         // Settled: the table needs cleaning, then it is free.
         $live = $this->actingAsUser($waiter)->getJson('/api/v1/tenant/tables/live')->assertJsonPath('data.tables.0.state', 'cleaning')->assertJsonCount(0, 'data.tables.0.requests');
         $this->actingAsUser($waiter)->postJson('/api/v1/tenant/tables/'.$live->json('data.tables.0.id').'/clean')->assertOk();
@@ -135,7 +138,7 @@ class QrOrderingTest extends OrderingTestCase
         $this->actingAsUser($this->ownerOf($other))->getJson('/api/v1/tenant/tables')->assertJsonCount(0, 'data.tables');
 
         // QR ordering is a Growth feature.
-        $this->tenant->update(['plan_id' => \App\Modules\Plans\Models\Plan::where('code', 'starter')->value('id')]);
+        $this->tenant->update(['plan_id' => Plan::where('code', 'starter')->value('id')]);
         $this->app->forgetScopedInstances(); // a new request in production
         $this->app['auth']->forgetGuards();
         $this->getJson("/api/v1/site/tables/{$token}", $this->site())->assertForbidden();

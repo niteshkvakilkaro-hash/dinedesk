@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Platform;
 
+use App\Modules\Plans\Models\Subscription;
 use Tests\TestCase;
 
 class SuperAdminTest extends TestCase
@@ -88,7 +89,7 @@ class SuperAdminTest extends TestCase
     {
         $t = $this->business('Alpha Cafe');
         $this->admin()->putJson('/api/v1/platform/plans/growth', ['price_monthly' => 1999, 'price_yearly' => 19990])->assertOk();
-        \App\Modules\Plans\Models\Subscription::withoutTenancy()->where('tenant_id', $t->id)->update(['status' => 'active', 'billing_cycle' => 'yearly', 'provider_subscription_id' => 'sub_TEST']);
+        Subscription::withoutTenancy()->where('tenant_id', $t->id)->update(['status' => 'active', 'billing_cycle' => 'yearly', 'provider_subscription_id' => 'sub_TEST']);
 
         $this->getJson('/api/v1/platform/tenants')->assertJsonPath('data.0.mrr', 1665.83)->assertJsonPath('meta.summary.mrr', 1665.83);
     }

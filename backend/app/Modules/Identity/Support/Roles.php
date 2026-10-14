@@ -14,11 +14,17 @@ use Spatie\Permission\PermissionRegistrar;
 final class Roles
 {
     public const OWNER = 'owner';
+
     public const MANAGER = 'manager';
+
     public const CASHIER = 'cashier';
+
     public const WAITER = 'waiter';
+
     public const KITCHEN = 'kitchen';
+
     public const FRONT_DESK = 'front_desk';
+
     public const HOUSEKEEPING = 'housekeeping';
 
     public const ALL = [self::OWNER, self::MANAGER, self::CASHIER, self::WAITER, self::KITCHEN, self::FRONT_DESK, self::HOUSEKEEPING];

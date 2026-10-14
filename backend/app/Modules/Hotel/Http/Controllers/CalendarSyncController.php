@@ -9,6 +9,7 @@ use App\Modules\Hotel\Models\RoomType;
 use App\Modules\Hotel\Services\CalendarSync;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Support\TenantContext;
+use App\Support\ApiException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -54,7 +55,7 @@ class CalendarSyncController extends Controller
         try {
             $n = $this->sync->import($this->context->require(), $feed);
             $message = "Calendar link added: {$n} booking(s) from {$feed->name} now hold a room.";
-        } catch (\App\Support\ApiException $e) {
+        } catch (ApiException $e) {
             $message = "Calendar link added, but it could not be read yet: {$e->getMessage()}";
         }
 
@@ -77,7 +78,7 @@ class CalendarSyncController extends Controller
         foreach (RoomCalendarFeed::where('room_type_id', $type->id)->get() as $feed) {
             try {
                 $this->sync->import($this->context->require(), $feed);
-            } catch (\App\Support\ApiException) {
+            } catch (ApiException) {
                 $problems++;
             }
         }

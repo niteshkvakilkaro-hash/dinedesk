@@ -4,7 +4,6 @@ namespace Tests\Feature\Ordering;
 
 use App\Modules\Accounts\Models\GuestAccount;
 use App\Modules\Ordering\Models\Customer;
-use Illuminate\Support\Facades\Cache;
 
 /** Guests sign in on the website with phone + SMS code to see their orders anywhere and keep addresses. */
 class GuestAccountTest extends OrderingTestCase

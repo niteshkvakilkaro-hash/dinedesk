@@ -27,6 +27,13 @@ info:
     Dashboard endpoints (`/tenant/*`) always act on the signed-in user's own business.
 
     **Auth.** Sanctum bearer tokens: `Authorization: Bearer <token>`.
+
+    **Language.** The SPA sends the language the person is using in `X-Locale` (`ta`, `bn-IN` ...;
+    see the `Locale` parameter). It is optional on every request and only read where a message is
+    sent or an account is made: guest orders, table / room / tiffin bookings and banquet enquiries
+    (their SMS / WhatsApp / email updates), sign-up (the account's language) and adding a staff
+    member (their first language). Unknown or missing values mean English. Staff alerts and
+    owner messages use each recipient's own account language.
 servers:
   - url: http://localhost:8010/api/v1
     description: Local development
@@ -48,6 +55,10 @@ tags:
   - name: Live updates
   - name: Plans
   - name: Platform (super admin)
+  - name: Account
+  - name: Referrals
+  - name: Directory (app)
+  - name: Alerts (dashboard)
 components:
   securitySchemes:
     bearer:
@@ -60,7 +71,58 @@ components:
       required: false
       description: Host of the page the visitor is on, e.g. `haveli-demo.localhost:5173`.
       schema: { type: string }
+    Locale:
+      name: X-Locale
+      in: header
+      required: false
+      description: 'Language of the person sending the request: one of en hi bn mr te ta gu ur kn or ml pa, a region suffix is ignored (`bn-IN` → `bn`). Anything else is English.'
+      schema: { type: string, example: ta }
   schemas:
+    Subscription:
+      type: [object, 'null']
+      description: |
+        The business's current subscription (a branch shows its main business's).
+        trialing → (trial ends) past_due + grace → read-only;
+        pending (checkout started) → active → (renewal) active;
+        during a trial: pending → scheduled (authorised, first charge when the trial ends) → active.
+      properties:
+        status: { type: string, enum: [trialing, pending, scheduled, active, past_due, halted, cancelled, expired] }
+        plan: { type: object, properties: { code: { type: string }, name: { type: string } } }
+        billing_cycle: { type: [string, 'null'], enum: [monthly, yearly, null] }
+        trial_ends_at: { type: [string, 'null'], format: date-time }
+        starts_at: { type: [string, 'null'], format: date-time, description: 'Only while `scheduled`: when the first charge (and the paid plan) starts — the end of the trial' }
+        current_period_ends_at: { type: [string, 'null'], format: date-time }
+        grace_ends_at: { type: [string, 'null'], format: date-time }
+        cancel_at_period_end: { type: boolean }
+        scheduled_plan: { type: [object, 'null'], description: 'A downgrade / cycle change waiting for the next period: { code, name }' }
+        paid: { type: boolean }
+    DirectoryPlace:
+      type: object
+      description: Only what the business's own public website already shows.
+      properties:
+        name: { type: string }
+        slug: { type: string }
+        host: { type: string, example: the-hungry-haveli.dinedesk.in, description: 'primary custom domain, else the subdomain' }
+        url: { type: string, example: 'https://the-hungry-haveli.dinedesk.in' }
+        business_type: { type: string, enum: [restaurant, cafe, cloud_kitchen, hotel] }
+        city: { type: [string, 'null'] }
+        logo: { type: [object, 'null'], description: '{ src, srcset, width, height }' }
+        cover: { type: [object, 'null'], description: '{ src, srcset, width, height }' }
+        is_open: { type: [boolean, 'null'], description: 'Open right now (opening hours and holidays, business timezone); null when no hours are set' }
+        is_demo: { type: boolean }
+    TranslationEntry:
+      type: object
+      description: One text of the owner's in another site language.
+      properties:
+        key: { type: string, example: 'item:12:name', description: '<type>:<id or position>:<field>' }
+        group: { type: string, enum: [menu, rooms, banners, website] }
+        type: { type: string, enum: [category, item, variant, group, addon, room, banner, site, milestone, seo] }
+        field: { type: string, enum: [name, description, title, text, tagline, about] }
+        label: { type: [string, 'null'], description: 'Context: the section of a dish, the dish of a size, the group of an add-on, the year of a milestone' }
+        source: { type: string, description: The English text }
+        hi: { type: [string, 'null'], description: 'The Hindi text, when there is one' }
+        value: { type: string, description: 'The text in this language ("" = not translated yet)' }
+        max: { type: integer, description: Longest allowed text }
     Envelope:
       type: object
       properties:
@@ -107,8 +169,11 @@ components:
             subscription:
               type: [object, 'null']
               properties:
-                status: { type: string }
+                status: { type: string, description: 'See Subscription; `scheduled` = a plan paid for during the trial, starting when the trial ends' }
                 trial_ends_at: { type: [string, 'null'], format: date-time }
+                grace_ends_at: { type: [string, 'null'], format: date-time }
+                current_period_ends_at: { type: [string, 'null'], format: date-time }
+                cancel_at_period_end: { type: boolean }
         role: { type: [string, 'null'], enum: [owner, manager, cashier, waiter, kitchen, front_desk, null] }
         permissions: { type: array, items: { type: string } }
         features: { type: object, additionalProperties: { type: boolean } }
@@ -244,7 +309,8 @@ paths:
     post:
       tags: [Auth]
       summary: Sign up with email (onboarding step 1)
-      description: 10 requests/hour per IP.
+      description: 10 requests/hour per IP. The account's language comes from `X-Locale`.
+      parameters: [{ $ref: '#/components/parameters/Locale' }]
       requestBody:
         required: true
         content:
@@ -298,7 +364,8 @@ paths:
     post:
       tags: [Auth]
       summary: Verify the code; signs in, or signs up when `name` is given for a new number
-      description: Codes expire after 10 minutes and lock after 5 wrong attempts. A code is consumed only on success.
+      description: Codes expire after 10 minutes and lock after 5 wrong attempts. A code is consumed only on success. A new account gets the language in `X-Locale`.
+      parameters: [{ $ref: '#/components/parameters/Locale' }]
       requestBody:
         content:
           application/json:
@@ -346,6 +413,7 @@ paths:
                 city: { type: string }
                 gstin: { type: [string, 'null'], example: 08ABCDE1234F1Z5 }
                 opening_hours: { $ref: '#/components/schemas/OpeningHours' }
+                referral_code: { type: [string, 'null'], maxLength: 20, description: 'From the ?ref= sign-up link (see /referrals/{code}); invalid, demo, branch and own codes are ignored without an error' }
       responses:
         '201': { description: 'Created; returns the new session', content: { application/json: { schema: { $ref: '#/components/schemas/Session' } } } }
         '409': { description: Already has a business (`already_onboarded`) }
@@ -379,10 +447,12 @@ paths:
     post:
       tags: [Onboarding]
       security: [{ bearer: [] }]
-      summary: Step 6 — start with a sample menu (flagged is_demo, shown as "Demo") or skip
-      requestBody: { content: { application/json: { schema: { type: object, required: [mode], properties: { mode: { type: string, enum: [sample, skip] } } } } } }
+      summary: Step 6 — start with a sample menu (flagged is_demo, shown as "Demo"), keep the dishes already imported, or skip
+      description: '`imported`: the owner already added their own dishes (e.g. read from photos of their printed menu with the AI); needs at least one dish (audited `onboarding.menu_imported`).'
+      requestBody: { content: { application/json: { schema: { type: object, required: [mode], properties: { mode: { type: string, enum: [sample, imported, skip] } } } } } }
       responses:
         '200': { description: Session (step ≥ 7). Idempotent; a sample is never added on top of an existing menu. }
+        '422': { description: '`menu_empty` (errors.mode) for `imported` with no dishes' }
   /onboarding/subdomain:
     get:
       tags: [Onboarding]
@@ -478,6 +548,7 @@ paths:
       tags: [Business (dashboard)]
       security: [{ bearer: [] }]
       summary: Add a team member
+      parameters: [{ $ref: '#/components/parameters/Locale' }]
       description: Either `phone` (OTP sign-in) or `email` + `password`. Enforces the plan's `staff_accounts` limit (`plan_limit`).
       requestBody:
         content:
@@ -520,7 +591,7 @@ paths:
       security: [{ bearer: [] }]
       summary: Business details (permission `business.manage`)
       responses:
-        '200': { description: OK }
+        '200': { description: 'name, business_type, city, gstin, timezone, opening_hours, holidays, get_started_hidden' }
     put:
       tags: [Business (dashboard)]
       security: [{ bearer: [] }]
@@ -540,6 +611,14 @@ paths:
       responses:
         '200': { description: Saved }
         '403': { description: '`tenant_read_only` while billing is unresolved' }
+  /tenant/business/get-started:
+    put:
+      tags: [Business (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Hide or show the dashboard's "Get started" checklist (for the whole business, every owner and device)
+      requestBody: { content: { application/json: { schema: { type: object, required: [hidden], properties: { hidden: { type: boolean } } } } } }
+      responses:
+        '200': { description: '{ get_started_hidden }' }
   /tenant/website:
     get:
       tags: [Website (dashboard)]
@@ -558,6 +637,16 @@ paths:
                   warnings: { type: array, items: { $ref: '#/components/schemas/ContrastWarning' } }
                   themes: { type: array, items: { type: object }, description: catalogue with default colours }
                   site_url: { type: string }
+                  directory_listed: { type: boolean, description: 'Shown in the DineDesk app''s place finder (default true)' }
+  /tenant/website/directory:
+    put:
+      tags: [Website (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Show or hide this business in the DineDesk app's place finder (`/directory`); on by default
+      description: Hidden businesses still open from their own QR codes and address (`/directory/place`). Audited (`website.directory_on` / `website.directory_off`).
+      requestBody: { content: { application/json: { schema: { type: object, required: [listed], properties: { listed: { type: boolean } } } } } }
+      responses:
+        '200': { description: '{ listed }' }
   /tenant/website/theme:
     put:
       tags: [Website (dashboard)]
@@ -675,8 +764,8 @@ paths:
     post:
       tags: [Ordering (public)]
       summary: Place an order (rate-limited per visitor and per phone)
-      description: 'Checks: ordering switched on, type and payment method allowed, open now (or a valid scheduled time within hours and the window), delivery zone and minimum. Pay-later orders alert staff immediately; online orders once paid.'
-      parameters: [{ $ref: '#/components/parameters/TenantHost' }]
+      description: 'Checks: ordering switched on, type and payment method allowed, open now (or a valid scheduled time within hours and the window), delivery zone and minimum. Pay-later orders alert staff immediately; online orders once paid. The guest''s updates are sent in the `X-Locale` language.'
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }, { $ref: '#/components/parameters/Locale' }]
       requestBody:
         content:
           application/json:
@@ -969,8 +1058,8 @@ paths:
     post:
       tags: [Reservations (public)]
       summary: Book a table (pending until staff confirm, or confirmed straight away with auto-confirm)
-      description: Rate limited per visitor and per phone. The smallest free table that fits is held when the business has tables.
-      parameters: [{ $ref: '#/components/parameters/TenantHost' }]
+      description: Rate limited per visitor and per phone. The smallest free table that fits is held when the business has tables. The guest's updates are sent in the `X-Locale` language.
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }, { $ref: '#/components/parameters/Locale' }]
       requestBody:
         content:
           application/json:
@@ -1668,6 +1757,7 @@ paths:
     post:
       tags: [Hotel (public)]
       summary: 'Book a room type; never oversold. Returns the private token and, with an online advance, a Razorpay order (the room is held until it is paid)'
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }, { $ref: '#/components/parameters/Locale' }]
       requestBody: { content: { application/json: { schema: { type: object, required: [room_type_id, check_in, check_out, adults, name, phone], properties: { room_type_id: { type: integer }, check_in: { type: string, format: date }, check_out: { type: string, format: date }, adults: { type: integer }, children: { type: integer }, name: { type: string }, phone: { type: string }, email: { type: [string, 'null'] }, arrival_time: { type: [string, 'null'] }, requests: { type: [string, 'null'] }, company: { type: [string, 'null'] }, gstin: { type: [string, 'null'] } } } } } }
       responses:
         '201': { description: '{ booking, token, razorpay }' }
@@ -1715,6 +1805,7 @@ paths:
     post:
       tags: [Hotel (public)]
       summary: 'Event / banquet enquiry (when the hotel takes them online)'
+      parameters: [{ $ref: '#/components/parameters/TenantHost' }, { $ref: '#/components/parameters/Locale' }]
       responses:
         '201': { description: Saved }
   /tenant/hotel/today:
@@ -2010,23 +2101,43 @@ paths:
       security: [{ bearer: [] }]
       summary: 'Plan, trial / renewal / grace dates, plans with prices (GST shown), usage against limits, invoices. Works while read-only'
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  business_status: { type: string }
+                  is_branch: { type: boolean }
+                  main_business: { type: [string, 'null'] }
+                  subscription: { $ref: '#/components/schemas/Subscription' }
+                  payments_ready: { type: boolean }
+                  gst_rate: { type: number }
+                  grace_days: { type: integer }
+                  plans: { type: array, items: { type: object, description: 'code, name, description, price_monthly, price_yearly, charge_monthly, charge_yearly (GST included), features, limits' } }
+                  catalogue: { type: array, items: { type: string } }
+                  usage: { type: object, properties: { menu_items: { type: integer }, staff_accounts: { type: integer }, branches: { type: integer } } }
+                  limits: { type: object, additionalProperties: { type: [integer, 'null'] } }
+                  invoices: { type: array, items: { type: object } }
   /tenant/subscription/checkout:
     post:
       tags: [Billing (owner)]
       security: [{ bearer: [] }]
       summary: 'Start a Razorpay subscription for a plan and cycle; returns what Razorpay Checkout needs'
+      description: 'Still on a trial: the first charge is set for the end of the trial (Razorpay `start_at`), so no trial days are lost; once authorised the subscription is `scheduled` until then. An unfinished earlier checkout is replaced.'
       requestBody: { content: { application/json: { schema: { type: object, required: [plan, cycle], properties: { plan: { type: string }, cycle: { type: string, enum: [monthly, yearly] } } } } } }
       responses:
-        '200': { description: '{ key_id, subscription_id, amount, ... }' }
-        '422': { description: '`already_subscribed` / `not_priced` / `billing_unavailable` / `branch_billing`' }
+        '200': { description: '{ key_id, subscription_id, name, description, amount (paise), prefill, subscription (Subscription) }' }
+        '422': { description: '`already_subscribed` / `already_scheduled` / `not_priced` / `billing_unavailable` / `branch_billing`' }
   /tenant/subscription/verify:
     post:
       tags: [Billing (owner)]
       security: [{ bearer: [] }]
-      summary: 'Checkout success (signature HMAC(payment_id|subscription_id)) → active; the webhook does the same'
+      summary: 'Checkout success (signature HMAC(payment_id|subscription_id)) → active, or `scheduled` when paid during the trial (first charge at the trial end); the webhook does the same'
+      requestBody: { content: { application/json: { schema: { type: object, required: [razorpay_payment_id, razorpay_subscription_id, razorpay_signature], properties: { razorpay_payment_id: { type: string }, razorpay_subscription_id: { type: string }, razorpay_signature: { type: string } } } } } }
       responses:
-        '200': { description: OK }
+        '200': { description: Subscription, content: { application/json: { schema: { $ref: '#/components/schemas/Subscription' } } } }
         '422': { description: '`payment_unverified`' }
   /tenant/subscription/change:
     post:
@@ -2039,7 +2150,7 @@ paths:
     post:
       tags: [Billing (owner)]
       security: [{ bearer: [] }]
-      summary: Stop renewing (the plan stays until the end of the paid period)
+      summary: 'Stop renewing (the plan stays until the end of the paid period). A `scheduled` plan that has not started is dropped at once (nothing was charged) and the business is back on its plain trial'
       responses:
         '200': { description: OK }
   /tenant/subscription/invoices/{id}:
@@ -2307,3 +2418,271 @@ paths:
                 limits: { type: object, additionalProperties: { type: [integer, 'null'] } }
                 is_active: { type: boolean }
       responses: { '200': { description: Saved } }
+  /tenant/translations:
+    get:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Menu → Languages: the owner''s own texts with their translation in one site language (permission `menu.manage`)'
+      description: 'Menu sections, dishes, sizes, add-on groups and add-ons, in menu order; room types (feature `hotel` + `rooms.setup`), offer banners (feature `coupons` + `marketing.manage`) and website text — tagline, about, milestones, search description (feature `website` + `theme.manage`) only for people who may edit those. English and Hindi are edited in the normal editors, so `lang` is one of the other ten.'
+      parameters:
+        - { name: lang, in: query, required: true, schema: { type: string, enum: [bn, mr, te, ta, gu, ur, kn, or, ml, pa] } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lang: { type: string }
+                  entries: { type: array, items: { $ref: '#/components/schemas/TranslationEntry' } }
+        '422': { description: Unknown `lang` }
+    put:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Save translations (an empty text removes that translation)
+      description: 'Only keys this person may translate are accepted; each text is limited to its entry''s `max`. Audited (`menu.translations_saved`) when something changed.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lang, values]
+              properties:
+                lang: { type: string, enum: [bn, mr, te, ta, gu, ur, kn, or, ml, pa] }
+                values: { type: object, maxProperties: 2000, additionalProperties: { type: [string, 'null'] }, example: { 'item:12:name': 'পনির টিক্কা', 'item:12:description': '' } }
+      responses:
+        '200': { description: 'Saved; the same body as GET (lang, entries)' }
+        '422': { description: 'Unknown key, or too long (`errors["values.<key>"]`)' }
+  /tenant/translations/ai:
+    post:
+      tags: [Menu (dashboard)]
+      security: [{ bearer: [] }]
+      summary: AI drafts for the owner to check; nothing is saved (save them with PUT /tenant/translations)
+      description: 'Rate limited (`ai`). Brand names, numbers and prices are kept; dish names are written as they are said. Keys the AI did not return are simply missing from `suggestions`.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lang, keys]
+              properties:
+                lang: { type: string, enum: [bn, mr, te, ta, gu, ur, kn, or, ml, pa] }
+                keys: { type: array, minItems: 1, maxItems: 120, items: { type: string, maxLength: 60 }, description: distinct entry keys }
+      responses:
+        '200': { description: '{ suggestions: { "<key>": "<text>" } }' }
+        '422': { description: '`nothing_to_translate`, `ai_refused`, `ai_too_long` or validation' }
+        '502': { description: '`ai_failed`' }
+        '503': { description: '`ai_not_configured` (no ANTHROPIC_API_KEY on the server)' }
+  /tenant/reports/daily-summary:
+    get:
+      tags: [Reports (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'The owner''s morning summary of yesterday on WhatsApp and/or email: settings and a preview (permission `reports.view`)'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  settings: { type: object, properties: { enabled: { type: boolean, description: off by default }, whatsapp: { type: boolean }, email: { type: boolean }, hour: { type: integer, enum: [7, 8, 9, 10, 11] } } }
+                  hours: { type: array, items: { type: integer }, example: [7, 8, 9, 10, 11] }
+                  timezone: { type: string, example: Asia/Kolkata }
+                  last_sent_on: { type: [string, 'null'], format: date, description: business-local date }
+                  owner: { type: [object, 'null'], description: '{ name, phone, email, locale } — who receives it, in their dashboard language (for a branch: the main business''s owner)' }
+                  preview: { type: string, description: 'Tomorrow''s message from yesterday''s real numbers' }
+    put:
+      tags: [Reports (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Save the summary settings (audited `daily_summary.updated`)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled, whatsapp, email, hour]
+              properties:
+                enabled: { type: boolean }
+                whatsapp: { type: boolean }
+                email: { type: boolean }
+                hour: { type: integer, enum: [7, 8, 9, 10, 11], description: business-local hour }
+      responses:
+        '200': { description: 'Saved; the same body as GET' }
+        '422': { description: 'Validation; switched on with neither WhatsApp nor email (`errors.whatsapp`)' }
+  /tenant/reports/daily-summary/test:
+    post:
+      tags: [Reports (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'Send me a test now: today so far, to the owner, on the channels chosen (5 per hour per person)'
+      responses:
+        '200': { description: '{ channels: ["whatsapp" | "mail"] }' }
+        '422': { description: '`no_channel`: the owner has no mobile number / email for the channels chosen' }
+        '429': { description: Too many tests this hour }
+  /tenant/referrals:
+    get:
+      tags: [Referrals]
+      security: [{ bearer: [] }]
+      summary: 'Billing → Refer a business (permission `billing.manage`; a branch shows its main business). Works while read-only'
+      description: 'Both businesses get `reward_days` free days once, when the referred business makes its first subscription payment. Free days are added only where nothing renews on Razorpay (a trial, or a plan that will not renew); otherwise they wait as `pending` until they can be added or the super admin applies them. Other businesses: name and progress only.'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available: { type: boolean, description: false for demo businesses }
+                  code: { type: [string, 'null'], example: K7MQ4XRP, description: '8 characters, no look-alikes (0 O 1 I); the sign-up link is ?ref=<code>' }
+                  reward_days: { type: integer, example: 30 }
+                  stats: { type: object, properties: { signed_up: { type: integer }, paying: { type: integer }, days_earned: { type: integer }, days_pending: { type: integer } } }
+                  businesses: { type: array, maxItems: 50, items: { type: object, properties: { name: { type: string }, status: { type: string, enum: [signed_up, paying] }, joined_at: { type: string, format: date-time } } } }
+                  rewards:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        role: { type: string, enum: [referrer, referred] }
+                        days: { type: integer }
+                        status: { type: string, enum: [pending, applied] }
+                        applied_to: { type: [string, 'null'], enum: [trial, period, manual, null] }
+                        applied_at: { type: [string, 'null'], format: date-time }
+                        new_end: { type: [string, 'null'], format: date-time }
+                        business: { type: [string, 'null'] }
+                        created_at: { type: string, format: date-time }
+                  referred_by: { type: [string, 'null'], description: name of the business that referred this one }
+  /referrals/{code}:
+    get:
+      tags: [Referrals]
+      summary: 'Sign-up page: "Invited by <business>" (name only; 20 per minute per IP)'
+      description: 'The code is case-insensitive and may contain spaces / hyphens. Sign-up passes it on as `referral_code` in POST /onboarding/business; invalid, demo, branch and own codes are ignored there.'
+      parameters: [{ name: code, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: '{ name }' }
+        '404': { description: '`not_found`: unknown, demo or suspended' }
+        '429': { description: Too many tries }
+  /platform/tenants/{publicId}/referral-rewards/{rewardId}/applied:
+    post:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: 'A pending referral credit was given another way (refund, Razorpay offer ...): mark it applied (audited)'
+      parameters:
+        - { name: publicId, in: path, required: true, schema: { type: string } }
+        - { name: rewardId, in: path, required: true, schema: { type: integer } }
+      requestBody: { content: { application/json: { schema: { type: object, required: [note], properties: { note: { type: string, minLength: 5, maxLength: 255 } } } } } }
+      responses:
+        '200': { description: 'The business''s referrals as on the detail page: { code, referred_by, rewarded_at, referred[], rewards[] (with id and note) }' }
+        '404': { description: Not this business's reward }
+        '422': { description: '`already_applied`' }
+  /directory:
+    get:
+      tags: [Directory (app)]
+      summary: 'The DineDesk app''s "Find a restaurant or hotel": live, published businesses (branches too), real ones first and demos last (60 per minute per IP)'
+      description: 'Only on the platform host: a business website gets 404. Businesses that opted out (PUT /tenant/website/directory) are left out. Sorted by name.'
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 80 }, description: name or city }
+        - { name: city, in: query, schema: { type: string, maxLength: 80 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, maximum: 500 } }
+      responses:
+        '200':
+          description: '20 per page; meta = { current_page, last_page, per_page, total }'
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DirectoryPlace' } } } }
+        '404': { description: '`not_found` on a business host' }
+  /directory/place:
+    get:
+      tags: [Directory (app)]
+      summary: 'A scanned QR code or typed address: is this host a live DineDesk place? (opted-out businesses still open from their own QR codes)'
+      parameters:
+        - { name: host, in: query, required: true, schema: { type: string, maxLength: 253 }, example: the-hungry-haveli.dinedesk.in }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DirectoryPlace' } } } }
+        '404': { description: '`not_a_place`' }
+  /account:
+    patch:
+      tags: [Account]
+      security: [{ bearer: [] }]
+      summary: 'My account (anyone signed in: owner, staff or super admin): name, email, dashboard language'
+      description: 'User-level, so it works in any business status. Changing or removing the email needs `current_password` (accounts made by mobile have no password yet); the email can''t be removed while it is the only way to sign in. Audited (`account.updated`).'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 2, maxLength: 100 }
+                email: { type: [string, 'null'], format: email, maxLength: 150 }
+                locale: { type: string, enum: [en, hi, bn, mr, te, ta, gu, ur, kn, or, ml, pa], description: 'Dashboard language; staff alerts and owner messages use it too' }
+                current_password: { type: [string, 'null'] }
+      responses:
+        '200': { description: 'The new session', content: { application/json: { schema: { $ref: '#/components/schemas/Session' } } } }
+        '403': { description: '`support_session`: a super admin can''t change their own account from inside a business' }
+        '422': { description: '`wrong_password` (errors.current_password), `email_required`, email already used' }
+  /account/password:
+    put:
+      tags: [Account]
+      security: [{ bearer: [] }]
+      summary: Change the password (or set one after signing up by mobile); signs out every other device
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password, password_confirmation]
+              properties:
+                current_password: { type: [string, 'null'], description: required when the account has a password }
+                password: { type: string, description: 8+ chars with letters and numbers }
+                password_confirmation: { type: string }
+      responses:
+        '200': { description: The new session (this device stays signed in) }
+        '403': { description: '`support_session`' }
+        '422': { description: '`wrong_password` or validation' }
+  /account/phone/code:
+    post:
+      tags: [Account]
+      security: [{ bearer: [] }]
+      summary: 'Add or change the mobile number, step 1: a 6-digit code by SMS (same limits as /auth/otp/send)'
+      requestBody: { content: { application/json: { schema: { type: object, required: [phone], properties: { phone: { type: string, example: '98290 12345' } } } } } }
+      responses:
+        '200': { description: '{ expires_in, resend_in, dev_code? }' }
+        '422': { description: '`phone_unchanged` (already your verified number) or `phone_taken`' }
+        '429': { description: '`otp_wait` or rate limited' }
+  /account/phone/verify:
+    post:
+      tags: [Account]
+      security: [{ bearer: [] }]
+      summary: 'Step 2: the code saves the number as verified (audited `account.phone_changed`)'
+      requestBody: { content: { application/json: { schema: { type: object, required: [phone, code], properties: { phone: { type: string }, code: { type: string, example: '482913' } } } } } }
+      responses:
+        '200': { description: The new session }
+        '422': { description: '`otp_invalid`, `phone_taken` or `phone_unchanged`' }
+        '429': { description: '`otp_locked`' }
+  /tenant/alerts:
+    get:
+      tags: [Alerts (dashboard)]
+      security: [{ bearer: [] }]
+      summary: 'In-app alerts for the signed-in person in this business: their unread ones, newest first (max 10)'
+      description: 'Only the kinds the dashboard lists (now `referral.reward`: a business that signed up with your link started paying). The server stores plain values; the dashboard writes the text in the reader''s language. Orders, bookings and stock have their own screens and sounds.'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: string, format: uuid }
+                    kind: { type: string, enum: [referral.reward] }
+                    data: { type: object, description: 'referral.reward: { business, days, status: granted | pending, until (date-time, when granted) }' }
+                    created_at: { type: string, format: date-time }
+  /tenant/alerts/{id}/read:
+    post:
+      tags: [Alerts (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Dismiss one alert (works while read-only; someone else's id does nothing)
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { description: OK }

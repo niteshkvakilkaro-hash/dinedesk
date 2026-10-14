@@ -252,7 +252,7 @@ class ReferralRewards
         $locale = Locale::guest($owner->locale);
         $t = fn (string $key, array $replace = []) => trans("owner.referral.{$key}", $replace, $locale);
         $date = $reward->new_end ? LocalDate::format($reward->new_end, 'D MMM YYYY', $locale, $referrer->timezone) : '';
-        $url = rtrim((string) config('dinedesk.dashboard_url'), '/').'/dashboard/billing';
+        $url = rtrim((string) config('dinedesk.dashboard_url'), '/').'/dashboard/billing?open=refer';
         $lines = [
             $t('paid', ['business' => $referred->name]),
             match ($reward->status === 'applied' ? $reward->applied_to : null) {
@@ -262,6 +262,13 @@ class ReferralRewards
             },
             $t('thanks'),
         ];
-        $owner->notify(new ReferralRewardEarned($t('subject', ['business' => $referred->name, 'days' => $reward->days]), $lines, $url, $t('link', ['url' => $url])));
+        $applied = $reward->status === 'applied';
+        $owner->notify(new ReferralRewardEarned($t('subject', ['business' => $referred->name, 'days' => $reward->days]), $lines, $url, $t('link', ['url' => $url]), [
+            'tenant_id' => $referrer->id,
+            'business' => $referred->name,
+            'days' => (int) $reward->days,
+            'status' => $applied ? 'granted' : 'pending',
+            'until' => $applied ? $reward->new_end?->toIso8601String() : null,
+        ]));
     }
 }

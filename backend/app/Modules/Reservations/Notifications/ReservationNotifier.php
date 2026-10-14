@@ -21,7 +21,7 @@ class ReservationNotifier
     public function send(Reservation $r, string $kind, ?string $reason = null): void
     {
         $prefs = $this->ordering->get()['notifications'];
-        $route = new AnonymousNotifiable();
+        $route = new AnonymousNotifiable;
         $channels = [];
         if ($prefs['email'] && $r->email) {
             $route->route('mail', $r->email);

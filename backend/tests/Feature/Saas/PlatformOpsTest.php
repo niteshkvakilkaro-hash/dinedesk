@@ -5,6 +5,7 @@ namespace Tests\Feature\Saas;
 use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Domains\Services\DnsLookup;
 use App\Modules\Menu\Models\MenuItem;
+use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Plans\Models\Plan;
 use App\Modules\Plans\Models\Subscription;
 use App\Modules\Tenancy\Models\Tenant;
@@ -85,7 +86,7 @@ class PlatformOpsTest extends SaasTestCase
         $this->assertSame($b->id, $owner->fresh()->tenant_id);
         $this->actingAsUser($owner->fresh())->getJson('/api/v1/auth/me')->assertJsonPath('data.features.hotel', true);
         $this->actingAsUser($owner->fresh())->getJson('/api/v1/tenant/branches/report')->assertOk()->assertJsonCount(2, 'data.outlets');
-        $this->actingAsUser($owner->fresh())->postJson("/api/v1/tenant/subscription/checkout", ['plan' => 'pro', 'cycle' => 'monthly'])->assertStatus(422)->assertJsonPath('meta.code', 'branch_billing');
+        $this->actingAsUser($owner->fresh())->postJson('/api/v1/tenant/subscription/checkout', ['plan' => 'pro', 'cycle' => 'monthly'])->assertStatus(422)->assertJsonPath('meta.code', 'branch_billing');
         $this->actingAsUser($owner->fresh())->postJson("/api/v1/tenant/branches/{$this->tenant->public_id}/switch")->assertOk();
 
         // Someone from another business can't switch in; staff of the main business aren't in the branch.
@@ -101,7 +102,8 @@ class PlatformOpsTest extends SaasTestCase
 
     public function test_custom_domain_verified_by_dns_served_and_given_tls_only_when_verified(): void
     {
-        $dns = new class extends DnsLookup {
+        $dns = new class extends DnsLookup
+        {
             public array $answer = ['cname' => [], 'a' => []];
 
             public function records(string $host): array
@@ -143,14 +145,14 @@ class PlatformOpsTest extends SaasTestCase
         Storage::fake('local');
         $owner = $this->owner();
         $this->postJson('/api/v1/site/orders', $this->orderPayload(), $this->site())->assertCreated();
-        $this->asTenant(fn () => app(\App\Modules\Ordering\Services\OrderingSettings::class)->saveRazorpay('rzp_live_X', 'very_secret_key', 'whsec_secret'));
+        $this->asTenant(fn () => app(OrderingSettings::class)->saveRazorpay('rzp_live_X', 'very_secret_key', 'whsec_secret'));
 
         $e = $this->actingAsUser($owner)->postJson('/api/v1/tenant/exports')->assertCreated()->json('data');
         $list = $this->actingAsUser($owner)->getJson('/api/v1/tenant/exports')->assertOk()->json('data.0');
         $this->assertSame('ready', $list['status']);
         $file = $this->actingAsUser($owner)->get("/api/v1/tenant/exports/{$e['id']}")->assertOk();
         $path = $file->baseResponse->getFile()->getPathname();
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         $this->assertTrue($zip->open($path) === true);
         $names = array_map(fn ($i) => $zip->getNameIndex($i), range(0, $zip->numFiles - 1));
         $this->assertContains('data/orders.json', $names);

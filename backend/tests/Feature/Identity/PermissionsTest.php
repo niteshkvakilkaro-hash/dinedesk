@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Identity;
 
+use App\Models\User;
 use Tests\TestCase;
 
 class PermissionsTest extends TestCase
@@ -40,7 +41,7 @@ class PermissionsTest extends TestCase
         $id = $this->postJson('/api/v1/tenant/staff', ['name' => 'Ravi', 'phone' => '98111 22233', 'role' => 'waiter'], ['X-Locale' => 'hi'])
             ->assertCreated()->assertJsonPath('data.role', 'waiter')->assertJsonPath('data.phone', '+919811122233')->json('data.id');
         // New staff start in the owner's language.
-        $this->assertSame('hi', \App\Models\User::find($id)->locale);
+        $this->assertSame('hi', User::find($id)->locale);
 
         $this->postJson('/api/v1/tenant/staff', ['name' => 'Bad', 'phone' => '9811122244', 'role' => 'owner'])
             ->assertStatus(422)->assertJsonValidationErrors('role');

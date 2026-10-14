@@ -27,7 +27,7 @@ class StayNotifier
     public function send(RoomBooking $b, string $kind, ?string $reason = null): void
     {
         $prefs = $this->ordering->get()['notifications'];
-        $route = new AnonymousNotifiable();
+        $route = new AnonymousNotifiable;
         $channels = [];
         if ($prefs['email'] && $b->email) {
             $route->route('mail', $b->email);

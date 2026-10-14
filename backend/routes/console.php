@@ -1,12 +1,33 @@
 <?php
 
+use App\Modules\DataExport\Models\DataExport;
+use App\Modules\Hotel\Models\GuestDocument;
+use App\Modules\Hotel\Models\RoomBooking;
+use App\Modules\Hotel\Models\RoomCalendarFeed;
+use App\Modules\Hotel\Services\CalendarSync;
+use App\Modules\Hotel\Services\GuestDocuments;
+use App\Modules\Hotel\Services\RoomBookings;
+use App\Modules\Marketing\Services\Automations;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Services\OrderFlow;
+use App\Modules\Plans\Services\FeatureService;
+use App\Modules\Reports\Services\DailySummary;
+use App\Modules\Reservations\Models\Reservation;
+use App\Modules\Reservations\Services\Bookings;
+use App\Modules\Settings\Models\Setting;
+use App\Modules\Settings\Services\TenantSettings;
+use App\Modules\Subscriptions\Services\SubscriptionManager;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Support\TenantContext;
+use App\Modules\Tenancy\Support\TenantResolver;
+use App\Modules\Website\Http\Controllers\AndroidAppController;
+use App\Support\ApiException;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Storage;
+use Minishlink\WebPush\VAPID;
+use Symfony\Component\Process\Process;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -29,13 +50,13 @@ Schedule::command('orders:expire-unpaid')->everyFiveMinutes()->withoutOverlappin
 
 // Reminder messages for confirmed table bookings (each business sets how many hours before).
 Artisan::command('reservations:send-reminders', function (TenantContext $context) {
-    $tenantIds = \App\Modules\Reservations\Models\Reservation::withoutTenancy()
+    $tenantIds = Reservation::withoutTenancy()
         ->where('status', 'confirmed')->whereNull('reminder_sent_at')
         ->whereBetween('starts_at', [now(), now()->addHours(48)])
         ->distinct()->pluck('tenant_id');
     $total = 0;
     foreach (Tenant::whereIn('id', $tenantIds)->get() as $tenant) {
-        $total += $context->run($tenant, fn () => app(\App\Modules\Reservations\Services\Bookings::class)->sendReminders());
+        $total += $context->run($tenant, fn () => app(Bookings::class)->sendReminders());
     }
     $this->info("Sent {$total} booking reminder(s).");
 })->purpose('Remind guests of confirmed table bookings');
@@ -44,12 +65,12 @@ Schedule::command('reservations:send-reminders')->everyFiveMinutes()->withoutOve
 
 // Hotel: website bookings whose online advance never came in release their room.
 Artisan::command('hotel:expire-holds', function (TenantContext $context) {
-    $tenantIds = \App\Modules\Hotel\Models\RoomBooking::withoutTenancy()
+    $tenantIds = RoomBooking::withoutTenancy()
         ->where('status', 'pending')->whereNotNull('hold_expires_at')->where('hold_expires_at', '<', now())
         ->distinct()->pluck('tenant_id');
     $total = 0;
     foreach (Tenant::whereIn('id', $tenantIds)->get() as $tenant) {
-        $total += $context->run($tenant, fn () => app(\App\Modules\Hotel\Services\RoomBookings::class)->expireHolds());
+        $total += $context->run($tenant, fn () => app(RoomBookings::class)->expireHolds());
     }
     $this->info("Released {$total} unpaid room booking(s).");
 })->purpose('Cancel room bookings whose advance was never paid');
@@ -58,15 +79,15 @@ Schedule::command('hotel:expire-holds')->everyFiveMinutes()->withoutOverlapping(
 
 // Booking sites' calendars (iCal): their bookings hold a room here. A broken link is noted on it.
 Artisan::command('hotel:calendar-sync', function (TenantContext $context) {
-    $feeds = \App\Modules\Hotel\Models\RoomCalendarFeed::withoutTenancy()->get()->groupBy('tenant_id');
+    $feeds = RoomCalendarFeed::withoutTenancy()->get()->groupBy('tenant_id');
     $read = $failed = 0;
     foreach (Tenant::whereIn('id', $feeds->keys())->get() as $tenant) {
         $context->run($tenant, function () use ($tenant, &$read, &$failed) {
-            foreach (\App\Modules\Hotel\Models\RoomCalendarFeed::all() as $feed) {
+            foreach (RoomCalendarFeed::all() as $feed) {
                 try {
-                    app(\App\Modules\Hotel\Services\CalendarSync::class)->import($tenant, $feed);
+                    app(CalendarSync::class)->import($tenant, $feed);
                     $read++;
-                } catch (\App\Support\ApiException) {
+                } catch (ApiException) {
                     $failed++;
                 }
             }
@@ -79,11 +100,11 @@ Schedule::command('hotel:calendar-sync')->everyThirtyMinutes()->withoutOverlappi
 
 // Hotel: guest ID documents are deleted once their keep period after check-out ends.
 Artisan::command('hotel:purge-documents', function (TenantContext $context) {
-    $tenantIds = \App\Modules\Hotel\Models\GuestDocument::withoutTenancy()
+    $tenantIds = GuestDocument::withoutTenancy()
         ->where('delete_after', '<', now()->format('Y-m-d'))->distinct()->pluck('tenant_id');
     $total = 0;
     foreach (Tenant::whereIn('id', $tenantIds)->get() as $tenant) {
-        $total += $context->run($tenant, fn () => app(\App\Modules\Hotel\Services\GuestDocuments::class)->purge());
+        $total += $context->run($tenant, fn () => app(GuestDocuments::class)->purge());
     }
     $this->info("Deleted {$total} guest document(s).");
 })->purpose('Delete guest ID documents past their keep date');
@@ -92,7 +113,7 @@ Schedule::command('hotel:purge-documents')->dailyAt('03:30')->withoutOverlapping
 
 // Billing: trials and paid periods that ran out get a grace period, then read-only (hourly).
 Artisan::command('subscriptions:enforce', function () {
-    $done = app(\App\Modules\Subscriptions\Services\SubscriptionManager::class)->enforce();
+    $done = app(SubscriptionManager::class)->enforce();
     $this->info("Grace started: {$done['grace']}, made read-only: {$done['read_only']}, referral credits added: {$done['referral_credits']}.");
 })->purpose('Start grace periods and apply read-only mode for unpaid businesses');
 
@@ -101,8 +122,8 @@ Schedule::command('subscriptions:enforce')->hourly()->withoutOverlapping();
 // Data exports are kept for 7 days.
 Artisan::command('exports:purge', function () {
     $count = 0;
-    \App\Modules\DataExport\Models\DataExport::withoutTenancy()->where('expires_at', '<', now())->whereNotNull('path')->each(function ($e) use (&$count) {
-        \Illuminate\Support\Facades\Storage::disk('local')->delete($e->path);
+    DataExport::withoutTenancy()->where('expires_at', '<', now())->whereNotNull('path')->each(function ($e) use (&$count) {
+        Storage::disk('local')->delete($e->path);
         $e->update(['path' => null, 'status' => 'expired']);
         $count++;
     });
@@ -113,13 +134,13 @@ Schedule::command('exports:purge')->dailyAt('04:00');
 
 // Automatic messages (birthday, anniversary, "we miss you") for live businesses that switched them on.
 Artisan::command('marketing:automations', function (TenantContext $context) {
-    $features = app(\App\Modules\Plans\Services\FeatureService::class);
+    $features = app(FeatureService::class);
     $total = 0;
     foreach (Tenant::where('status', 'live')->where('is_demo', false)->get() as $tenant) {
         if (! $features->enabled($tenant, 'coupons')) {
             continue;
         }
-        $sent = $context->run($tenant, fn () => app(\App\Modules\Marketing\Services\Automations::class)->run($tenant));
+        $sent = $context->run($tenant, fn () => app(Automations::class)->run($tenant));
         $total += array_sum($sent);
     }
     $this->info("Sent {$total} automatic message(s).");
@@ -131,11 +152,11 @@ Schedule::command('marketing:automations')->dailyAt('10:00')->timezone('Asia/Kol
 // it on. Runs hourly; each business gets it once, at the hour it chose in its own timezone.
 Artisan::command('reports:daily-summary', function (TenantContext $context) {
     $sent = 0;
-    $tenantIds = \App\Modules\Settings\Models\Setting::withoutTenancy()->where('key', \App\Modules\Reports\Services\DailySummary::KEY)->pluck('tenant_id');
+    $tenantIds = Setting::withoutTenancy()->where('key', DailySummary::KEY)->pluck('tenant_id');
     foreach (Tenant::whereIn('id', $tenantIds)->where('status', 'live')->where('is_demo', false)->get() as $tenant) {
         try {
-            $sent += (int) $context->run($tenant, fn () => app(\App\Modules\Reports\Services\DailySummary::class)->runIfDue($tenant));
-        } catch (\Throwable $e) {
+            $sent += (int) $context->run($tenant, fn () => app(DailySummary::class)->runIfDue($tenant));
+        } catch (Throwable $e) {
             report($e); // one business's problem never stops the others
         }
     }
@@ -153,15 +174,15 @@ Artisan::command('backup:database', function () {
     @mkdir($dir, 0750, true);
     $file = $dir.'/'.$c['database'].'-'.now()->format('Y-m-d-His').'.sql.gz';
     $cmd = [config('dinedesk.backups.mysqldump'), '--single-transaction', '--quick', '--routines', '-h', $c['host'], '-P', (string) $c['port'], '-u', $c['username'], $c['database']];
-    $process = new \Symfony\Component\Process\Process($cmd, null, ['MYSQL_PWD' => (string) $c['password']], null, 1800);
+    $process = new Process($cmd, null, ['MYSQL_PWD' => (string) $c['password']], null, 1800);
     $gz = gzopen($file, 'wb6');
     try {
         $process->run(function ($type, $buffer) use ($gz) {
-            if ($type === \Symfony\Component\Process\Process::OUT) {
+            if ($type === Process::OUT) {
                 gzwrite($gz, $buffer);
             }
         });
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         gzclose($gz);
         @unlink($file);
         $this->error('Backup failed: '.$e->getMessage());
@@ -190,7 +211,7 @@ Schedule::command('backup:database')->dailyAt('02:30')->withoutOverlapping();
 
 // Keys for push alerts on staff phones: run once, put the two lines in .env.
 Artisan::command('webpush:vapid', function () {
-    $keys = \Minishlink\WebPush\VAPID::createVapidKeys();
+    $keys = VAPID::createVapidKeys();
     $this->line('WEBPUSH_VAPID_PUBLIC='.$keys['publicKey']);
     $this->line('WEBPUSH_VAPID_PRIVATE='.$keys['privateKey']);
     $this->info('Add these to backend/.env (and keep the private key secret).');
@@ -198,16 +219,16 @@ Artisan::command('webpush:vapid', function () {
 
 // Links a business website to its Android app (Trusted Web Activity) for /.well-known/assetlinks.json.
 Artisan::command('android:app {host : The website host, e.g. hungryhaveli.in} {package? : Android package name, e.g. in.hungryhaveli.app} {sha256?* : SHA-256 signing-key fingerprints} {--clear}', function (TenantContext $context) {
-    $resolver = app(\App\Modules\Tenancy\Support\TenantResolver::class);
+    $resolver = app(TenantResolver::class);
     $tenant = $resolver->resolve(strtolower($this->argument('host')));
     if (! $tenant) {
         $this->error('No business website at that host.');
 
         return 1;
     }
-    $settings = fn () => app(\App\Modules\Settings\Services\TenantSettings::class);
+    $settings = fn () => app(TenantSettings::class);
     if ($this->option('clear')) {
-        $context->run($tenant, fn () => $settings()->set(\App\Modules\Website\Http\Controllers\AndroidAppController::SETTING, null));
+        $context->run($tenant, fn () => $settings()->set(AndroidAppController::SETTING, null));
         $this->info("Removed the Android app link for {$tenant->name}.");
 
         return 0;
@@ -220,7 +241,7 @@ Artisan::command('android:app {host : The website host, e.g. hungryhaveli.in} {p
 
         return 1;
     }
-    $context->run($tenant, fn () => $settings()->set(\App\Modules\Website\Http\Controllers\AndroidAppController::SETTING, ['package' => $package, 'sha256' => $prints]));
+    $context->run($tenant, fn () => $settings()->set(AndroidAppController::SETTING, ['package' => $package, 'sha256' => $prints]));
     $this->info("{$tenant->name} → {$package}. Check https://{$this->argument('host')}/.well-known/assetlinks.json");
 
     return 0;

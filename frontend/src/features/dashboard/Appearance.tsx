@@ -13,14 +13,17 @@ const SWATCH: Record<AdminPalette, [string, string, string]> = {
   ocean: ['#10263b', '#5eead4', '#f3f7fa'],
 };
 
-/** Push alerts (new orders, bookings) on this device. */
-function PushAlerts() {
+/**
+ * Push alerts (new orders, bookings) on this device. In the header Appearance menu, and on
+ * My account (?open=alerts, from Settings and the search) under that card's own heading.
+ */
+export function PushAlerts({ inMenu = true }: { inMenu?: boolean }) {
   const { t } = useTranslation();
   const push = usePush();
   const run = (fn: () => Promise<unknown>) => void fn().catch((e: Error) => toast.error(e.message));
   return (
-    <div className="mt-4 border-t border-line pt-4">
-      <p className="text-xs font-bold uppercase tracking-wider text-muted">{t('push.title')}</p>
+    <div className={inMenu ? 'mt-4 border-t border-line pt-4' : 'max-w-sm'}>
+      {inMenu && <p className="text-xs font-bold uppercase tracking-wider text-muted">{t('push.title')}</p>}
       {push.state === 'on' ? (
         <div className="mt-2 flex gap-2">
           <button type="button" className="btn-outline !min-h-10 flex-1 text-sm" onClick={() => run(async () => { await push.test(); toast.success(t('push.testSent')); })}>

@@ -14,6 +14,7 @@ use App\Modules\Reservations\Models\Reservation;
 use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tables\Models\TableRequest;
 use App\Modules\Tables\Models\TableSession;
+use App\Modules\Tenancy\Support\TenantContext;
 use App\Support\ApiException;
 use App\Support\Realtime\Live;
 use Illuminate\Support\Facades\DB;
@@ -278,7 +279,7 @@ class DineIn
 
     public function emit(?int $tableId): void
     {
-        $tenantId = app(\App\Modules\Tenancy\Support\TenantContext::class)->id();
+        $tenantId = app(TenantContext::class)->id();
         if ($tenantId) {
             Live::emit($tenantId, 'tables', 'table.changed', ['table_id' => $tableId]);
         }

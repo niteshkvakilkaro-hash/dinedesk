@@ -9,9 +9,11 @@ use App\Modules\Reservations\Services\Bookings;
 use App\Modules\Reservations\Services\ReservationSettings;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Tables\Models\DiningTable;
+use App\Modules\Tenancy\Support\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
 use Tests\Feature\Ordering\OrderingTestCase;
 
 /** Table bookings. "Now" is Tuesday 10 Nov 2026, 1 pm IST; open 11:00–23:00 every day. */
@@ -31,7 +33,7 @@ class ReservationTest extends OrderingTestCase
     private int $visitor = 0;
 
     /** Each call comes from a different visitor, so the booking rate limit does not get in the way. */
-    private function book(array $overrides = []): \Illuminate\Testing\TestResponse
+    private function book(array $overrides = []): TestResponse
     {
         return $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.'.(++$this->visitor)])->postJson('/api/v1/site/reservations', array_replace([
             'date' => '2026-11-11', 'time' => '19:00', 'party_size' => 2,
@@ -60,14 +62,14 @@ class ReservationTest extends OrderingTestCase
         $code = $res->json('data.code');
         $this->assertMatchesRegularExpression('/^[A-Z2-9]{6}$/', $code);
         Notification::assertSentTo([$owner], NewReservationForStaff::class);
-        Notification::assertSentTo(new AnonymousNotifiable(), ReservationMessage::class, fn ($n, $channels, $to) => $n->kind === 'received' && $to->routes['mail'] === 'meera@example.com' && str_contains($n->toText(), $code));
+        Notification::assertSentTo(new AnonymousNotifiable, ReservationMessage::class, fn ($n, $channels, $to) => $n->kind === 'received' && $to->routes['mail'] === 'meera@example.com' && str_contains($n->toText(), $code));
 
         $this->actingAsUser($owner)->getJson('/api/v1/tenant/reservations/feed?after=0')->assertJsonPath('data.pending', 1)->assertJsonCount(1, 'data.new');
         $id = $this->actingAsUser($owner)->getJson('/api/v1/tenant/reservations?date=2026-11-11')
             ->assertJsonPath('data.summary.guests', 2)->assertJsonPath('data.reservations.0.phone', '+919876543210')
             ->assertJsonPath('data.reservations.0.next', ['confirmed', 'rejected', 'cancelled'])->json('data.reservations.0.id');
         $this->actingAsUser($owner)->postJson("/api/v1/tenant/reservations/{$id}/status", ['status' => 'confirmed'])->assertOk()->assertJsonPath('data.status', 'confirmed');
-        Notification::assertSentTo(new AnonymousNotifiable(), ReservationMessage::class, fn ($n) => $n->kind === 'confirmed');
+        Notification::assertSentTo(new AnonymousNotifiable, ReservationMessage::class, fn ($n) => $n->kind === 'confirmed');
 
         // Guest side: booking ID + the phone used, in any format.
         $this->postJson('/api/v1/site/reservations/lookup', ['code' => $code, 'phone' => '9999999999'], $this->site())->assertNotFound();
@@ -89,7 +91,7 @@ class ReservationTest extends OrderingTestCase
         $id = $this->asTenant(fn () => Reservation::where('status', 'pending')->value('id'));
         $this->actingAsUser($this->ownerOf($this->tenant))->postJson("/api/v1/tenant/reservations/{$id}/status", ['status' => 'rejected', 'note' => 'Private event that evening'])
             ->assertOk()->assertJsonPath('data.status', 'rejected');
-        Notification::assertSentTo(new AnonymousNotifiable(), ReservationMessage::class, fn ($n) => $n->kind === 'rejected' && str_contains($n->toText(), 'Private event'));
+        Notification::assertSentTo(new AnonymousNotifiable, ReservationMessage::class, fn ($n) => $n->kind === 'rejected' && str_contains($n->toText(), 'Private event'));
         $this->assertDatabaseHas('audit_logs', ['tenant_id' => $this->tenant->id, 'action' => 'reservation.rejected']);
         // Finished bookings can't move again.
         $this->actingAsUser($this->ownerOf($this->tenant))->postJson("/api/v1/tenant/reservations/{$id}/status", ['status' => 'confirmed'])->assertStatus(422);
@@ -194,7 +196,7 @@ class ReservationTest extends OrderingTestCase
         $this->travelTo(CarbonImmutable::parse('2026-11-11 16:30', 'Asia/Kolkata'));
         $this->assertSame(1, $this->asTenant(fn () => app(Bookings::class)->sendReminders()));
         $this->assertSame(0, $this->asTenant(fn () => app(Bookings::class)->sendReminders()));
-        Notification::assertSentTo(new AnonymousNotifiable(), ReservationMessage::class, fn ($n) => $n->kind === 'reminder' && str_contains($n->toText(), '8 guests'));
+        Notification::assertSentTo(new AnonymousNotifiable, ReservationMessage::class, fn ($n) => $n->kind === 'reminder' && str_contains($n->toText(), '8 guests'));
 
         $this->travelTo(CarbonImmutable::parse('2026-11-11 19:45', 'Asia/Kolkata'));
         $this->actingAsUser($owner)->postJson("/api/v1/tenant/reservations/{$id}/status", ['status' => 'no_show'])->assertOk()->assertJsonPath('data.status', 'no_show');
@@ -204,7 +206,7 @@ class ReservationTest extends OrderingTestCase
     {
         $code = $this->book()->assertCreated()->json('data.code');
         $other = $this->business('Other Place', 'growth', ['status' => 'live']);
-        app(\App\Modules\Tenancy\Support\TenantContext::class)->run($other, fn () => app(ReservationSettings::class)->save(array_replace(ReservationSettings::defaults(), ['enabled' => true])));
+        app(TenantContext::class)->run($other, fn () => app(ReservationSettings::class)->save(array_replace(ReservationSettings::defaults(), ['enabled' => true])));
 
         $this->postJson('/api/v1/site/reservations/lookup', ['code' => $code, 'phone' => '9876543210'], ['X-Tenant-Host' => $this->host($other)])->assertNotFound();
         $this->actingAsUser($this->ownerOf($other))->getJson('/api/v1/tenant/reservations?date=2026-11-11')->assertJsonCount(0, 'data.reservations');

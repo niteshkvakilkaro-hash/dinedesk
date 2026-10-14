@@ -22,7 +22,7 @@ class TiffinNotifier
     public function send(MealSubscription $s, string $kind): void
     {
         $prefs = $this->ordering->get()['notifications'];
-        $route = new AnonymousNotifiable();
+        $route = new AnonymousNotifiable;
         $channels = [];
         $email = $s->customer_id ? Customer::whereKey($s->customer_id)->value('email') : null;
         if ($prefs['email'] && $email) {

@@ -50,7 +50,7 @@ class CustomerNotifier
     private function send(Order $order, string $kind): void
     {
         $prefs = $this->settings->get()['notifications'];
-        $route = new AnonymousNotifiable();
+        $route = new AnonymousNotifiable;
         $channels = [];
         if ($prefs['email'] && $order->customer_email) {
             $route->route('mail', $order->customer_email);

@@ -13,6 +13,7 @@ import { useOrderAlerts } from '@/features/orders/alerts';
 import { useReservationAlerts } from '@/features/reservations/api';
 import { useTableAlerts } from '@/features/tables/api';
 import { BillingBanner, OutletSwitcher, SupportBar } from './AccountBanners';
+import { InAppAlerts } from './InAppAlerts';
 import { accessFrom, navGroups, SETTINGS_PAGES, type BadgeKey } from './navigation';
 import { CommandPalette, rememberPage, shortcutLabel } from './CommandPalette';
 import { SettingsBackLink } from './SettingsHub';
@@ -221,6 +222,7 @@ export default function DashboardLayout() {
         <main className="min-w-0 flex-1">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
             {session && <BillingBanner session={session} />}
+            <InAppAlerts enabled={!!tenant && !session?.support} />
             {tenant?.is_demo && (
               <div className="mb-5">
                 <Alert tone="info">{t('dashboard.demoBanner')}</Alert>

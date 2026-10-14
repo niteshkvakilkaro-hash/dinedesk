@@ -3,6 +3,7 @@
 namespace App\Modules\Identity\Support;
 
 use App\Models\User;
+use App\Modules\Branches\Services\Branches;
 use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Tenancy\Support\TenantResolver;
 
@@ -51,7 +52,7 @@ final class SessionPayload
             // A super admin inside a business for support (shown as a banner with "End").
             'support' => $support ? ['reason' => $support->reason, 'read_only' => $support->read_only, 'expires_at' => $support->expires_at->toIso8601String()] : null,
             // Other outlets this person can switch to (branches of the same business).
-            'branches' => $tenant && ! $support ? \App\Modules\Branches\Services\Branches::switchable($user) : [],
+            'branches' => $tenant && ! $support ? Branches::switchable($user) : [],
         ];
 
         if ($tenant) {

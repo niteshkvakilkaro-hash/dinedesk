@@ -3,6 +3,8 @@
 namespace App\Modules\Billing\Services;
 
 use App\Modules\Billing\Models\Invoice;
+use App\Modules\Hotel\Models\FolioPayment;
+use App\Modules\Hotel\Models\RoomBooking;
 use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Ordering\Support\Money;
 use App\Support\AmountInWords;
@@ -63,9 +65,9 @@ class BillPresenter
     {
         $i->loadMissing(['lines', 'payments', 'orders', 'session.table']);
         // A hotel check-out bill: the stay, and the money as it came in (advance, payments, refunds).
-        $stay = $i->room_booking_id ? \App\Modules\Hotel\Models\RoomBooking::with(['room', 'type'])->find($i->room_booking_id) : null;
+        $stay = $i->room_booking_id ? RoomBooking::with(['room', 'type'])->find($i->room_booking_id) : null;
         $paid = $stay
-            ? \App\Modules\Hotel\Models\FolioPayment::where('room_booking_id', $stay->id)->orderBy('id')->get()
+            ? FolioPayment::where('room_booking_id', $stay->id)->orderBy('id')->get()
                 ->map(fn ($p) => [($p->kind === 'refund' ? 'Refunded' : ($p->kind === 'advance' ? 'Advance' : 'Paid')).' · '.strtoupper($p->mode).($p->reference && $p->mode !== 'online' ? ' · '.$p->reference : ''), ($p->kind === 'refund' ? '−' : '').number_format((float) $p->amount, 2)])
             : $i->payments->map(fn ($p) => ['Paid · '.strtoupper($p->mode).($p->reference && $p->mode !== 'online' ? ' · '.$p->reference : ''), number_format((float) $p->amount, 2)]);
 

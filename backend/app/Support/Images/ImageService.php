@@ -26,7 +26,7 @@ class ImageService
     /** @return array{path: string, width: int, height: int, placeholder: string} */
     public function store(UploadedFile|string $source, Tenant $tenant, string $folder): array
     {
-        $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new Driver);
         $image = $manager->read($source instanceof UploadedFile ? $source->getRealPath() : $source);
         $image->orient();
 

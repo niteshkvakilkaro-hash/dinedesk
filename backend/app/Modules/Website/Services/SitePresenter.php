@@ -2,13 +2,18 @@
 
 namespace App\Modules\Website\Services;
 
+use App\Modules\Crm\Services\FeedbackService;
 use App\Modules\Hotel\Models\RoomType;
 use App\Modules\Hotel\Services\HotelSettings;
+use App\Modules\Loyalty\Services\Loyalty;
+use App\Modules\Marketing\Models\Banner;
+use App\Modules\Marketing\Models\Coupon;
 use App\Modules\Menu\Models\MenuCategory;
 use App\Modules\Menu\Services\MenuPresenter;
 use App\Modules\Ordering\Models\DeliveryZone;
 use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Plans\Services\FeatureService;
+use App\Modules\Reservations\Services\ReservationSettings;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
@@ -170,20 +175,20 @@ class SitePresenter
     public function growth(Tenant $tenant): array
     {
         $marketing = $this->features->enabled($tenant, 'coupons');
-        $banners = $marketing ? \App\Modules\Marketing\Models\Banner::where('is_active', true)
+        $banners = $marketing ? Banner::where('is_active', true)
             ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
             ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
             ->orderBy('sort_order')->orderByDesc('id')->get()
             ->map(fn ($b) => $b->only(['id', 'placement', 'title', 'title_hi', 'text', 'text_hi', 'cta_label', 'cta_link', 'coupon_code']) + ['translations' => Translations::clean($b->translations, ['title', 'text']), 'ends_at' => $b->ends_at?->toIso8601String()])->values()->all() : [];
-        $loyalty = app(\App\Modules\Loyalty\Services\Loyalty::class)->get();
+        $loyalty = app(Loyalty::class)->get();
         $loyaltyOn = $loyalty['enabled'] && $this->features->enabled($tenant, 'loyalty');
 
         return [
             'banners' => $banners,
-            'has_offers' => $marketing && (count($banners) > 0 || \App\Modules\Marketing\Models\Coupon::where('is_public', true)->where('is_active', true)->where('online', true)->exists()),
+            'has_offers' => $marketing && (count($banners) > 0 || Coupon::where('is_public', true)->where('is_active', true)->where('online', true)->exists()),
             'coupons' => $marketing,
             'loyalty' => $loyaltyOn ? ['enabled' => true, 'earn_per_100' => $loyalty['earn_per_100'], 'point_value' => $loyalty['point_value'], 'min_redeem' => $loyalty['min_redeem'], 'max_redeem_percent' => $loyalty['max_redeem_percent']] : ['enabled' => false],
-            'reviews' => app(\App\Modules\Crm\Services\FeedbackService::class)->published(),
+            'reviews' => app(FeedbackService::class)->published(),
         ];
     }
 
@@ -208,7 +213,7 @@ class SitePresenter
     /** What the booking form needs (only when online booking is on). */
     public function reservations(Tenant $tenant): array
     {
-        $s = app(\App\Modules\Reservations\Services\ReservationSettings::class)->get();
+        $s = app(ReservationSettings::class)->get();
         $enabled = $s['enabled'] && $this->features->enabled($tenant, 'reservations');
 
         return [

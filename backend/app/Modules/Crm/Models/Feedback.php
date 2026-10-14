@@ -2,8 +2,10 @@
 
 namespace App\Modules\Crm\Models;
 
+use App\Modules\Ordering\Models\Order;
 use App\Modules\Tenancy\Support\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** A guest's rating after an order; published on the website only with their consent. */
 class Feedback extends Model
@@ -21,8 +23,8 @@ class Feedback extends Model
         return ['rating' => 'integer', 'food' => 'integer', 'service' => 'integer', 'consent_public' => 'boolean', 'is_published' => 'boolean', 'created_at' => 'datetime'];
     }
 
-    public function order(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function order(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Ordering\Models\Order::class);
+        return $this->belongsTo(Order::class);
     }
 }

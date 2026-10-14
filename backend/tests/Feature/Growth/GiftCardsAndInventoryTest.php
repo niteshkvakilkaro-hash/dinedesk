@@ -5,6 +5,7 @@ namespace Tests\Feature\Growth;
 use App\Modules\Inventory\Models\InventoryItem;
 use App\Modules\Inventory\Notifications\LowStockForStaff;
 use App\Modules\Loyalty\Models\GiftCard;
+use App\Modules\Plans\Models\Plan;
 use Illuminate\Support\Facades\Notification;
 use Tests\Feature\Operations\OperationsTestCase;
 
@@ -79,7 +80,7 @@ class GiftCardsAndInventoryTest extends OperationsTestCase
 
         // Inventory is a Growth feature; waiters can't manage it.
         $this->actingAsUser($this->staff($this->tenant, 'waiter'))->getJson('/api/v1/tenant/inventory/items')->assertForbidden();
-        $this->tenant->update(['plan_id' => \App\Modules\Plans\Models\Plan::where('code', 'starter')->value('id')]);
+        $this->tenant->update(['plan_id' => Plan::where('code', 'starter')->value('id')]);
         $this->app->forgetScopedInstances();
         $this->actingAsUser($this->ownerOf($this->tenant))->getJson('/api/v1/tenant/inventory/items')->assertForbidden();
     }

@@ -6,6 +6,7 @@ use App\Modules\Billing\Models\BillPayment;
 use App\Modules\Billing\Models\DayClosing;
 use App\Modules\Billing\Models\Invoice;
 use App\Modules\Hotel\Models\FolioPayment;
+use App\Modules\Loyalty\Models\GiftCardTransaction;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderItem;
 use App\Modules\Ordering\Support\Money;
@@ -56,7 +57,7 @@ class DayReport
         $cashBills = Money::toPaise($payments->firstWhere('mode', 'cash')['amount'] ?? 0);
         $cashOutside = (int) $unbilledPaid->whereIn('payment_method', ['cod', 'counter'])->sum(fn ($o) => Money::toPaise($o->total));
         // Gift cards sold today (money taken, not sales: GST applies when they are spent).
-        $cards = \App\Modules\Loyalty\Models\GiftCardTransaction::where('type', 'issue')->where('created_at', '>=', $from)->where('created_at', '<', $to)->get();
+        $cards = GiftCardTransaction::where('type', 'issue')->where('created_at', '>=', $from)->where('created_at', '<', $to)->get();
         $cardsByMode = $cards->groupBy(fn ($t) => $t->mode ?? 'other')->map(fn ($rows, $mode) => ['mode' => $mode, 'count' => $rows->count(), 'amount' => $sum($rows, 'amount')])->values();
         $cashCards = (int) $cards->where('mode', 'cash')->sum(fn ($t) => Money::toPaise($t->amount));
         // Hotel: advances, payments and refunds for stays taken today (by mode; refunds take money out).

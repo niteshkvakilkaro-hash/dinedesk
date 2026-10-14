@@ -15,7 +15,8 @@ class AiMenuTest extends TestCase
     private function fakeAi(array $answer): void
     {
         $test = $this;
-        $this->app->instance(Ai::class, new class($answer, $test) implements Ai {
+        $this->app->instance(Ai::class, new class($answer, $test) implements Ai
+        {
             public function __construct(private array $answer, private AiMenuTest $test) {}
 
             public function enabled(): bool

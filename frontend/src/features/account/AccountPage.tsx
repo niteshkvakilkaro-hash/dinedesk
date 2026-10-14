@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BadgeCheck, KeyRound, Languages, Smartphone, UserRound } from 'lucide-react';
+import { BadgeCheck, Bell, KeyRound, Languages, Smartphone, UserRound } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatPhone, isIndianMobile } from '@/lib/format';
 import { scrollToSection, useOpenParam } from '@/lib/urlParams';
@@ -9,6 +9,7 @@ import { languageCode } from '@/i18n/locale';
 import { useSaveLanguage, useSession, useSetSession } from '@/hooks/useSession';
 import { Alert, Badge, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
 import { PasswordInput } from '@/components/PasswordInput';
+import { PushAlerts } from '@/features/dashboard/Appearance';
 import type { Session } from '@/types';
 
 type Errors = Record<string, string>;
@@ -345,7 +346,7 @@ function Language() {
 export default function AccountPage() {
   const { t } = useTranslation();
   const { data: session } = useSession();
-  // ?open=mobile (from the morning summary) scrolls to that card.
+  // ?open=mobile (from the morning summary) or ?open=alerts (Settings, search) scrolls to that card.
   useOpenParam(scrollToSection, !!session);
   if (!session) return <SkeletonRows rows={6} />;
 
@@ -365,6 +366,10 @@ export default function AccountPage() {
           <Language />
         </>
       )}
+      {/* The same switch as in the header's Appearance menu (shown to everyone there too). */}
+      <Section id="alerts" icon={Bell} title={t('push.title')}>
+        <PushAlerts inMenu={false} />
+      </Section>
     </div>
   );
 }

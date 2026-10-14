@@ -89,6 +89,9 @@ describe('the real search index', () => {
     ['photo', 'gallery'],
     ['timing', 'hours'],
     ['menu card', 'aiImport'],
+    ['ghanti', 'deviceAlerts'],
+    ['push', 'deviceAlerts'],
+    ['sound', 'deviceAlerts'],
   ])('“%s” finds %s near the top', (query, id) => {
     const top = rankDocs(docsFor(enItems, nav), query, 5).map((d) => d.id);
     expect(top).toContain(id);

@@ -5,6 +5,7 @@ namespace App\Modules\Hotel\Services;
 use App\Modules\Hotel\Models\Room;
 use App\Modules\Hotel\Models\RoomBlock;
 use App\Modules\Hotel\Models\RoomBooking;
+use App\Modules\Hotel\Models\RoomCalendarFeed;
 use App\Modules\Hotel\Models\RoomType;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -101,7 +102,7 @@ class RoomAvailability
         $types = RoomType::with(['rooms' => fn ($q) => $q->where('is_active', true)])->orderBy('sort_order')->orderBy('id')->get()
             ->filter(fn (RoomType $t) => $t->is_active || $t->rooms->isNotEmpty());
         $external = RoomBlock::where('starts_on', '<', $end->format('Y-m-d'))->where('ends_on', '>', $start->format('Y-m-d'))->orderBy('starts_on')->get();
-        $feeds = \App\Modules\Hotel\Models\RoomCalendarFeed::whereIn('id', $external->pluck('room_calendar_feed_id')->filter())->pluck('name', 'id');
+        $feeds = RoomCalendarFeed::whereIn('id', $external->pluck('room_calendar_feed_id')->filter())->pluck('name', 'id');
 
         return [
             'from' => $start->format('Y-m-d'),

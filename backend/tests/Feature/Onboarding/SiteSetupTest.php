@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Onboarding;
 
+use App\Modules\Menu\Models\MenuCategory;
 use App\Modules\Menu\Models\MenuItem;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Support\Ai\Ai;
@@ -30,7 +31,7 @@ class SiteSetupTest extends TestCase
 
         $this->postJson('/api/v1/onboarding/menu', ['mode' => 'sample'])->assertOk()->assertJsonPath('data.tenant.onboarding_step', 7);
         $this->postJson('/api/v1/onboarding/menu', ['mode' => 'sample'])->assertOk(); // idempotent
-        $this->assertSame(3, \App\Modules\Menu\Models\MenuCategory::withoutTenancy()->where('tenant_id', $tenant->id)->count());
+        $this->assertSame(3, MenuCategory::withoutTenancy()->where('tenant_id', $tenant->id)->count());
 
         // Going back to an earlier step never moves progress backwards.
         $this->putJson('/api/v1/onboarding/theme', ['theme' => 'bistro'])->assertJsonPath('data.tenant.onboarding_step', 7);
@@ -52,7 +53,8 @@ class SiteSetupTest extends TestCase
 
     public function test_owner_can_bring_their_own_menu_with_ai_at_step_six(): void
     {
-        $this->app->instance(Ai::class, new class implements Ai {
+        $this->app->instance(Ai::class, new class implements Ai
+        {
             public function enabled(): bool
             {
                 return true;

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Growth;
 
+use App\Modules\Crm\Models\Feedback;
 use App\Modules\Marketing\Notifications\CampaignMessage;
 use App\Modules\Ordering\Models\Customer;
 use App\Modules\Ordering\Models\Order;
@@ -44,8 +45,8 @@ class CrmAndReportsTest extends OperationsTestCase
             ->assertJsonPath('data.growth.reviews.items.0.name', 'Asha V.')->assertJsonPath('data.growth.reviews.items.0.reply', 'Thank you, Asha!');
 
         // A guest who didn't agree can't be published.
-        $this->asTenant(fn () => \App\Modules\Crm\Models\Feedback::create(['rating' => 4, 'consent_public' => false, 'created_at' => now()]));
-        $other = $this->asTenant(fn () => \App\Modules\Crm\Models\Feedback::where('consent_public', false)->value('id'));
+        $this->asTenant(fn () => Feedback::create(['rating' => 4, 'consent_public' => false, 'created_at' => now()]));
+        $other = $this->asTenant(fn () => Feedback::where('consent_public', false)->value('id'));
         $this->actingAsUser($owner)->putJson("/api/v1/tenant/feedback/{$other}", ['is_published' => true])->assertStatus(422);
 
         // The customer record: spend, visits, opt-in, tags, dates only with consent.
@@ -71,7 +72,7 @@ class CrmAndReportsTest extends OperationsTestCase
         $this->actingAsUser($owner)->postJson('/api/v1/tenant/marketing/campaigns', ['channel' => 'whatsapp', 'name' => 'Diwali', 'message' => 'Hi {name}, 20% off this Diwali!'])
             ->assertCreated()->assertJsonPath('data.recipients', 1);
         Notification::assertSentTimes(CampaignMessage::class, 1);
-        Notification::assertSentTo(new AnonymousNotifiable(), CampaignMessage::class, fn ($n) => str_contains($n->toText(), 'Hi Asha, 20% off') && str_contains($n->toText(), '/unsubscribe?t='));
+        Notification::assertSentTo(new AnonymousNotifiable, CampaignMessage::class, fn ($n) => str_contains($n->toText(), 'Hi Asha, 20% off') && str_contains($n->toText(), '/unsubscribe?t='));
 
         $token = $this->asTenant(fn () => Customer::where('marketing_opt_in', true)->value('unsubscribe_token'));
         $this->app['auth']->forgetGuards();

@@ -5,6 +5,7 @@ namespace Tests;
 use App\Models\User;
 use App\Modules\Identity\Support\Roles;
 use App\Modules\Onboarding\Actions\CreateBusiness;
+use App\Modules\Plans\Models\Plan;
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Support\TenantContext;
@@ -46,7 +47,7 @@ abstract class TestCase extends BaseTestCase
             'opening_hours' => OpeningHours::default(),
         ]);
         if ($plan !== 'growth' || $attrs) {
-            $tenant->update($attrs + ['plan_id' => \App\Modules\Plans\Models\Plan::where('code', $plan)->value('id')]);
+            $tenant->update($attrs + ['plan_id' => Plan::where('code', $plan)->value('id')]);
         }
         app(TenantContext::class)->set(null);
 

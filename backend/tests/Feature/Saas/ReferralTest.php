@@ -128,6 +128,32 @@ class ReferralTest extends SaasTestCase
         $this->assertEqualsWithDelta($periodEnd->addDays(30)->getTimestamp(), $this->sub($referred)->current_period_ends_at->getTimestamp(), 2);
     }
 
+    public function test_the_referrer_gets_an_in_app_alert_they_can_dismiss(): void
+    {
+        $referred = $this->signUp($this->tenant->fresh()->referral_code);
+        $this->pay($referred);
+
+        // Stored for the referrer's owner with plain values (the dashboard writes it in the reader's language).
+        $stored = $this->owner()->notifications()->sole();
+        $this->assertSame(ReferralRewardEarned::class, $stored->type);
+        $until = ReferralReward::where('tenant_id', $this->tenant->id)->sole()->new_end->toIso8601String();
+        $this->assertSame(['kind' => 'referral.reward', 'tenant_id' => $this->tenant->id, 'business' => 'Chai Point', 'days' => 30, 'status' => 'granted', 'until' => $until], $stored->data);
+        $this->assertSame(0, $this->ownerOf($referred)->notifications()->count());
+
+        $alerts = $this->actingAsUser($this->owner())->getJson('/api/v1/tenant/alerts')->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.kind', 'referral.reward')
+            ->assertJsonPath('data.0.data', ['business' => 'Chai Point', 'days' => 30, 'status' => 'granted', 'until' => $until]);
+
+        // Only the person it was for, in that business; dismissed, it is gone.
+        $this->actingAsUser($this->ownerOf($referred))->getJson('/api/v1/tenant/alerts')->assertOk()->assertJsonCount(0, 'data');
+        $this->actingAsUser($this->ownerOf($referred))->postJson('/api/v1/tenant/alerts/'.$alerts->json('data.0.id').'/read')->assertOk();
+        $this->assertNull($stored->fresh()->read_at);
+        $this->actingAsUser($this->owner())->postJson('/api/v1/tenant/alerts/'.$alerts->json('data.0.id').'/read')->assertOk();
+        $this->assertNotNull($stored->fresh()->read_at);
+        $this->actingAsUser($this->owner())->getJson('/api/v1/tenant/alerts')->assertOk()->assertJsonCount(0, 'data');
+    }
+
     public function test_a_lapsed_trial_becomes_a_trial_again_and_read_only_is_lifted(): void
     {
         $referred = $this->signUp($this->tenant->fresh()->referral_code);
@@ -154,6 +180,8 @@ class ReferralTest extends SaasTestCase
         $this->pay($referred);
         $mine = ReferralReward::where('tenant_id', $this->tenant->id)->sole();
         $this->assertSame('pending', $mine->status);
+        $alert = $this->owner()->notifications()->sole()->data;
+        $this->assertSame(['pending', null], [$alert['status'], $alert['until']]);
         $this->assertEqualsWithDelta(now()->addDays(10)->getTimestamp(), $this->sub($this->tenant)->current_period_ends_at->getTimestamp(), 2);
 
         $this->actingAsUser($this->owner())->getJson('/api/v1/tenant/referrals')->assertOk()

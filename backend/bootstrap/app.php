@@ -1,8 +1,8 @@
 <?php
 
 use App\Modules\Identity\Http\Middleware\RequireTenantPermission;
-use App\Modules\Platform\Http\Middleware\EnsurePlatformAdmin;
 use App\Modules\Plans\Http\Middleware\RequireFeature;
+use App\Modules\Platform\Http\Middleware\EnsurePlatformAdmin;
 use App\Modules\Tenancy\Http\Middleware\ResolveTenantFromHost;
 use App\Modules\Tenancy\Http\Middleware\UseUserTenant;
 use App\Support\ApiException;

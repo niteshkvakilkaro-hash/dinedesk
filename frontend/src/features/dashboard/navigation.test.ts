@@ -46,7 +46,7 @@ describe('Settings page and search use the same gates', () => {
     const a = accessFrom(session(['staff.schedule']));
     expect(navGroups(a).some((g) => g.key === 'settings')).toBe(true);
     expect(settingsSections(a)).toEqual([
-      { key: 'account', items: [expect.objectContaining({ id: 'account' })] },
+      { key: 'account', items: [expect.objectContaining({ id: 'account' }), expect.objectContaining({ id: 'deviceAlerts' })] },
       { key: 'people', items: [expect.objectContaining({ id: 'rota' })] },
     ]);
   });
@@ -75,7 +75,9 @@ describe('Settings page and search use the same gates', () => {
   it('gives everyone My account, in search and on the Settings page', () => {
     const kitchen = accessFrom(session(['kot.update'], ['kds']));
     expect(destinationsFor(kitchen).find((d) => d.id === 'account')?.to).toBe('/dashboard/account');
-    expect(settingsSections(kitchen)[0]).toEqual({ key: 'account', items: [expect.objectContaining({ id: 'account' })] });
+    expect(settingsSections(kitchen)[0]).toEqual({ key: 'account', items: [expect.objectContaining({ id: 'account' }), expect.objectContaining({ id: 'deviceAlerts' })] });
+    // Push alerts on this device: a card on My account, for everyone (like the header Appearance menu).
+    expect(destinationsFor(kitchen).find((d) => d.id === 'deviceAlerts')?.to).toBe('/dashboard/account?open=alerts');
     expect(isSettingsPath('/dashboard/account')).toBe(true);
   });
 

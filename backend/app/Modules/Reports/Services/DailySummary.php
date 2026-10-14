@@ -124,7 +124,7 @@ class DailySummary
         if (! $owner) {
             return [];
         }
-        $route = new AnonymousNotifiable();
+        $route = new AnonymousNotifiable;
         $channels = [];
         if ($s['whatsapp'] && $owner->phone) {
             $route->route('whatsapp', $owner->phone);

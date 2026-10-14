@@ -7,6 +7,7 @@ use App\Modules\Loyalty\Services\Loyalty;
 use App\Modules\Marketing\Models\Coupon;
 use App\Modules\Ordering\Models\Customer;
 use App\Modules\Ordering\Models\Order;
+use App\Modules\Tenancy\Support\TenantContext;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Tests\Feature\Operations\OperationsTestCase;
@@ -107,7 +108,7 @@ class CouponsAndLoyaltyTest extends OperationsTestCase
 
         // A token from another business doesn't work here.
         $other = $this->business('Other Place', 'growth', ['status' => 'live']);
-        app(\App\Modules\Tenancy\Support\TenantContext::class)->run($other, fn () => app(Loyalty::class)->save(['enabled' => true] + Loyalty::defaults()));
+        app(TenantContext::class)->run($other, fn () => app(Loyalty::class)->save(['enabled' => true] + Loyalty::defaults()));
         $this->postJson('/api/v1/site/orders/quote', ['type' => 'takeaway', 'loyalty' => ['token' => $token, 'points' => 20], 'items' => [['item_id' => $this->items['naan']->id, 'quantity' => 2]]], ['X-Tenant-Host' => $this->host($other)])
             ->assertStatus(422);
 

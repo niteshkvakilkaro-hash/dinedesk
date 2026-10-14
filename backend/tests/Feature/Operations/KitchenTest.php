@@ -4,6 +4,7 @@ namespace Tests\Feature\Operations;
 
 use App\Modules\Kitchen\Models\Kot;
 use App\Modules\Ordering\Models\Order;
+use App\Modules\Plans\Models\Plan;
 
 /** Kitchen tickets follow orders, and orders follow the Kitchen Display. */
 class KitchenTest extends OperationsTestCase
@@ -70,7 +71,7 @@ class KitchenTest extends OperationsTestCase
         $this->actingAsUser($this->staff($this->tenant, 'kitchen'))->postJson('/api/v1/tenant/pos/orders', ['type' => 'takeaway', 'source' => 'pos', 'items' => [$this->naan()]])->assertForbidden();
         $this->actingAsUser($this->staff($this->tenant, 'manager'))->getJson('/api/v1/tenant/kitchen/tickets')->assertOk();
 
-        $this->tenant->update(['plan_id' => \App\Modules\Plans\Models\Plan::where('code', 'starter')->value('id')]);
+        $this->tenant->update(['plan_id' => Plan::where('code', 'starter')->value('id')]);
         $this->app->forgetScopedInstances();
         $this->actingAsUser($this->ownerOf($this->tenant))->getJson('/api/v1/tenant/kitchen/tickets')->assertForbidden();
     }

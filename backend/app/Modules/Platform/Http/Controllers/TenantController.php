@@ -12,6 +12,7 @@ use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Plans\Support\Features;
 use App\Modules\Referrals\Models\ReferralReward;
 use App\Modules\Referrals\Services\ReferralRewards;
+use App\Modules\Subscriptions\Services\TenantAccess;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Support\TenantResolver;
 use Illuminate\Database\Eloquent\Builder;
@@ -123,7 +124,7 @@ class TenantController extends Controller
                 $plan = Plan::where('code', $data['plan'])->firstOrFail();
                 // A business and its branches always share one plan.
                 $root = $tenant->billingRoot();
-                app(\App\Modules\Subscriptions\Services\TenantAccess::class)->setPlan($root, $plan->id);
+                app(TenantAccess::class)->setPlan($root, $plan->id);
                 $root->currentSubscription?->update(['plan_id' => $plan->id]);
             }
             AuditLog::record('platform.tenant.updated', $tenant, ['reason' => $data['reason'], 'before' => $before, 'after' => array_diff_key($data, ['reason' => 1])], $tenant->id);

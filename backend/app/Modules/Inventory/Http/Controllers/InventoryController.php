@@ -8,6 +8,7 @@ use App\Modules\Inventory\Models\Recipe;
 use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Inventory\Services\Stock;
 use App\Modules\Menu\Models\MenuCategory;
+use App\Modules\Menu\Models\MenuItem;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Support\ApiException;
 use Illuminate\Http\JsonResponse;
@@ -130,7 +131,7 @@ class InventoryController extends Controller
             'lines.*.item_variant_id' => ['nullable', 'integer', Rule::exists('item_variants', 'id')->where('tenant_id', $tenantId)->where('menu_item_id', $menuItemId)],
             'lines.*.quantity' => ['required', 'numeric', 'gt:0', 'max:100000'],
         ]);
-        \App\Modules\Menu\Models\MenuItem::findOrFail($menuItemId);
+        MenuItem::findOrFail($menuItemId);
         $keys = array_map(fn ($l) => ($l['item_variant_id'] ?? 0).'-'.$l['inventory_item_id'], $data['lines']);
         if (count($keys) !== count(array_unique($keys))) {
             throw new ApiException('The same ingredient is listed twice.', 422, 'duplicate');

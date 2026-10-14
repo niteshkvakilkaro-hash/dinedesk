@@ -4,6 +4,15 @@ namespace App\Modules\Ordering\Services;
 
 use App\Models\User;
 use App\Modules\Audit\Models\AuditLog;
+use App\Modules\Crm\Services\CustomerActivity;
+use App\Modules\Hotel\Models\Room;
+use App\Modules\Hotel\Models\RoomBooking;
+use App\Modules\Hotel\Services\Folio;
+use App\Modules\Hotel\Services\HotelSettings;
+use App\Modules\Kitchen\Services\Kitchen;
+use App\Modules\Loyalty\Services\Loyalty;
+use App\Modules\Marketing\Models\Coupon;
+use App\Modules\Marketing\Services\Coupons;
 use App\Modules\Ordering\Models\Customer;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderEvent;
@@ -12,23 +21,15 @@ use App\Modules\Ordering\Notifications\CustomerNotifier;
 use App\Modules\Ordering\Notifications\NewOrderForStaff;
 use App\Modules\Ordering\Support\Money;
 use App\Modules\Plans\Services\FeatureService;
-use App\Modules\Tables\Models\DiningTable;
-use App\Modules\Tables\Services\DineIn;
-use App\Modules\Hotel\Models\Room;
-use App\Modules\Hotel\Models\RoomBooking;
-use App\Modules\Hotel\Services\Folio;
-use App\Modules\Hotel\Services\HotelSettings;
-use App\Modules\Kitchen\Services\Kitchen;
-use App\Support\Realtime\Live;
-use App\Modules\Crm\Services\CustomerActivity;
-use App\Modules\Loyalty\Services\Loyalty;
-use App\Modules\Marketing\Services\Coupons;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Settings\Support\OpeningHours;
+use App\Modules\Tables\Models\DiningTable;
+use App\Modules\Tables\Services\DineIn;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Support\ApiException;
 use App\Support\Locale;
 use App\Support\Phone;
+use App\Support\Realtime\Live;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -110,7 +111,7 @@ class OrderFlow
         $phone = ! empty($data['customer']['phone']) ? Phone::normalize($data['customer']['phone']) : null;
         [$quote, $offers] = $this->discounts($tenant, $quote, $data, $phone);
 
-        $order = DB::transaction(function () use ($tenant, $data, $type, $scheduled, $zone, $quote, $phone, $locale, $table, $offers) {
+        $order = DB::transaction(function () use ($data, $type, $scheduled, $zone, $quote, $phone, $locale, $table, $offers) {
             $customer = null;
             if ($phone) {
                 $customer = Customer::firstOrNew(['phone' => $phone]);
@@ -356,7 +357,7 @@ class OrderFlow
      * Coupon and loyalty points for an online order: checked, worked out on the food before
      * GST and taken off the quote. Points need the checkout token from the phone code.
      *
-     * @return array{0: array, 1: array{coupon: ?\App\Modules\Marketing\Models\Coupon, coupon_off: int, loyalty_customer: ?Customer, points: int}}
+     * @return array{0: array, 1: array{coupon: ?Coupon, coupon_off: int, loyalty_customer: ?Customer, points: int}}
      */
     public function discounts(Tenant $tenant, array $quote, array $data, ?string $phone): array
     {

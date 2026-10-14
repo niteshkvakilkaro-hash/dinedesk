@@ -65,7 +65,7 @@ class Campaigns
                     $c->update(['unsubscribe_token' => Str::random(40)]);
                 }
                 $text = strtr($campaign->message, ['{name}' => Str::of($c->name)->before(' ')->value()]);
-                $route = (new AnonymousNotifiable())->route($campaign->channel === 'email' ? 'mail' : $campaign->channel, $campaign->channel === 'email' ? $c->email : $c->phone);
+                $route = (new AnonymousNotifiable)->route($campaign->channel === 'email' ? 'mail' : $campaign->channel, $campaign->channel === 'email' ? $c->email : $c->phone);
                 $route->notify(new CampaignMessage($text, $tenant->name, "{$base}/unsubscribe?t={$c->unsubscribe_token}", $campaign->channel === 'email' ? 'mail' : $campaign->channel, $campaign->name));
             }
         });

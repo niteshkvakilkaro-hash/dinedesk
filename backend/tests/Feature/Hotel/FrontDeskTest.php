@@ -8,6 +8,7 @@ use App\Modules\Hotel\Models\FolioItem;
 use App\Modules\Hotel\Models\GuestDocument;
 use App\Modules\Hotel\Models\Room;
 use App\Modules\Ordering\Models\Order;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -96,7 +97,7 @@ class FrontDeskTest extends HotelTestCase
         $this->assertTrue(AuditLog::query()->where('action', 'stay.rate_changed')->exists());
 
         // Leaves the next morning: only the first night is charged.
-        $this->travelTo(\Carbon\CarbonImmutable::parse('2026-11-11 10:00', 'Asia/Kolkata'));
+        $this->travelTo(CarbonImmutable::parse('2026-11-11 10:00', 'Asia/Kolkata'));
         $this->actingAsUser($this->desk)->postJson("/api/v1/tenant/hotel/bookings/{$id}/check-out", ['charge_nights_stayed' => true, 'payments' => [['mode' => 'card', 'amount' => 2625]]])
             ->assertOk()->assertJsonPath('data.check_out', '2026-11-11')->assertJsonPath('data.folio.summary.total', '2625.00');
         $this->assertSame(3, FolioItem::withoutTenancy()->where('room_booking_id', $id)->whereNotNull('voided_at')->where('type', 'room')->where('void_reason', 'Stay dates changed')->count());
@@ -151,7 +152,7 @@ class FrontDeskTest extends HotelTestCase
         // Kitchen staff never see them.
         $this->actingAsUser($this->staff($this->tenant, 'kitchen'))->get("/api/v1/tenant/hotel/documents/{$doc->id}")->assertForbidden();
 
-        $this->travelTo(\Carbon\CarbonImmutable::parse('2026-11-20 09:00', 'Asia/Kolkata'));
+        $this->travelTo(CarbonImmutable::parse('2026-11-20 09:00', 'Asia/Kolkata'));
         $this->artisan('hotel:purge-documents')->assertSuccessful();
         $this->assertSame(0, GuestDocument::withoutTenancy()->count());
         Storage::disk('local')->assertMissing($doc->path);

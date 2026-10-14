@@ -9,6 +9,7 @@ use App\Modules\Ordering\Services\DeliveryZones;
 use App\Modules\Ordering\Services\OrderFlow;
 use App\Modules\Ordering\Services\OrderPresenter;
 use App\Modules\Ordering\Services\Pricing;
+use App\Modules\Ordering\Services\Razorpay;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Support\ApiException;
 use App\Support\Phone;
@@ -151,7 +152,7 @@ class PublicOrderController extends Controller
     }
 
     /** Razorpay Checkout success handler: accepted only with a valid signature. */
-    public function verifyPayment(Request $request, string $publicId, \App\Modules\Ordering\Services\Razorpay $razorpay): JsonResponse
+    public function verifyPayment(Request $request, string $publicId, Razorpay $razorpay): JsonResponse
     {
         $data = $request->validate([
             't' => ['required', 'string'],

@@ -4,10 +4,10 @@ namespace App\Modules\Marketing\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Audit\Models\AuditLog;
+use App\Modules\Marketing\Models\AutomationSend;
 use App\Modules\Marketing\Models\Banner;
 use App\Modules\Marketing\Models\Campaign;
 use App\Modules\Marketing\Models\Coupon;
-use App\Modules\Marketing\Models\AutomationSend;
 use App\Modules\Marketing\Models\CouponRedemption;
 use App\Modules\Marketing\Services\Automations;
 use App\Modules\Marketing\Services\Campaigns;

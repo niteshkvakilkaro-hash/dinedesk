@@ -3,6 +3,7 @@
 use App\Modules\Billing\Http\Controllers\AppOrdersController;
 use App\Modules\Billing\Http\Controllers\BillingController;
 use App\Modules\Billing\Http\Controllers\DayEndController;
+use App\Modules\Billing\Http\Controllers\GstController;
 use App\Modules\Billing\Http\Controllers\OfflinePosController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,6 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api'])->prefix('tena
 
 // GST for the month: GSTR-1 sections (CSV) and Tally Prime vouchers (XML), for the CA.
 Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api', 'tenant.can:reports.view'])->prefix('tenant/reports/gst')->group(function () {
-    Route::get('/', [\App\Modules\Billing\Http\Controllers\GstController::class, 'show']);
-    Route::get('export/{section}', [\App\Modules\Billing\Http\Controllers\GstController::class, 'export']);
+    Route::get('/', [GstController::class, 'show']);
+    Route::get('export/{section}', [GstController::class, 'export']);
 });

@@ -2,21 +2,23 @@
 
 namespace Tests\Feature\Operations;
 
+use App\Modules\Billing\Models\Invoice;
 use App\Modules\Billing\Services\Billing;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tables\Models\TableSession;
 use Carbon\CarbonImmutable;
+use Illuminate\Testing\TestResponse;
 
 /** GST bills: numbering, discounts, GST, round-off, split payments, tables, voids. */
 class BillingTest extends OperationsTestCase
 {
-    private function bill(array $body): \Illuminate\Testing\TestResponse
+    private function bill(array $body): TestResponse
     {
         return $this->actingAsUser($this->cashier)->postJson('/api/v1/tenant/bills', $body);
     }
 
-    private function pay(int $id, array $payments): \Illuminate\Testing\TestResponse
+    private function pay(int $id, array $payments): TestResponse
     {
         return $this->actingAsUser($this->cashier)->postJson("/api/v1/tenant/bills/{$id}/pay", ['payments' => $payments]);
     }
@@ -102,7 +104,7 @@ class BillingTest extends OperationsTestCase
         $this->bill(['session_id' => $session])->assertStatus(422);
         $this->actingAsUser($this->cashier)->postJson("/api/v1/tenant/bills/{$id}/void", ['reason' => 'Wrong items'])->assertOk()->assertJsonPath('data.status', 'void');
         $id = $this->bill(['session_id' => $session, 'discount' => ['type' => 'amount', 'value' => 20, 'reason' => 'Birthday']])->assertCreated()->json('data.id');
-        $this->pay($id, [['mode' => 'card', 'amount' => $this->asTenant(fn () => \App\Modules\Billing\Models\Invoice::find($id)->total)]])->assertOk();
+        $this->pay($id, [['mode' => 'card', 'amount' => $this->asTenant(fn () => Invoice::find($id)->total)]])->assertOk();
 
         $this->assertSame('closed', $this->asTenant(fn () => TableSession::find($session)->status));
         $this->assertNotNull($this->asTenant(fn () => DiningTable::where('label', 'T1')->value('cleaning_since')));

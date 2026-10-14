@@ -4,6 +4,7 @@ namespace App\Modules\Reservations\Services;
 
 use App\Models\User;
 use App\Modules\Audit\Models\AuditLog;
+use App\Modules\Crm\Services\CustomerActivity;
 use App\Modules\Ordering\Models\Customer;
 use App\Modules\Reservations\Models\Reservation;
 use App\Modules\Reservations\Notifications\NewReservationForStaff;
@@ -138,7 +139,7 @@ class Bookings
         }
         $r->update($changes);
         if ($to === 'completed') {
-            app(\App\Modules\Crm\Services\CustomerActivity::class)->bookingVisited($r->customer_id);
+            app(CustomerActivity::class)->bookingVisited($r->customer_id);
         }
         if (in_array($to, ['rejected', 'cancelled', 'no_show'], true)) {
             AuditLog::record("reservation.{$to}", $r, ['code' => $r->code, 'note' => $note]);

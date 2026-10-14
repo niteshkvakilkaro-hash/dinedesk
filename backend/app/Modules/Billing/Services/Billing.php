@@ -7,7 +7,12 @@ use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Billing\Models\BillPayment;
 use App\Modules\Billing\Models\Invoice;
 use App\Modules\Billing\Models\InvoiceLine;
+use App\Modules\Crm\Services\CustomerActivity;
 use App\Modules\Kitchen\Services\Kitchen;
+use App\Modules\Loyalty\Services\GiftCards;
+use App\Modules\Loyalty\Services\Loyalty;
+use App\Modules\Marketing\Services\Coupons;
+use App\Modules\Ordering\Models\Customer;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderEvent;
 use App\Modules\Ordering\Support\Money;
@@ -18,12 +23,8 @@ use App\Modules\Tables\Models\TableSession;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Website\Services\SiteContent;
 use App\Support\ApiException;
+use App\Support\Phone;
 use App\Support\Realtime\Live;
-use App\Modules\Crm\Services\CustomerActivity;
-use App\Modules\Loyalty\Services\GiftCards;
-use App\Modules\Loyalty\Services\Loyalty;
-use App\Modules\Marketing\Services\Coupons;
-use App\Modules\Ordering\Models\Customer;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -98,7 +99,7 @@ class Billing
             $reasons = $off > 0 ? [strip_tags((string) $discount['reason'])] : [];
 
             // Guest at the counter: coupon and / or loyalty points (staff see the guest in person).
-            $guest = ! empty($offers['customer_phone']) ? Customer::where('phone', \App\Support\Phone::normalize($offers['customer_phone']))->first() : null;
+            $guest = ! empty($offers['customer_phone']) ? Customer::where('phone', Phone::normalize($offers['customer_phone']))->first() : null;
             if (! empty($offers['customer_phone']) && ! $guest && ! empty($offers['points'])) {
                 throw new ApiException('No customer with that mobile number.', 422, 'customer_not_found', ['field' => 'customer_phone']);
             }

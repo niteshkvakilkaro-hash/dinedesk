@@ -8,6 +8,7 @@ use App\Modules\Ordering\Models\DeliveryZone;
 use App\Modules\Ordering\Services\DeliveryZones;
 use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Tenancy\Support\TenantContext;
+use App\Modules\Website\Services\SiteContent;
 use App\Modules\Website\Services\SitePresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -111,7 +112,7 @@ class OrderingSettingsController extends Controller
             ])->values(),
             'site_host' => app(SitePresenter::class)->primaryHost($tenant),
             // Where WhatsApp orders would go: the verified number from Website → contact details.
-            'whatsapp_number' => app(\App\Modules\Website\Services\SiteContent::class)->forPublic()['contact']['whatsapp'] ?? null,
+            'whatsapp_number' => app(SiteContent::class)->forPublic()['contact']['whatsapp'] ?? null,
         ];
     }
 }

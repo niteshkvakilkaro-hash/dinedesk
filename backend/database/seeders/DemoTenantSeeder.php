@@ -7,15 +7,16 @@ use App\Modules\Hotel\Models\Room;
 use App\Modules\Hotel\Models\RoomType;
 use App\Modules\Hotel\Services\HotelSettings;
 use App\Modules\Marketing\Models\Banner;
-use App\Modules\Plans\Models\Plan;
 use App\Modules\Marketing\Models\Coupon;
 use App\Modules\Menu\Support\SampleMenu;
 use App\Modules\Onboarding\Actions\CreateBusiness;
 use App\Modules\Ordering\Models\DeliveryZone;
 use App\Modules\Ordering\Services\OrderingSettings;
+use App\Modules\Plans\Models\Plan;
+use App\Modules\Plans\Models\Subscription;
 use App\Modules\Reservations\Services\ReservationSettings;
-use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Settings\Support\OpeningHours;
+use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Modules\Website\Models\GalleryImage;
@@ -128,7 +129,7 @@ class DemoTenantSeeder extends Seeder
             $planId = Plan::where('code', $demo['plan'])->value('id');
             $tenant->update(['plan_id' => $planId]);
             // The trial is on the same plan (Billing shows the subscription's plan).
-            \App\Modules\Plans\Models\Subscription::withoutTenancy()->where('tenant_id', $tenant->id)->update(['plan_id' => $planId]);
+            Subscription::withoutTenancy()->where('tenant_id', $tenant->id)->update(['plan_id' => $planId]);
         }
 
         app(TenantContext::class)->run($tenant, function () use ($demo, $tenant) {

@@ -8,6 +8,7 @@ use App\Modules\Loyalty\Models\LoyaltyEntry;
 use App\Modules\Ordering\Models\Customer;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Reservations\Models\Reservation;
+use App\Support\ApiException;
 use App\Support\Phone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -137,7 +138,7 @@ class CustomersController extends Controller
         $f = Feedback::findOrFail($id);
         $data = $request->validate(['is_published' => ['sometimes', 'boolean'], 'reply' => ['nullable', 'string', 'max:600']]);
         if (! empty($data['is_published']) && ! $f->consent_public) {
-            throw new \App\Support\ApiException('This guest did not agree to show their feedback publicly.', 422, 'no_consent');
+            throw new ApiException('This guest did not agree to show their feedback publicly.', 422, 'no_consent');
         }
         if (array_key_exists('reply', $data)) {
             $data['reply'] = $data['reply'] ? strip_tags($data['reply']) : null;

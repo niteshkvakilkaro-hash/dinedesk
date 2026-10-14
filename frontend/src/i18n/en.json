@@ -596,6 +596,11 @@
           "desc": "Your name, mobile number, password and language",
           "keys": "account profile my name mobile phone number password language email"
         },
+        "deviceAlerts": {
+          "title": "Alerts on this device",
+          "desc": "Phone or browser alerts for new orders and bookings, even when the dashboard is closed",
+          "keys": "notification notifications alert alerts sound push ghanti awaaz bell ring chime phone mobile device"
+        },
         "business": {
           "desc": "Name, city, GSTIN, timings and holidays",
           "keys": "business name address gstin timing"
@@ -4368,6 +4373,15 @@
     "referredBy": "Your business joined through {{name}}.",
     "invitedBy": "Invited by {{name}}",
     "invitedHint": "You both get free days when you start a paid plan."
+  },
+  "inAppAlerts": {
+    "title": "Alerts",
+    "hide": "Hide",
+    "referral": {
+      "granted": "{{business}} started a paid plan with your referral link: {{days}} free days are added, and your plan or trial now runs until {{date}}.",
+      "pending": "{{business}} started a paid plan with your referral link: you earned {{days}} free days. Your plan renews automatically, so they are kept as credit for now.",
+      "open": "See your referrals"
+    }
   },
   "app": {
     "tagline": "Food, tables and rooms in one app",

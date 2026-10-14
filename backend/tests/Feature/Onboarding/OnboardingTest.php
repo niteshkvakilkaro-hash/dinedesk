@@ -4,6 +4,7 @@ namespace Tests\Feature\Onboarding;
 
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 class OnboardingTest extends TestCase
@@ -39,7 +40,7 @@ class OnboardingTest extends TestCase
         $this->assertSame('08ABCDE1234F1Z5', $tenant->gstin);
         $this->assertSame($tenant->id, $owner->fresh()->tenant_id);
         $this->assertDatabaseHas('tenant_domains', ['tenant_id' => $tenant->id, 'domain' => 'the-hungry-haveli.dinedesk.test', 'is_primary' => true]);
-        $trialEnds = \Carbon\Carbon::parse($res->json('data.tenant.subscription.trial_ends_at'));
+        $trialEnds = Carbon::parse($res->json('data.tenant.subscription.trial_ends_at'));
         $this->assertEqualsWithDelta(14, now()->diffInDays($trialEnds), 0.01);
 
         $this->withHeader('X-Tenant-Host', 'the-hungry-haveli.dinedesk.test')->getJson('/api/v1/site')

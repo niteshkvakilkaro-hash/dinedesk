@@ -140,7 +140,7 @@ class DailySummaryTest extends OperationsTestCase
 
         Notification::assertSentTo(new AnonymousNotifiable, DailySummaryMessage::class, function ($n, $channels) {
             return $channels === ['whatsapp']
-                && str_contains($n->text, 'Spice Route · திங்', ) // Monday in Tamil
+                && str_contains($n->text, 'Spice Route · திங்') // Monday in Tamil
                 && str_contains($n->text, 'ஆர்டர்கள்: 2 · விற்பனை: ₹')
                 && str_contains($n->text, 'குறைந்த இருப்பு (1): Paneer')
                 && ! preg_match('/[^\P{Nd}0-9]/u', $n->text); // Western digits

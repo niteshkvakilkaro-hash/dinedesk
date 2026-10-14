@@ -11,6 +11,7 @@ use App\Modules\Reservations\Services\ReservationPresenter;
 use App\Modules\Reservations\Services\ReservationSettings;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Settings\Support\OpeningHours;
+use App\Modules\Tables\Models\DiningTable;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Support\ApiException;
 use App\Support\Phone;
@@ -59,7 +60,7 @@ class ReservationsController extends Controller
             'date' => $date,
             'reservations' => $query->get()->map(fn ($r) => $this->presenter->forStaff($r))->values(),
             // For choosing a table (front desk staff may not see the table setup).
-            'tables' => \App\Modules\Tables\Models\DiningTable::where('is_active', true)->orderBy('sort_order')->orderBy('id')->get(['id', 'label', 'seats']),
+            'tables' => DiningTable::where('is_active', true)->orderBy('sort_order')->orderBy('id')->get(['id', 'label', 'seats']),
             'summary' => [
                 'bookings' => (clone $day)->whereIn('status', Reservation::HOLDING)->count(),
                 'guests' => (int) (clone $day)->whereIn('status', Reservation::HOLDING)->sum('party_size'),

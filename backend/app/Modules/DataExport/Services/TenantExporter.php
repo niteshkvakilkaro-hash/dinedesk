@@ -29,7 +29,7 @@ class TenantExporter
         $dir = "exports/{$tenant->public_id}";
         $disk->makeDirectory($dir);
         $relative = "{$dir}/{$export->public_id}.zip";
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($disk->path($relative), ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             throw new \RuntimeException('Could not create the export file.');
         }

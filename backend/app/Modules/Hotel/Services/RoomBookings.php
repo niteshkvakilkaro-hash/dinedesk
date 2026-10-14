@@ -79,7 +79,7 @@ class RoomBookings
             $advancePct = 0;
         }
 
-        $booking = DB::transaction(function () use ($tenant, $data, $source, $by, $locale, $s, $type, $quote, $website, $online, $advancePct) {
+        $booking = DB::transaction(function () use ($tenant, $data, $source, $locale, $s, $type, $quote, $website, $online, $advancePct) {
             // One booking at a time per business, so two guests can't take the last room together.
             Tenant::whereKey($tenant->id)->lockForUpdate()->first();
             if ($this->availability->freeRooms($type, $data['check_in'], $data['check_out']) < 1) {

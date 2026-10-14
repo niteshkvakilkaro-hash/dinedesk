@@ -1,7 +1,7 @@
 import {
   BedDouble, BellRing, Building2, CalendarClock, CalendarDays, CalendarRange, ChefHat, ClipboardList, Contact, CookingPot, CreditCard, Download, FileSpreadsheet, Gift, Globe, Globe2,
   Hotel, ImageIcon, Images, IndianRupee, Languages, LayoutDashboard, LineChart, Megaphone, MessageCircle, MessageSquareHeart, Network, Package, PartyPopper, Percent, Printer,
-  QrCode, ReceiptText, Repeat, Settings, Settings2, Smartphone, Sparkles, Star, Store, Tag, Timer, Truck, UserCheck, UserRound, Users, UtensilsCrossed, Wallet, WifiOff, Workflow, Bike, MapPin, Bell,
+  QrCode, ReceiptText, Repeat, Settings, Settings2, Smartphone, Sparkles, Star, Store, Tag, Timer, Truck, UserCheck, UserRound, Users, UtensilsCrossed, Vibrate, Wallet, WifiOff, Workflow, Bike, MapPin, Bell,
 } from 'lucide-react';
 import type { Session } from '@/types';
 
@@ -200,6 +200,7 @@ export const DESTINATIONS: Destination[] = [
   // Settings
   page('settings', '/dashboard/settings', Settings, 'settings', (a) => SETTINGS_GATES.some((k) => a[k])),
   page('account', '/dashboard/account', UserRound, 'settings', (a) => a.account),
+  item('deviceAlerts', '/dashboard/account?open=alerts', Vibrate, 'settings', (a) => a.account),
   page('business', '/dashboard/business', Building2, 'settings', (a) => a.business),
   item('hours', '/dashboard/business?open=hours', Timer, 'settings', (a) => a.business),
   item('ordering', '/dashboard/ordering', Settings2, 'settings', (a) => a.business),
@@ -230,7 +231,7 @@ export function destinationsFor(access: Access) {
 
 /** Cards on the Settings page, in sections. Each card reuses its search entry (title and description). */
 export const SETTINGS_SECTIONS: { key: 'account' | 'business' | 'people' | 'tools'; ids: string[] }[] = [
-  { key: 'account', ids: ['account'] },
+  { key: 'account', ids: ['account', 'deviceAlerts'] },
   { key: 'business', ids: ['business', 'ordering', 'payments', 'billing', 'domains', 'branches', 'referral', 'dataExport'] },
   { key: 'people', ids: ['team', 'rota'] },
   { key: 'tools', ids: ['tableQr', 'printers', 'menuLanguages', 'dailySummary', 'calendarSync', 'alerts'] },

@@ -25,8 +25,8 @@ class GuestLanguageTest extends OrderingTestCase
             ->assertCreated()->json('data.order.id');
 
         $this->assertSame('ta', Order::withoutTenancy()->where('public_id', $id)->value('locale'));
-        Notification::assertSentTo(new AnonymousNotifiable(), OrderMessage::class, function (OrderMessage $n) {
-            $mail = $n->toMail(new AnonymousNotifiable());
+        Notification::assertSentTo(new AnonymousNotifiable, OrderMessage::class, function (OrderMessage $n) {
+            $mail = $n->toMail(new AnonymousNotifiable);
 
             return $n->kind === 'placed'
                 && $n->toText() === 'Spice Route: உங்கள் ஆர்டர் #1001 (₹787.00) கிடைத்தது. இங்கே டிராக் செய்யுங்கள்: '.$n->trackUrl
@@ -46,7 +46,7 @@ class GuestLanguageTest extends OrderingTestCase
         $this->assertSame('en', Order::withoutTenancy()->where('public_id', $first)->value('locale'));
         $this->assertSame('bn', Order::withoutTenancy()->where('public_id', $second)->value('locale'));
         $this->assertSame('en', Order::withoutTenancy()->where('public_id', $third)->value('locale'));
-        Notification::assertSentTo(new AnonymousNotifiable(), OrderMessage::class, fn (OrderMessage $n) => str_starts_with($n->toText(), 'Spice Route: we have received your order #1001'));
+        Notification::assertSentTo(new AnonymousNotifiable, OrderMessage::class, fn (OrderMessage $n) => str_starts_with($n->toText(), 'Spice Route: we have received your order #1001'));
     }
 
     public function test_table_booking_in_tamil_is_stored_and_messaged_in_tamil(): void
@@ -60,7 +60,7 @@ class GuestLanguageTest extends OrderingTestCase
         ], $this->site() + ['X-Locale' => 'ta'])->assertCreated()->json('data.code');
 
         $this->assertSame('ta', Reservation::withoutTenancy()->where('code', $code)->value('locale'));
-        Notification::assertSentTo(new AnonymousNotifiable(), ReservationMessage::class, fn (ReservationMessage $n) => $n->kind === 'received'
+        Notification::assertSentTo(new AnonymousNotifiable, ReservationMessage::class, fn (ReservationMessage $n) => $n->kind === 'received'
             && str_starts_with($n->toText(), 'Spice Route: புதன் 11 நவம்பர், 7:00 மாலை, 2 பேருக்கு டேபிள் கோரிக்கை கிடைத்தது. புக்கிங் ID '.$code));
     }
 

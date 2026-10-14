@@ -36,8 +36,8 @@ class SeoController extends Controller
     {
         if ($this->onPlatform($request)) {
             $host = $this->platformHost();
-            $private = collect(['/dashboard', '/platform', '/onboarding', '/kitchen', '/waiter', '/login'])->map(fn ($p) => "Disallow: {$p}")->implode("
-");
+            $private = collect(['/dashboard', '/platform', '/onboarding', '/kitchen', '/waiter', '/login'])->map(fn ($p) => "Disallow: {$p}")->implode('
+');
 
             return $this->text("User-agent: *
 Allow: /
@@ -59,8 +59,8 @@ Sitemap: https://{$host}/sitemap.xml
     {
         if ($this->onPlatform($request)) {
             $host = $this->platformHost();
-            $urls = collect(self::PLATFORM_PAGES)->map(fn ($p) => "  <url><loc>https://{$host}{$p}</loc></url>")->implode("
-");
+            $urls = collect(self::PLATFORM_PAGES)->map(fn ($p) => "  <url><loc>https://{$host}{$p}</loc></url>")->implode('
+');
 
             return $this->xml("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">
 {$urls}
@@ -87,7 +87,7 @@ Sitemap: https://{$host}/sitemap.xml
         $lastmod = $tenant->updated_at->toDateString();
 
         $urls = collect($pages)->map(fn ($p) => sprintf(
-            "  <url><loc>https://%s%s</loc><lastmod>%s</lastmod>%s</url>",
+            '  <url><loc>https://%s%s</loc><lastmod>%s</lastmod>%s</url>',
             $host,
             $p === '/' ? '/' : $p,
             $lastmod,
@@ -119,8 +119,8 @@ Sitemap: https://{$host}/sitemap.xml
 
     private function xml(string $body): Response
     {
-        return response('<?xml version="1.0" encoding="UTF-8"?>'."
-".$body, 200, ['Content-Type' => 'application/xml; charset=UTF-8', 'Cache-Control' => 'public, max-age=3600']);
+        return response('<?xml version="1.0" encoding="UTF-8"?>'.'
+'.$body, 200, ['Content-Type' => 'application/xml; charset=UTF-8', 'Cache-Control' => 'public, max-age=3600']);
     }
 
     private function indexable(Tenant $tenant): bool

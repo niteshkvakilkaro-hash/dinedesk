@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Operations;
 
+use App\Models\User;
 use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Tables\Models\DiningTable;
 use Illuminate\Support\Facades\Notification;
@@ -11,7 +12,7 @@ use Tests\Feature\Ordering\OrderingTestCase;
 /** Ordering business plus dine-in, two tables and a cashier. Naan ₹60 at 5% GST, Lassi ₹99.99 at 18%. */
 abstract class OperationsTestCase extends OrderingTestCase
 {
-    protected \App\Models\User $cashier;
+    protected User $cashier;
 
     protected function setUp(): void
     {

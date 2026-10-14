@@ -2,6 +2,7 @@
 
 namespace App\Support\Realtime;
 
+use App\Modules\Tenancy\Models\Tenant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -25,7 +26,7 @@ final class Live
                 return;
             }
             try {
-                $key = self::$keys[$tenantId] ??= \App\Modules\Tenancy\Models\Tenant::whereKey($tenantId)->value('public_id');
+                $key = self::$keys[$tenantId] ??= Tenant::whereKey($tenantId)->value('public_id');
                 broadcast(new TenantEvent((string) $key, $topic, $name, $payload));
             } catch (Throwable $e) {
                 Log::warning('Live update not sent: '.$e->getMessage(), ['topic' => $topic, 'event' => $name]);

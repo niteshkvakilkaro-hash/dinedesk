@@ -2,6 +2,7 @@
 
 namespace App\Modules\Ordering\Services;
 
+use App\Modules\Billing\Services\Billing;
 use App\Modules\Menu\Models\MenuItem;
 use App\Modules\Ordering\Models\DeliveryZone;
 use App\Modules\Ordering\Support\Money;
@@ -206,7 +207,7 @@ class Pricing
         if ($offPaise <= 0) {
             return $quote + ['discount_total' => '0.00', 'discount_label' => null];
         }
-        $shares = \App\Modules\Billing\Services\Billing::share($offPaise, $taxable);
+        $shares = Billing::share($offPaise, $taxable);
         $subtotal = $tax = $gross = 0;
         foreach ($quote['lines'] as $i => &$l) {
             $lineTaxable = $taxable[$i] - $shares[$i];

@@ -2,16 +2,19 @@
 
 namespace App\Providers;
 
+use App\Modules\Notify\Support\WebPushChannel;
 use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Tenancy\Support\TenantContext;
+use App\Support\Ai\Ai;
+use App\Support\Ai\ClaudeAi;
 use App\Support\Messaging\LiveMessenger;
 use App\Support\Messaging\LogMessenger;
 use App\Support\Messaging\Messenger;
 use App\Support\Messaging\MessengerChannel;
 use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -29,12 +32,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(FeatureService::class);
 
         $this->app->bind(Messenger::class, fn () => match (config('dinedesk.messaging.driver')) {
-            'live' => new LiveMessenger(),
-            default => new LogMessenger(),
+            'live' => new LiveMessenger,
+            default => new LogMessenger,
         });
 
         // AI features (menu import, dish descriptions); tests bind a fake.
-        $this->app->bind(\App\Support\Ai\Ai::class, \App\Support\Ai\ClaudeAi::class);
+        $this->app->bind(Ai::class, ClaudeAi::class);
     }
 
     public function boot(): void
@@ -43,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
         foreach (['whatsapp', 'sms'] as $channel) {
             Notification::extend($channel, fn ($app) => new MessengerChannel($app->make(Messenger::class), $channel));
         }
-        Notification::extend('webpush', fn () => new \App\Modules\Notify\Support\WebPushChannel());
+        Notification::extend('webpush', fn () => new WebPushChannel);
         $this->rateLimits();
         $this->moduleRoutes();
     }

@@ -2,9 +2,12 @@
 
 namespace Tests\Feature\Hotel;
 
+use App\Modules\Hotel\Models\FolioPayment;
 use App\Modules\Hotel\Models\RoomBooking;
 use App\Modules\Hotel\Notifications\HotelForStaff;
 use App\Modules\Ordering\Services\OrderingSettings;
+use App\Modules\Plans\Models\Plan;
+use App\Modules\Plans\Services\FeatureService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 
@@ -116,7 +119,7 @@ class RoomBookingTest extends HotelTestCase
         $this->call('POST', "/api/v1/webhooks/razorpay/{$this->tenant->public_id}", [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_X_RAZORPAY_SIGNATURE' => hash_hmac('sha256', $body, 'whsec_7890')], $body)->assertOk();
         $this->assertSame('confirmed', $b->fresh()->status);
         $this->call('POST', "/api/v1/webhooks/razorpay/{$this->tenant->public_id}", [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_X_RAZORPAY_SIGNATURE' => hash_hmac('sha256', $body, 'whsec_7890')], $body)->assertOk();
-        $this->assertSame(1, \App\Modules\Hotel\Models\FolioPayment::withoutTenancy()->where('room_booking_id', $b->id)->count());
+        $this->assertSame(1, FolioPayment::withoutTenancy()->where('room_booking_id', $b->id)->count());
     }
 
     public function test_hotel_is_a_pro_feature_and_each_hotel_sees_only_its_own_stays(): void
@@ -126,8 +129,8 @@ class RoomBookingTest extends HotelTestCase
         $this->actingAsUser($this->ownerOf($other))->getJson('/api/v1/tenant/hotel/today')->assertForbidden();
         $this->getJson('/api/v1/site/hotel', ['X-Tenant-Host' => $this->host($other)])->assertForbidden();
 
-        $other->update(['plan_id' => \App\Modules\Plans\Models\Plan::where('code', 'pro')->value('id')]);
-        app(\App\Modules\Plans\Services\FeatureService::class)->forget($other);
+        $other->update(['plan_id' => Plan::where('code', 'pro')->value('id')]);
+        app(FeatureService::class)->forget($other);
         $this->actingAsUser($this->ownerOf($other))->getJson("/api/v1/tenant/hotel/bookings/{$stay['id']}")->assertNotFound();
         $this->actingAsUser($this->ownerOf($other))->getJson('/api/v1/tenant/hotel/bookings')->assertOk()->assertJsonCount(0, 'data');
         $this->getJson("/api/v1/site/hotel/bookings/{$stay['public_id']}?t=x", ['X-Tenant-Host' => $this->host($other)])->assertNotFound();
