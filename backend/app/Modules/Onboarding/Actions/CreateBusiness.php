@@ -7,6 +7,8 @@ use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Identity\Support\Roles;
 use App\Modules\Plans\Models\Plan;
 use App\Modules\Plans\Models\Subscription;
+use App\Modules\Referrals\Services\ReferralCodes;
+use App\Modules\Referrals\Services\ReferralRewards;
 use App\Modules\Settings\Services\TenantSettings;
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
@@ -29,10 +31,11 @@ class CreateBusiness
     public function __construct(
         private readonly TenantContext $context,
         private readonly TenantSettings $settings,
+        private readonly ReferralRewards $referrals,
     ) {}
 
     /**
-     * @param  array{business_type: string, name: string, city: string, gstin?: ?string, opening_hours: array}  $data
+     * @param  array{business_type: string, name: string, city: string, gstin?: ?string, opening_hours: array, referral_code?: ?string}  $data
      */
     public function __invoke(User $owner, array $data): Tenant
     {
@@ -57,7 +60,10 @@ class CreateBusiness
                 'status' => 'onboarding',
                 'onboarding_step' => 4, // steps 4–7 (theme, branding, menu, go live) come next
                 'plan_id' => $plan->id,
+                'referral_code' => ReferralCodes::unusedCode(),
             ]);
+            // Signed up with another business's referral link (invalid codes are ignored).
+            $this->referrals->recordSignup($tenant, $owner, $data['referral_code'] ?? null);
 
             TenantDomain::create([
                 'tenant_id' => $tenant->id,

@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { BedDouble, Check, Coffee, Truck, UtensilsCrossed } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { GSTIN_REGEX } from '@/lib/format';
+import { clearReferral, storedReferral } from '@/lib/referral';
 import { useAuthStore } from '@/stores/auth';
 import { Alert, Field, Spinner } from '@/components/ui';
 import { LanguageToggle, Logo } from '@/components/Brand';
@@ -74,7 +75,9 @@ export default function OnboardingWizard() {
 
     setBusy(true);
     try {
-      const res = await api.post<Session>('/onboarding/business', { business_type: type, name, city, gstin: cleanGstin || null, opening_hours: hours });
+      // A referral link's code (kept 30 days); the server ignores one that isn't valid.
+      const res = await api.post<Session>('/onboarding/business', { business_type: type, name, city, gstin: cleanGstin || null, opening_hours: hours, referral_code: storedReferral() });
+      clearReferral();
       // The session now has a business at step 4: the wizard continues with the website setup.
       qc.setQueryData(['session', token], res.data);
       setSetupStep(4);

@@ -93,7 +93,7 @@ Schedule::command('hotel:purge-documents')->dailyAt('03:30')->withoutOverlapping
 // Billing: trials and paid periods that ran out get a grace period, then read-only (hourly).
 Artisan::command('subscriptions:enforce', function () {
     $done = app(\App\Modules\Subscriptions\Services\SubscriptionManager::class)->enforce();
-    $this->info("Grace started: {$done['grace']}, made read-only: {$done['read_only']}.");
+    $this->info("Grace started: {$done['grace']}, made read-only: {$done['read_only']}, referral credits added: {$done['referral_credits']}.");
 })->purpose('Start grace periods and apply read-only mode for unpaid businesses');
 
 Schedule::command('subscriptions:enforce')->hourly()->withoutOverlapping();

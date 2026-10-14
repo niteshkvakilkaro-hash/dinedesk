@@ -1,12 +1,14 @@
 import { forwardRef, useEffect, useState, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Eye, EyeOff, Mail, Smartphone } from 'lucide-react';
+import { Eye, EyeOff, Gift, Mail, Smartphone } from 'lucide-react';
 import { api, ApiError, applyServerErrors } from '@/lib/api';
 import { formatPhone, isIndianMobile } from '@/lib/format';
+import { clearReferral, normalizeReferral, storedReferral } from '@/lib/referral';
 import { useSignIn } from '@/hooks/useSession';
 import { Alert, Field, Spinner } from '@/components/ui';
 import { LanguageToggle, Logo } from '@/components/Brand';
@@ -281,6 +283,34 @@ function EmailLogin() {
   );
 }
 
+/** "Invited by <business>" when the visitor came with a referral link (the server checks the code). */
+function InvitedBy() {
+  const { t } = useTranslation();
+  const { search } = useLocation();
+  const code = normalizeReferral(new URLSearchParams(search).get('ref')) ?? storedReferral();
+  const q = useQuery({
+    queryKey: ['referral', code],
+    enabled: !!code,
+    staleTime: Infinity,
+    retry: false,
+    queryFn: async () => (await api.get<{ name: string }>(`/referrals/${code}`)).data,
+  });
+  useEffect(() => {
+    // A code that isn't valid (or a demo's) is forgotten, so it isn't sent with the business.
+    if (q.error instanceof ApiError && q.error.status === 404) clearReferral();
+  }, [q.error]);
+  if (!q.data) return null;
+  return (
+    <p className="mb-5 flex items-start gap-2.5 rounded-xl border border-line bg-paper px-4 py-3 text-sm" role="status">
+      <Gift className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+      <span>
+        <b>{t('referrals.invitedBy', { name: q.data.name })}</b>
+        <span className="block text-muted">{t('referrals.invitedHint')}</span>
+      </span>
+    </p>
+  );
+}
+
 export function SignupPage() {
   const { t } = useTranslation();
   const [method, setMethod] = useState<'email' | 'mobile'>('mobile');
@@ -297,6 +327,7 @@ export function SignupPage() {
         </>
       }
     >
+      <InvitedBy />
       <MethodTabs value={method} onChange={setMethod} />
       {method === 'mobile' ? <OtpFlow /> : <EmailSignup />}
     </AuthShell>

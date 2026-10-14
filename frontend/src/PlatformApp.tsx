@@ -5,6 +5,7 @@ import { MotionConfig } from 'motion/react';
 import { useAuthStore } from '@/stores/auth';
 import { useSession } from '@/hooks/useSession';
 import { Spinner, Toaster } from '@/components/ui';
+import { captureReferral } from '@/lib/referral';
 
 const Landing = lazy(() => import('@/features/marketing/Landing'));
 const MarketingLayout = lazy(() => import('@/features/marketing/MarketingLayout'));
@@ -75,6 +76,15 @@ function Guard({ need, children }: { need: Need; children: ReactNode }) {
   return allowed ? children : <Navigate to={home} replace />;
 }
 
+/** ?ref=CODE on any page (marketing or sign-up) is kept for 30 days, until the business is created. */
+function ReferralCapture() {
+  const { search } = useLocation();
+  useEffect(() => {
+    if (search) captureReferral(search);
+  }, [search]);
+  return null;
+}
+
 /** Sign-up, onboarding, business dashboard and super admin (loaded only on the platform host). */
 export default function PlatformApp() {
   // The dashboard installs like an app (manifest + a push-only service worker); business websites have their own.
@@ -96,6 +106,7 @@ export default function PlatformApp() {
   return (
     // reducedMotion="user": Motion drops movement for people who ask for less motion.
     <MotionConfig reducedMotion="user">
+      <ReferralCapture />
       <Suspense fallback={<FullPageSpinner />}>
     <Routes>
       {/* DineDesk's own marketing pages */}

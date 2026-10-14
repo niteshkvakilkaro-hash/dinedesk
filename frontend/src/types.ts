@@ -92,6 +92,16 @@ export interface PlatformTenantDetail extends PlatformTenantRow {
   limits: Record<string, number | null>;
   overrides: { feature: string; enabled: boolean; reason: string; expires_at: string | null }[];
   recent_activity: { action: string; by: string | null; meta: Record<string, unknown> | null; at: string }[];
+  referrals: PlatformReferrals;
+}
+
+/** Super admin: a business's referral code, who referred it, whom it referred, free days earned. */
+export interface PlatformReferrals {
+  code: string | null;
+  referred_by: { id: string; name: string } | null;
+  rewarded_at: string | null;
+  referred: { id: string; name: string; status: TenantStatus; deleted: boolean; paying: boolean; created_at: string | null }[];
+  rewards: { id: number; role: 'referrer' | 'referred'; days: number; status: 'pending' | 'applied'; applied_to: 'trial' | 'period' | 'manual' | null; applied_at: string | null; new_end: string | null; business: string | null; note: string | null; created_at: string | null }[];
 }
 
 export interface Plan {

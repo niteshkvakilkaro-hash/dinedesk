@@ -9,6 +9,7 @@ import { tenantSiteUrl } from '@/lib/host';
 import { Alert, Badge, DemoBadge, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
 import type { PlatformTenantDetail, TenantStatus } from '@/types';
 import { SupportPanel } from './SupportPanel';
+import { ReferralsPanel } from './ReferralsPanel';
 
 function ChangeForm({ tenant }: { tenant: PlatformTenantDetail }) {
   const { t } = useTranslation();
@@ -204,6 +205,8 @@ export default function TenantDetail() {
           ))}
         </ul>
       </section>
+
+      {tenant.referrals && <ReferralsPanel tenantId={tenant.id} r={tenant.referrals} />}
 
       <SupportPanel tenantId={tenant.id} name={tenant.name} />
 

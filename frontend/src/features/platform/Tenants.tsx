@@ -14,6 +14,7 @@ interface Summary {
   by_status: Record<string, number>;
   trialing: number;
   mrr: number;
+  referral_credits_pending?: number;
 }
 
 export default function Tenants() {
@@ -64,6 +65,8 @@ export default function Tenants() {
             ))
           : Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-24" />)}
       </div>
+      {/* Referral free days waiting because those businesses' plans renew automatically (see each business). */}
+      {!!summary?.referral_credits_pending && <p className="mt-3 text-sm font-semibold text-warn" role="status">{t('platform.referrals.pendingCredits', { n: summary.referral_credits_pending })}</p>}
 
       <div className="card mt-5 overflow-hidden">
         <div className="flex flex-wrap items-center gap-2 border-b border-line p-3">

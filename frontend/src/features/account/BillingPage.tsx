@@ -6,6 +6,7 @@ import { api, ApiError, downloadFile } from '@/lib/api';
 import { formatDate, formatMoney } from '@/lib/format';
 import { loadRazorpay } from '@/site/ordering';
 import { Alert, Badge, EmptyState, ErrorState, SkeletonRows, Spinner, toast } from '@/components/ui';
+import { ReferralCard } from './ReferralCard';
 
 type Cycle = 'monthly' | 'yearly';
 
@@ -257,6 +258,9 @@ export default function BillingPage() {
           ) : <EmptyState title={t('billing.noInvoices')} />}
         </section>
       )}
+
+      {/* Branches are referred through their main business. */}
+      {!b.is_branch && <ReferralCard />}
 
       <DataExport />
     </div>

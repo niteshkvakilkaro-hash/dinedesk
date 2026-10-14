@@ -28,6 +28,8 @@ class OnboardingController extends Controller
             'city' => ['required', 'string', 'min:2', 'max:80'],
             'gstin' => ['nullable', 'regex:'.self::GSTIN_REGEX],
             ...OpeningHours::rules(),
+            // From a referral link (?ref=); a code that isn't valid is ignored, never an error.
+            'referral_code' => ['nullable', 'string', 'max:20'],
         ], [
             'gstin.regex' => 'Enter a valid 15-character GSTIN, e.g. 08ABCDE1234F1Z5, or leave it empty.',
             'opening_hours.*.close.different' => 'Opening and closing time cannot be the same.',

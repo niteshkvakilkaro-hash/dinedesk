@@ -494,6 +494,24 @@
       "export": "Export data",
       "exportStarted": "Export started.",
       "download": "Download"
+    },
+    "referrals": {
+      "title": "Referrals",
+      "code": "Referral code",
+      "referredBy": "Referred by",
+      "firstPayment": "first payment {{date}}",
+      "referred": "Businesses it referred ({{n}})",
+      "none": "None yet.",
+      "deleted": "Deleted",
+      "rewards": "Referral rewards",
+      "noRewards": "No rewards yet.",
+      "pending": "Pending: the plan renews automatically, so nothing was added. Give it another way (refund, offer) and mark it applied.",
+      "appliedManual": "Marked applied on {{date}}",
+      "applied_trial": "Added to the trial (ends {{date}})",
+      "applied_period": "Added to the paid period (ends {{date}})",
+      "markApplied": "Mark applied",
+      "note": "How was it given? (saved to the audit log)",
+      "pendingCredits": "{{n}} referral rewards are waiting to be applied by hand."
     }
   },
   "site": {
@@ -3900,5 +3918,39 @@
     "hidden": "Hidden",
     "noPlans": "No tiffin plans yet",
     "noPlansText": "Add a plan — say 26 lunches in 30 days — and it appears on your website's Tiffin page."
+  },
+  "referrals": {
+    "title": "Refer a business",
+    "intro": "Know another restaurant, cafe or hotel owner? Share your link. When they sign up and make their first payment, you both get {{days}} days free.",
+    "demo": "Referral links are not available for demo businesses.",
+    "linkLabel": "Your referral link",
+    "copy": "Copy link",
+    "copied": "Link copied.",
+    "copyFailed": "Could not copy. Select the link and copy it.",
+    "whatsapp": "Share on WhatsApp",
+    "shareText": "I run {{business}} on DineDesk: our own website, online orders, billing and more. Sign up with my link and we both get {{days}} days free: {{link}}",
+    "stats": {
+      "signedUp": "Signed up via you",
+      "paying": "Became paying",
+      "daysEarned": "Free days earned"
+    },
+    "businesses": "Businesses you referred",
+    "none": "No one has signed up with your link yet.",
+    "status": {
+      "signed_up": "Signed up",
+      "paying": "Paying"
+    },
+    "rewards": "Your free days",
+    "rewardFor": {
+      "referrer": "{{days}} days for referring {{business}}",
+      "referred": "{{days}} days for joining through a referral"
+    },
+    "rewardPending": "Waiting: your plan renews automatically, so these days can't be added on top yet. They are added when your plan stops renewing, or our team applies them for you.",
+    "appliedTrial": "Added to your trial, which now ends on {{date}}.",
+    "appliedPeriod": "Added to your plan, which now runs until {{date}}.",
+    "appliedManual": "Applied by our team on {{date}}.",
+    "referredBy": "Your business joined through {{name}}.",
+    "invitedBy": "Invited by {{name}}",
+    "invitedHint": "You both get free days when you start a paid plan."
   }
 }

@@ -27,6 +27,12 @@ return [
         'days' => 14,
     ],
 
+    // Refer a business: when a business that signed up with another's link makes its first
+    // paid subscription payment, both get this many free days (see Modules/Referrals).
+    'referrals' => [
+        'reward_days' => (int) env('REFERRAL_REWARD_DAYS', 30),
+    ],
+
     // The platform's own Razorpay account (subscriptions from businesses). Each business's
     // customer payments use that business's keys instead (Ordering settings).
     'platform_razorpay' => [

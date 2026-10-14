@@ -19,7 +19,7 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /** Business modules; each may ship a routes.php mounted under /api/v1. */
-    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports', 'Hotel', 'Subscriptions', 'Branches', 'Domains', 'DataExport', 'Accounts', 'Notify', 'Finance', 'Staff', 'Tiffin'];
+    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports', 'Hotel', 'Subscriptions', 'Branches', 'Domains', 'DataExport', 'Accounts', 'Notify', 'Finance', 'Staff', 'Tiffin', 'Referrals'];
 
     public function register(): void
     {
@@ -126,6 +126,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('support', fn (Request $request) => Limit::perHour(20)->by('support|'.$request->user()?->id));
         RateLimiter::for('exports', fn (Request $request) => Limit::perHour(3)->by('export|'.$request->user()?->id));
         RateLimiter::for('tls-ask', fn (Request $request) => Limit::perMinute(60)->by('tls|'.$request->ip()));
+
+        // The sign-up page's "Invited by" lookup: enough for people, too slow to list codes.
+        RateLimiter::for('referral-lookup', fn (Request $request) => Limit::perMinute(20)->by('ref|'.$request->ip())
+            ->response($tooMany('Too many tries. Please wait a minute.')));
 
         RateLimiter::for('webhooks', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
 

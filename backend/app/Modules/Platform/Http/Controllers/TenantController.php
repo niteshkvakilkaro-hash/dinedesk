@@ -10,6 +10,8 @@ use App\Modules\Plans\Models\FeatureOverride;
 use App\Modules\Plans\Models\Plan;
 use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Plans\Support\Features;
+use App\Modules\Referrals\Models\ReferralReward;
+use App\Modules\Referrals\Services\ReferralRewards;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Support\TenantResolver;
 use Illuminate\Database\Eloquent\Builder;
@@ -89,6 +91,7 @@ class TenantController extends Controller
             'overrides' => $tenant->featureOverrides->map(fn ($o) => [
                 'feature' => $o->feature, 'enabled' => $o->enabled, 'reason' => $o->reason, 'expires_at' => $o->expires_at?->toIso8601String(),
             ]),
+            'referrals' => app(ReferralRewards::class)->forPlatform($tenant),
             'recent_activity' => AuditLog::where('tenant_id', $tenant->id)->latest('id')->limit(15)->with('user:id,name')->get()->map(fn ($a) => [
                 'action' => $a->action, 'by' => $a->user?->name, 'meta' => $a->meta, 'at' => $a->created_at?->toIso8601String(),
             ]),
@@ -217,6 +220,8 @@ class TenantController extends Controller
                 ->whereRaw('s.id = (select max(id) from subscriptions where tenant_id = s.tenant_id)')
                 ->where('s.status', 'trialing')->count(),
             'mrr' => round($mrr, 2),
+            // Referral free days that wait for a business whose plan renews automatically.
+            'referral_credits_pending' => ReferralReward::where('status', 'pending')->count(),
         ];
     }
 

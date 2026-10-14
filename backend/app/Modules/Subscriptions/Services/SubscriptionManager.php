@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Plans\Models\Plan;
 use App\Modules\Plans\Models\Subscription;
+use App\Modules\Referrals\Services\ReferralRewards;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Support\TenantScope;
 use App\Support\ApiException;
@@ -29,6 +30,7 @@ class SubscriptionManager
         private readonly PlatformSettings $settings,
         private readonly PlatformInvoices $invoices,
         private readonly TenantAccess $access,
+        private readonly ReferralRewards $referrals,
     ) {}
 
     public function current(Tenant $root): ?Subscription
@@ -129,7 +131,7 @@ class SubscriptionManager
             'subscription.activated' => $this->activate($sub, $start, $end),
             'subscription.charged' => $this->charged($sub, (array) ($payload['payment']['entity'] ?? []), $start, $end, $entity['plan_id'] ?? null),
             'subscription.pending', 'subscription.halted' => $this->lapse($sub, $event === 'subscription.halted' ? 'halted' : 'past_due'),
-            'subscription.cancelled', 'subscription.completed' => $sub->update(['status' => 'cancelled', 'ended_at' => now(), 'cancel_at_period_end' => false]),
+            'subscription.cancelled', 'subscription.completed' => $this->ended($sub),
             default => null,
         };
     }
@@ -173,6 +175,8 @@ class SubscriptionManager
         $this->razorpay->cancel($sub->provider_subscription_id, true);
         $sub->update(['cancel_at_period_end' => true]);
         AuditLog::record('billing.cancel_requested', $root, ['ends' => $sub->current_period_ends_at?->toIso8601String()], $root->id);
+        // It won't renew now, so referral free days waiting for that can extend the period.
+        $this->referrals->applyPending($root);
 
         return $sub->fresh(['plan', 'scheduledPlan']);
     }
@@ -185,7 +189,8 @@ class SubscriptionManager
     public function enforce(): array
     {
         $graceDays = (int) $this->settings->get('billing')['grace_days'];
-        $done = ['grace' => 0, 'read_only' => 0];
+        // Referral free days that can be added by now (a trial, a plan that won't renew) first.
+        $done = ['grace' => 0, 'read_only' => 0, 'referral_credits' => $this->referrals->applyAllPending()];
         Tenant::whereNull('parent_tenant_id')->where('is_demo', false)->whereIn('status', ['live', 'onboarding', 'read_only'])->each(function (Tenant $t) use ($graceDays, &$done) {
             $s = $this->current($t);
             if (! $s) {
@@ -264,6 +269,19 @@ class SubscriptionManager
         $sub->update(['last_charged_at' => now()]);
         if (! empty($payment['id']) && isset($payment['amount'])) {
             $this->invoices->forCharge($sub->fresh(), (string) $payment['id'], (int) $payment['amount'], $start, $end);
+            // The first paid payment of a referred business earns both businesses free days (once).
+            if ((int) $payment['amount'] > 0) {
+                $this->referrals->paymentReceived(Tenant::findOrFail($sub->tenant_id));
+            }
+        }
+    }
+
+    /** Razorpay ended the subscription (cancelled or all cycles done). */
+    private function ended(Subscription $sub): void
+    {
+        $sub->update(['status' => 'cancelled', 'ended_at' => now(), 'cancel_at_period_end' => false]);
+        if ($root = Tenant::find($sub->tenant_id)) {
+            $this->referrals->applyPending($root);
         }
     }
 

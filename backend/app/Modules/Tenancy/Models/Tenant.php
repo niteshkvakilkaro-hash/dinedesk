@@ -25,6 +25,7 @@ class Tenant extends Model
     protected $fillable = [
         'name', 'slug', 'business_type', 'city', 'gstin', 'timezone', 'status',
         'onboarding_step', 'plan_id', 'last_active_at', 'is_demo', 'parent_tenant_id',
+        'referral_code', 'referred_by_tenant_id', 'referral_rewarded_at',
     ];
 
     protected function casts(): array
@@ -33,6 +34,7 @@ class Tenant extends Model
             'onboarding_step' => 'integer',
             'last_active_at' => 'datetime',
             'is_demo' => 'boolean',
+            'referral_rewarded_at' => 'datetime',
         ];
     }
 
@@ -90,6 +92,12 @@ class Tenant extends Model
     public function branches(): HasMany
     {
         return $this->hasMany(self::class, 'parent_tenant_id')->orderBy('id');
+    }
+
+    /** The business whose referral link this one signed up with (Modules/Referrals). */
+    public function referredBy(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'referred_by_tenant_id')->withTrashed();
     }
 
     /** Whoever pays: the business itself, or its main business when it is a branch. */
