@@ -3,9 +3,10 @@ import { intlLocale } from '@/i18n/locale';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Download, LineChart } from 'lucide-react';
+import { BellRing, Download, LineChart } from 'lucide-react';
 import { api, downloadFile } from '@/lib/api';
 import { GstPanel } from './GstPanel';
+import { DailySummaryDialog } from './DailySummaryDialog';
 import { formatMoney } from '@/lib/format';
 import { ErrorState, SkeletonRows, toast } from '@/components/ui';
 import { shiftDate, todayIn } from '@/features/reservations/api';
@@ -94,6 +95,7 @@ export default function ReportsPage() {
   const today = todayIn('Asia/Kolkata');
   const [range, setRange] = useState<{ from: string; to: string }>({ from: shiftDate(today, -29), to: today });
   const [by, setBy] = useState<'day' | 'week' | 'month'>('day');
+  const [dailyOpen, setDailyOpen] = useState(false);
   const q = useQuery({
     queryKey: ['reports', range, by],
     queryFn: async () => (await api.get<Overview>('/tenant/reports/overview', { ...range, by })).data,
@@ -109,6 +111,9 @@ export default function ReportsPage() {
         <div>
           <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight"><LineChart className="h-7 w-7" aria-hidden="true" /> {t('reports.title')}</h1>
           <p className="text-muted">{t('reports.subtitle')}</p>
+          <button type="button" className="btn-outline mt-2 !min-h-9 text-sm" onClick={() => setDailyOpen(true)}>
+            <BellRing className="h-4 w-4" aria-hidden="true" /> {t('reports.daily.button')}
+          </button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {PRESETS.map((d) => (
@@ -228,6 +233,7 @@ export default function ReportsPage() {
         </>
       )}
       <GstPanel />
+      <DailySummaryDialog open={dailyOpen} onClose={() => setDailyOpen(false)} />
     </div>
   );
 }

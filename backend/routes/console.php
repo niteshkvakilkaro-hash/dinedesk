@@ -127,6 +127,24 @@ Artisan::command('marketing:automations', function (TenantContext $context) {
 
 Schedule::command('marketing:automations')->dailyAt('10:00')->timezone('Asia/Kolkata')->withoutOverlapping();
 
+// The owner's morning summary of yesterday (WhatsApp / email), for live businesses that switched
+// it on. Runs hourly; each business gets it once, at the hour it chose in its own timezone.
+Artisan::command('reports:daily-summary', function (TenantContext $context) {
+    $sent = 0;
+    $tenantIds = \App\Modules\Settings\Models\Setting::withoutTenancy()->where('key', \App\Modules\Reports\Services\DailySummary::KEY)->pluck('tenant_id');
+    foreach (Tenant::whereIn('id', $tenantIds)->where('status', 'live')->where('is_demo', false)->get() as $tenant) {
+        try {
+            $sent += (int) $context->run($tenant, fn () => app(\App\Modules\Reports\Services\DailySummary::class)->runIfDue($tenant));
+        } catch (\Throwable $e) {
+            report($e); // one business's problem never stops the others
+        }
+    }
+    $this->info("Sent {$sent} daily summary(ies).");
+})->purpose('Send owners their morning summary of yesterday');
+
+// On the hour in IST (India is UTC+5:30, so a plain UTC hourly run would land at :30).
+Schedule::command('reports:daily-summary')->hourly()->timezone('Asia/Kolkata')->withoutOverlapping();
+
 // Nightly database backup (gzip) under storage/app/private/backups, older ones removed.
 // Copy them off the server too (see docs/DEPLOYMENT.md).
 Artisan::command('backup:database', function () {

@@ -302,7 +302,7 @@ Protect the Horizon dashboard (`/horizon`): in `app/Providers/HorizonServiceProv
 * * * * * www-data cd /var/www/dinedesk/backend && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-It runs: unpaid online orders and room holds released, booking reminders, **billing enforcement** (grace periods, read-only, hourly), guest-ID clean-up, export clean-up and the **nightly database backup** (02:30).
+It runs: unpaid online orders and room holds released, booking reminders, **billing enforcement** (grace periods, read-only, hourly), the owners' **morning summary** (`reports:daily-summary`, hourly on the hour IST; each business at its chosen hour, once a day), automatic customer messages (10:00 IST), guest-ID clean-up, export clean-up and the **nightly database backup** (02:30). Set `DASHBOARD_URL` if the dashboard is not served at `APP_URL` (the summary links to it).
 
 ## 9. Razorpay (platform account)
 

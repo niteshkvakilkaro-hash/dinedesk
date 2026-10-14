@@ -2575,7 +2575,27 @@
     "typeNights_one": "{{count}} night",
     "typeNights_other": "{{count}} nights",
     "occupancyChart": "Occupancy by day, {{value}}% overall",
-    "roomsNote": "From your bookings' own nightly prices. Available room-nights use the rooms you have today."
+    "roomsNote": "From your bookings' own nightly prices. Available room-nights use the rooms you have today.",
+    "daily": {
+      "button": "Morning summary",
+      "title": "Morning summary for the owner",
+      "intro": "Every morning the owner gets yesterday's sales, orders, top dishes, bookings and low stock: real numbers from these reports, on WhatsApp and/or email.",
+      "on": "Send the summary every morning",
+      "offHint": "Off until you switch it on. Each WhatsApp message may cost a little.",
+      "channels": "Send by",
+      "email": "Email",
+      "noPhone": "The owner's account has no mobile number, so WhatsApp can't be sent.",
+      "noEmail": "The owner's account has no email.",
+      "chooseChannel": "Choose WhatsApp, email or both.",
+      "hour": "Send at",
+      "hourHint": "Business time ({{tz}})",
+      "language": "Written in {{name}}'s dashboard language.",
+      "preview": "Preview (yesterday)",
+      "lastSent": "Last sent: {{date}}",
+      "test": "Send me a test now",
+      "testHint": "The test goes to the owner with today's numbers so far. Up to 5 an hour.",
+      "testSent": "Test summary sent."
+    }
   },
   "hotel": {
     "title": "Hotel",

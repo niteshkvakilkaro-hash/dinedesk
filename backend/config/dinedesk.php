@@ -74,6 +74,9 @@ return [
     // Public links to a business site (order tracking in messages). {host} = the business's domain.
     'site_url_pattern' => env('SITE_URL_PATTERN', 'https://{host}'),
 
+    // Where owners open the dashboard (links in the owner's daily summary).
+    'dashboard_url' => env('DASHBOARD_URL') ?: env('APP_URL', 'http://localhost'),
+
     // GST on room tariff by the price of one room for one night (SAC 996311). Highest slab last.
     // Check the current rates with your CA; change them here when the law changes.
     'hotel_gst' => [

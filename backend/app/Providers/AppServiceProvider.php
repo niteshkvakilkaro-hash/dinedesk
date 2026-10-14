@@ -119,6 +119,9 @@ class AppServiceProvider extends ServiceProvider
                 ->response($tooMany('Too many codes for this number. Please try later.')),
             Limit::perHour(20)->by('loyalty-ip|'.$request->ip()),
         ]);
+        // "Send me a test" of the owner's daily summary: a few per person per hour.
+        RateLimiter::for('daily-summary-test', fn (Request $request) => Limit::perHour(5)->by('daily-summary|'.$request->user()?->id)
+            ->response($tooMany('That is enough test summaries for one hour. Please try again later.')));
         RateLimiter::for('campaigns', fn (Request $request) => Limit::perHour(10)->by('campaign|'.$request->user()?->id));
         RateLimiter::for('support', fn (Request $request) => Limit::perHour(20)->by('support|'.$request->user()?->id));
         RateLimiter::for('exports', fn (Request $request) => Limit::perHour(3)->by('export|'.$request->user()?->id));
