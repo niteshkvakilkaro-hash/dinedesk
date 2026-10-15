@@ -37,7 +37,7 @@ export function Footer({ site }: { site: SiteData }) {
           {l(site.content, 'tagline') && <p className="s-muted mt-4 max-w-sm">{l(site.content, 'tagline')}</p>}
           {today.text && (
             <p className="s-small mt-5">
-              <span className="font-bold">{t('site.today')}: </span>
+              <span className="font-bold capitalize">{t('site.today')}: </span>
               {today.text}
             </p>
           )}

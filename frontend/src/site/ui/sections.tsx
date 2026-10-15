@@ -69,23 +69,24 @@ export function QuickActions({ site }: { site: SiteData }) {
     );
   }
 
+  // Phones: one row of app-style shortcuts (icon over label); it scrolls sideways past four.
   return (
     <nav aria-label={t('site.quick.label')} className="s-wrap relative z-10 pt-6 md:pt-10">
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] md:gap-4">
+      <ul className="s-quick">
         {actions.map((a, i) => {
           const inner = (
             <>
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-t-primary text-t-on-primary">
+              <span className="s-quick-icon">
                 <a.icon className="h-5 w-5" aria-hidden="true" />
               </span>
               <span className="min-w-0">
-                <span className="block font-bold leading-tight">{a.label}</span>
-                <span className="s-small s-muted block truncate">{a.hint}</span>
+                <span className="s-quick-label">{a.label}</span>
+                <span className="s-quick-hint s-small s-muted">{a.hint}</span>
               </span>
               {a.external && <span className="sr-only"> ({t('common.opensInNewTab')})</span>}
             </>
           );
-          const cls = 's-card s-card-hover flex min-h-[76px] items-center gap-3 p-3 sm:p-4';
+          const cls = 's-card s-card-hover s-quick-item';
           return (
             <li key={a.key} className="s-reveal" style={delay(i)}>
               {a.to ? (
@@ -225,7 +226,7 @@ export function AboutSplit({ site }: { site: SiteData }) {
         <div className={`s-reveal col-span-4 md:col-span-6 ${style.hero === 'split' || style.hero === 'royal' ? 'md:order-2 lg:col-span-5 lg:col-start-8' : ''}`}>
           {photo && (
             <div className="s-zoom">
-              <SiteImg image={photo} alt={ambience[0]?.alt_text ?? t('site.coverAlt', { name: site.name })} sizes="(min-width: 1024px) 560px, 100vw" className={`s-media w-full ${style.hero === 'royal' ? 'aspect-[4/3] md:aspect-[4/5]' : 'aspect-[4/5]'} ${style.imageMask === 'arch' ? 's-media-arch' : ''}`} />
+              <SiteImg image={photo} alt={ambience[0]?.alt_text ?? t('site.coverAlt', { name: site.name })} sizes="(min-width: 1024px) 560px, 100vw" className={`s-media w-full aspect-[4/3] md:aspect-[4/5] ${style.imageMask === 'arch' ? 's-media-arch' : ''}`} />
             </div>
           )}
         </div>
@@ -353,7 +354,7 @@ export function Reserve({ site }: { site: SiteData }) {
   return (
     <section className="s-section-tight" aria-labelledby="reserve-title">
       <div className="s-wrap">
-        <div className="s-reveal s-card relative overflow-hidden !bg-t-primary px-6 py-12 text-t-on-primary sm:px-12 md:py-16">
+        <div className="s-reveal s-card s-cta-band relative overflow-hidden !bg-t-primary px-6 py-12 text-t-on-primary sm:px-12 md:py-16">
           <div className="s-grid items-center gap-y-8">
             <div className="col-span-4 md:col-span-7">
               <p className="s-eyebrow !text-current opacity-85">{t('site.reserveEyebrow')}</p>

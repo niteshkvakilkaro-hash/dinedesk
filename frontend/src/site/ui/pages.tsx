@@ -85,10 +85,9 @@ function Menu({ site }: PageProps) {
   const l = useLocalized();
   const { data: menu } = useSiteMenu();
   const filter = useMenuFilter(menu);
-  const { categories, vegOnly, setVegOnly, search, setSearch, hasDemo, filterCount } = filter;
+  const { categories, vegOnly, search, hasDemo, filterCount } = filter;
   const [active, setActive] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const canFilter = filter.availableDiets.length > 0 || filter.availableAllergens.length > 0;
 
   // Highlight the section being read.
   useEffect(() => {
@@ -101,8 +100,35 @@ function Menu({ site }: PageProps) {
       { rootMargin: '-35% 0px -55% 0px' },
     );
     document.querySelectorAll('[data-menu-section]').forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    // Back above the first category (no intersection changes on a jump to the top): the first chip again.
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const first = document.querySelector('[data-menu-section]');
+        if (first && first.getBoundingClientRect().top > window.innerHeight * 0.35) setActive(first.id);
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, [categories]);
+
+  // Keep the highlighted category chip in view in the pinned row (it scrolls sideways on phones).
+  useEffect(() => {
+    if (!active) return;
+    const chip = document.querySelector<HTMLElement>(`.s-menu-bar a[href="#${active}"]`);
+    const row = chip?.parentElement;
+    if (!chip || !row || row.scrollWidth <= row.clientWidth) return;
+    // Only the row scrolls (never the page, so a phone's fling scroll isn't interrupted); a delta works in Urdu too.
+    const c = chip.getBoundingClientRect();
+    const r = row.getBoundingClientRect();
+    row.scrollBy({ left: c.left + c.width / 2 - (r.left + r.width / 2), behavior: document.querySelector('[data-reduce-motion]') ? 'auto' : 'smooth' });
+  }, [active]);
 
   return (
     <>
@@ -114,30 +140,22 @@ function Menu({ site }: PageProps) {
         title={t('site.nav.menu')}
         lead={site.ordering.enabled ? (site.ordering.prices_include_tax ? t('site.pricesIncl') : t('site.pricesExcl')) : null}
       />
-      <div className="sticky z-40 border-b border-t-line bg-t-bg/90 backdrop-blur-md" style={{ top: 'var(--s-header-h)' }}>
-        <div className="s-wrap flex flex-col gap-3 py-3 lg:flex-row lg:items-center">
+      {/* Phones: search and filters scroll away and only one slim row of category chips stays pinned
+          under the header (three pinned rows took a fifth of the screen). Desktop: one pinned row. */}
+      <div className="s-wrap flex items-center gap-2 pb-4 lg:hidden">
+        <MenuTools filter={filter} openFilters={() => setFiltersOpen(true)} />
+      </div>
+      <div className="s-menu-bar sticky z-40" style={{ top: 'var(--s-header-h)' }}>
+        <div className="s-wrap flex items-center gap-3 py-2.5 lg:py-3">
           <nav aria-label={t('site.categories')} className="s-tabs min-w-0 flex-1">
             {categories.map((c) => (
-              <a key={c.id} href={`#cat-${c.slug}`} className={`s-chip ${active === `cat-${c.slug}` ? 'is-active' : ''}`} aria-current={active === `cat-${c.slug}` ? 'true' : undefined}>
+              <a key={c.id} href={`#cat-${c.slug}`} className={`s-chip shrink-0 ${active === `cat-${c.slug}` ? 'is-active' : ''}`} aria-current={active === `cat-${c.slug}` ? 'true' : undefined}>
                 {l(c, 'name')}
               </a>
             ))}
           </nav>
-          <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-            <label className="relative basis-full sm:flex-1 sm:basis-auto lg:w-64 lg:flex-none">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" aria-hidden="true" />
-              <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('site.searchMenu')} aria-label={t('site.searchMenu')} className="s-input !min-h-10 !pl-10" />
-            </label>
-            <button type="button" className="s-chip" aria-pressed={vegOnly} onClick={() => setVegOnly(!vegOnly)}>
-              <span className="h-2.5 w-2.5 rounded-full bg-[#2E9A55]" aria-hidden="true" />
-              {t('site.vegOnly')}
-            </button>
-            {canFilter && (
-              <button type="button" className="s-chip" aria-pressed={filterCount > 0} aria-haspopup="dialog" onClick={() => setFiltersOpen(true)}>
-                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-                {filterCount ? t('site.filtersCount', { count: filterCount }) : t('site.filters')}
-              </button>
-            )}
+          <div className="hidden items-center gap-2 lg:flex">
+            <MenuTools filter={filter} openFilters={() => setFiltersOpen(true)} />
           </div>
         </div>
       </div>
@@ -160,12 +178,12 @@ function Menu({ site }: PageProps) {
           </div>
         )}
         {categories.map((c) => (
-          <section key={c.id} id={`cat-${c.slug}`} data-menu-section aria-labelledby={`h-${c.slug}`} className="scroll-mt-44 pt-10 lg:scroll-mt-36">
+          <section key={c.id} id={`cat-${c.slug}`} data-menu-section aria-labelledby={`h-${c.slug}`} className="scroll-mt-36 pt-10 lg:scroll-mt-40">
             <div className="s-reveal flex items-baseline justify-between gap-4 border-b border-t-line pb-4">
-              <h2 id={`h-${c.slug}`} className="s-h2">
+              <h2 id={`h-${c.slug}`} className="s-h2 s-cat-title">
                 {l(c, 'name')}
               </h2>
-              <span className="s-small s-muted">{t('site.dishCount', { count: c.items.length })}</span>
+              <span className="s-small s-muted shrink-0 whitespace-nowrap">{t('site.dishCount', { count: c.items.length })}</span>
             </div>
             <ul className="grid divide-y divide-t-line lg:grid-cols-2 lg:gap-x-12 lg:divide-y-0 [&>li]:border-t-line lg:[&>li]:border-b">
               {c.items.map((item, i) => (
@@ -216,6 +234,32 @@ function Menu({ site }: PageProps) {
           </fieldset>
         )}
       </SiteDialog>
+    </>
+  );
+}
+
+/** Menu search, veg-only and the filters button, on one row. */
+function MenuTools({ filter, openFilters }: { filter: ReturnType<typeof useMenuFilter>; openFilters: () => void }) {
+  const { t } = useTranslation();
+  const { vegOnly, setVegOnly, search, setSearch, filterCount } = filter;
+  const canFilter = filter.availableDiets.length > 0 || filter.availableAllergens.length > 0;
+  return (
+    <>
+      <label className="relative min-w-0 flex-1 lg:w-64 lg:flex-none">
+        <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" aria-hidden="true" />
+        <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('site.searchMenu')} aria-label={t('site.searchMenu')} className="s-input !min-h-11 !ps-10" />
+      </label>
+      <button type="button" className="s-chip !min-h-11 shrink-0" aria-pressed={vegOnly} onClick={() => setVegOnly(!vegOnly)}>
+        <span className="h-2.5 w-2.5 rounded-full bg-[#2E9A55]" aria-hidden="true" />
+        {t('site.vegOnly')}
+      </button>
+      {canFilter && (
+        <button type="button" className="s-chip !min-h-11 shrink-0" aria-pressed={filterCount > 0} aria-haspopup="dialog" onClick={openFilters} aria-label={filterCount ? t('site.filtersCount', { count: filterCount }) : t('site.filters')}>
+          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+          <span className="hidden sm:inline">{filterCount ? t('site.filtersCount', { count: filterCount }) : t('site.filters')}</span>
+          {filterCount > 0 && <span className="tabular-nums sm:hidden">{filterCount}</span>}
+        </button>
+      )}
     </>
   );
 }

@@ -65,7 +65,10 @@ The look switches are data attributes on `.site-root`:
   - lead: 17–20px
   - body: 16px with line height 1.7
   - eyebrow: 13px, uppercase, tracked
-- **Touch targets:** at least 44px. Buttons are 48px.
+- **Touch targets:** at least 44px. Buttons are 48px; Add buttons, quantity steppers, menu search and filter chips, and the offer bar's close button are 44px.
+- **Menu category headings** (`.s-cat-title`) are one step below section headings (26–40px), so a long category name stays on a line or two next to its dish count.
+- **Field edges** (`.s-input`) mix the muted ink into the hairline so they reach 3:1 against the card (WCAG 1.4.11); plain `--t-line` is for dividers only.
+- **First screen on phones:** the hero's main action (Order online / Explore rooms) must be visible above the bottom tabs at 390×844 with the offer bar showing. Full-bleed heroes are `min(78svh, 680px)` tall on phones; the editorial hero puts its actions right under the name.
 
 ## Page structure
 
@@ -78,7 +81,7 @@ The look switches are data attributes on `.site-root`:
    - CTAs: Order online or View menu, then Call to book, WhatsApp or Directions
    - live Open/Closed badge
    - info card: today's hours, address with directions, phone
-3. **Quick actions:** only the ones the business really offers.
+3. **Quick actions:** only the ones the business really offers. On phones they are a row of app-style shortcuts (icon over label, no hint) that scrolls sideways past four; from tablets up they are cards with a hint line. Royal themes keep their four-icon bar over the photo's edge.
 4. **Owner-ordered sections:**
    - Signature dishes
    - Story (split layout)
@@ -95,6 +98,9 @@ The look switches are data attributes on `.site-root`:
 **Other pages**
 
 - **Menu:** sticky section chips that follow your scroll, search, a veg-only switch, dish rows with veg/non-veg/egg marks, spice (icons, not emoji), badges, "from ₹…" for dishes with sizes, and an Add button.
+  - Phones pin only the slim chip row under the header; search, veg-only and filters sit above it and scroll away. Desktop pins one row with everything.
+  - The highlighted chip scrolls itself into view inside the row (the row only, never the page), and goes back to the first chip above the first category.
+  - Dish rows: name and price on the first line, then badges, a description (three lines at most on phones), and the Add button at the bottom right, on the thumb side. Serif themes (Bistro, Kulhad, Rajwada) set dish names in their display face.
 - **About:** the story and milestones.
 - **Gallery:** filters and an accessible lightbox.
 - **Contact:** contact cards, parking, hours and the map.
@@ -102,7 +108,21 @@ The look switches are data attributes on `.site-root`:
 
 **Phones**
 
-A bottom bar shows Call · WhatsApp (or Directions) · Order. While the cart has items, the third button opens the cart. The floating cart and WhatsApp buttons appear only on wider screens.
+App-style bottom tabs: up to four pages (Home, Rooms, Menu, Book, Offers… in that order of priority), Cart when ordering is on, and Profile, which also lists the pages without a tab. At a table or in a room, the table or room bar takes their place. The floating cart and WhatsApp buttons appear only on wider screens.
+
+- **Offer bar:** the title, the coupon as a small dashed ticket (`.s-offer-code`) and the link, centred; at most two short lines on a phone. The close button sits at the inline end (it moves to the left in Urdu).
+- **Booking band** (`.s-cta-band`): the primary colour with thin concentric rings fading out of the top corner. Thin lines only, so text contrast on the band never changes.
+- **Never a dead end:** if online booking is off and there is no phone or WhatsApp, `/reserve` offers the menu and contact page instead.
+
+**Per-theme details** (small touches on the shared structure, so each theme keeps its personality)
+
+- Haveli: a gold diamond before section eyebrows.
+- Rajwada: a short gold rule before section eyebrows; dish names in Playfair.
+- Bistro: signature dishes numbered 01, 02… like a magazine feature; dish names in Gloock.
+- Kulhad: terracotta eyebrows; dish names in Young Serif.
+- Modern QSR: prices in the wide display face, like a menu board.
+- Ember: capitals in Unbounded get a little extra word spacing.
+- Street Pop: unchanged (stickers, rubber buttons, confetti).
 
 **India specifics**
 

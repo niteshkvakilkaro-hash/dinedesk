@@ -96,10 +96,26 @@ export function ReservePage({ site }: { site: SiteData }) {
   }, [day.data, time]);
 
   if (!r.enabled) {
+    // Nothing to call or message (or a cloud kitchen): never a dead end, point to the menu instead.
+    const c = site.content.contact;
+    const noContact = site.business_type === 'cloud_kitchen' || (!c.phone && !c.whatsapp);
     return (
       <>
         <PageHeader site={site} eyebrow={site.name} title={t('site.reserveTitle')} lead={t('site.res.offline')} />
-        <Reserve site={site} />
+        {noContact ? (
+          <div className="s-wrap flex flex-wrap gap-3">
+            {site.has_menu && (
+              <Link to="/menu" className="s-btn s-btn-primary">
+                {site.ordering.enabled ? t('site.hero.order') : t('site.viewMenu')}
+              </Link>
+            )}
+            <Link to="/contact" className="s-btn s-btn-secondary">
+              {t('site.contactTitle')}
+            </Link>
+          </div>
+        ) : (
+          <Reserve site={site} />
+        )}
         <div className="pb-16" />
       </>
     );

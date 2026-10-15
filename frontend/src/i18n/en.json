@@ -1203,7 +1203,7 @@
       "callToBook": "Call us to book a room.",
       "from": "from",
       "night": "night",
-      "sleeps": "Up to {{adults}} adults, {{children}} children",
+      "sleeps": "Up to {{adults}} adults · children: {{children}}",
       "sqft": "{{size}} sq ft",
       "extraAdult": "Price for {{count}} adults; each extra adult {{price}} a night.",
       "tooMany": "Too many guests for this room.",

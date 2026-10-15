@@ -61,20 +61,24 @@ export function BannerBar({ site }: { site: SiteData }) {
   if (!bar || hidden) return null;
   const { title, text: body } = text(bar);
   return (
-    <div className="relative bg-t-primary px-10 py-2 text-center text-sm text-t-on-primary" role="region" aria-label={t('site.offers.barLabel')}>
-      <span className="font-bold">{title}</span>
-      {body && <span className="hidden sm:inline"> · {body}</span>}
-      {bar.coupon_code && (
-        <span className="ml-2">
-          {t('site.offers.useCode')} <strong className="font-mono">{bar.coupon_code}</strong>
-        </span>
-      )}
-      {bar.cta_link && (
-        <Link to={bar.cta_link} className="ml-2 font-bold underline underline-offset-2">
-          {bar.cta_label || t('site.offers.see')}
-        </Link>
-      )}
-      <button type="button" onClick={() => { markSeen(bar.id); setHidden(true); }} className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center" aria-label={t('common.close')}>
+    <div className="s-offerbar relative bg-t-primary py-2 pe-12 ps-4 text-sm text-t-on-primary sm:px-12" role="region" aria-label={t('site.offers.barLabel')}>
+      {/* Title, the code as a ticket and the link; wraps to two short lines at most on a phone. */}
+      <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-center leading-snug">
+        <span className="font-bold">{title}</span>
+        {body && <span className="hidden opacity-90 sm:inline">{body}</span>}
+        {bar.coupon_code && (
+          <span className="inline-flex items-center gap-1.5">
+            <span className="sr-only sm:not-sr-only">{t('site.offers.useCode')}</span>
+            <strong className="s-offer-code">{bar.coupon_code}</strong>
+          </span>
+        )}
+        {bar.cta_link && (
+          <Link to={bar.cta_link} className="inline-flex min-h-6 items-center font-bold underline underline-offset-2">
+            {bar.cta_label || t('site.offers.see')}
+          </Link>
+        )}
+      </p>
+      <button type="button" onClick={() => { markSeen(bar.id); setHidden(true); }} className="absolute end-0.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full" aria-label={t('common.close')}>
         <X className="h-4 w-4" aria-hidden="true" />
       </button>
     </div>

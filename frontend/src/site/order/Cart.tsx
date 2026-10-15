@@ -62,7 +62,7 @@ function CartLines() {
     <ul className="divide-y divide-t-line">
       {lines.map((line) => (
         <li key={line.key} className="flex gap-3 py-3">
-          {line.image ? <img src={line.image} alt="" className="h-16 w-16 shrink-0 rounded-[inherit] object-cover" /> : null}
+          {line.image ? <img src={line.image} alt="" className="h-16 w-16 shrink-0 rounded-[calc(var(--t-radius-card)*0.6)] object-cover" /> : null}
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-2 font-semibold">
               <FoodTypeMark type={line.food_type} />

@@ -48,13 +48,13 @@ export function AddButton({ item, className = '', label }: { item: MenuItem; cla
   if (inCart) {
     return (
       <div className={`inline-flex items-center ${skin.chip} ${className}`} role="group" aria-label={t('order.inCart', { name: l(item, 'name') })}>
-        <button type="button" className="flex h-10 w-10 items-center justify-center" onClick={() => setQuantity(simpleKey, inCart.quantity - 1)} aria-label={t('order.decrease', { name: l(item, 'name') })}>
+        <button type="button" className="flex h-11 w-11 items-center justify-center" onClick={() => setQuantity(simpleKey, inCart.quantity - 1)} aria-label={t('order.decrease', { name: l(item, 'name') })}>
           <Minus className="h-4 w-4" aria-hidden="true" />
         </button>
         <span className="min-w-6 text-center font-bold tabular-nums" aria-live="polite">
           {inCart.quantity}
         </span>
-        <button type="button" className="flex h-10 w-10 items-center justify-center disabled:opacity-40" disabled={inCart.quantity >= MAX_QTY} onClick={(e) => {
+        <button type="button" className="flex h-11 w-11 items-center justify-center disabled:opacity-40" disabled={inCart.quantity >= MAX_QTY} onClick={(e) => {
           setQuantity(simpleKey, inCart.quantity + 1);
           skin.onAdd?.({ x: e.clientX, y: e.clientY });
         }} aria-label={t('order.increase', { name: l(item, 'name') })}>
@@ -69,12 +69,12 @@ export function AddButton({ item, className = '', label }: { item: MenuItem; cla
       <button
         type="button"
         onClick={hasOptions ? () => setChoosing(true) : addSimple}
-        className={`inline-flex min-h-10 items-center gap-1.5 px-4 text-sm ${skin.primary} ${className}`}
+        className={`inline-flex min-h-11 items-center gap-1.5 px-4 text-sm ${skin.primary} ${className}`}
         aria-label={t('order.addNamed', { name: l(item, 'name') })}
       >
         <Plus className="h-4 w-4" aria-hidden="true" />
         {label ?? t('order.add')}
-        {optionCount > 0 && <span className="ml-1 rounded-full bg-white/25 px-1.5 text-xs tabular-nums">{optionCount}</span>}
+        {optionCount > 0 && <span className="ms-1 rounded-full bg-white/25 px-1.5 text-xs tabular-nums">{optionCount}</span>}
       </button>
       {hasOptions && <DishOptions item={item} open={choosing} onClose={() => setChoosing(false)} />}
     </>

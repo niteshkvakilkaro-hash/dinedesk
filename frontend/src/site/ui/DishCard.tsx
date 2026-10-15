@@ -92,29 +92,33 @@ export function DishRow({ item, index = 0, compact = false }: { item: MenuItem; 
           {l(item, 'description') && <p className="s-small s-muted line-clamp-1">{l(item, 'description')}</p>}
           <div className="mt-auto flex items-center justify-between gap-2">
             <span className="s-price">{price(item)}</span>
-            {item.is_available ? <AddButton item={item} className="!min-h-9 !px-3 text-sm" /> : <span className="s-small font-semibold">{t('site.unavailable')}</span>}
+            {item.is_available ? <AddButton item={item} className="!px-3.5" /> : <span className="s-small font-semibold">{t('site.unavailable')}</span>}
           </div>
         </div>
       </li>
     );
   }
+  // Full menu: name and price on the first line, the add button bottom-right (the thumb side on a phone).
+  const hasTags = item.is_bestseller || item.is_chefs_special || !!item.diet_tags?.length || !!item.spice_level;
   return (
     <li className={`s-reveal flex gap-4 py-5 ${item.is_available ? '' : 'opacity-60'}`} style={{ ['--i' as string]: Math.min(index, 4) }}>
       <DishImage item={item} sizes="112px" className="h-24 w-24 shrink-0 sm:h-28 sm:w-28" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-baseline gap-2">
           <FoodTypeMark type={item.food_type} className="translate-y-0.5" />
-          <h3 className="min-w-0 text-[1.0625rem] font-bold leading-snug">{name}</h3>
+          <h3 className="s-dish-name min-w-0 break-words">{name}</h3>
           <span className="s-leader hidden sm:block" aria-hidden="true" />
-          <span className="s-price ml-auto sm:ml-0">{price(item)}</span>
+          <span className="s-price ms-auto sm:ms-0">{price(item)}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Tags item={item} />
-          <Spice level={item.spice_level} />
-        </div>
-        {l(item, 'description') && <p className="s-small s-muted">{l(item, 'description')}</p>}
+        {hasTags && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Tags item={item} />
+            <Spice level={item.spice_level} />
+          </div>
+        )}
+        {l(item, 'description') && <p className="s-small s-muted line-clamp-3 sm:line-clamp-none">{l(item, 'description')}</p>}
         <Allergens item={item} />
-        <div className="mt-1">{item.is_available ? <AddButton item={item} className="!min-h-10" /> : <span className="s-small font-semibold">{t('site.unavailable')}</span>}</div>
+        <div className="mt-auto flex justify-end pt-1">{item.is_available ? <AddButton item={item} /> : <span className="s-small font-semibold">{t('site.unavailable')}</span>}</div>
       </div>
     </li>
   );

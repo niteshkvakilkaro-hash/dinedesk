@@ -120,7 +120,7 @@ function FullBleed({ site }: { site: SiteData }) {
           <SiteImg image={cover} alt={t('site.coverAlt', { name: site.name })} sizes="(orientation: portrait) 260vw, 100vw" priority className="h-full w-full" />
         </div>
       )}
-      <div className="s-wrap s-grid w-full items-end gap-y-8 pb-12 pt-[calc(var(--s-header-h)+96px)] md:pb-20">
+      <div className="s-wrap s-grid w-full items-end gap-y-8 pb-10 pt-[calc(var(--s-header-h)+56px)] md:pb-20 md:pt-[calc(var(--s-header-h)+96px)]">
         <div className="col-span-4 md:col-span-8 lg:col-span-7">
           <p className="s-reveal s-eyebrow !text-white/85">{kicker}</p>
           <h1 id="hero-title" className="s-reveal s-display mt-4 break-words" style={delay(1)}>
@@ -204,7 +204,11 @@ function Editorial({ site }: { site: SiteData }) {
         <h1 id="hero-title" className="s-reveal s-display mt-8 break-words !text-[clamp(3.25rem,11vw,9.5rem)] !leading-[0.92]" style={delay(1)}>
           {site.name}
         </h1>
-        <div className="s-grid mt-10 gap-y-8 border-t border-t-line pt-8">
+        {/* Phones: the actions right under the name, so they are on the first screen. */}
+        <div className="mt-6 md:hidden">
+          <Ctas site={site} />
+        </div>
+        <div className="s-grid mt-8 gap-y-8 border-t border-t-line pt-8 md:mt-10">
           <div className="col-span-4 md:col-span-7">{/* no fade on the LCP photo */}
             {cover && <SiteImg image={cover} alt={t('site.coverAlt', { name: site.name })} sizes="(min-width: 1024px) 720px, 100vw" priority className="s-media aspect-[4/3] w-full" />}
           </div>
@@ -215,7 +219,9 @@ function Editorial({ site }: { site: SiteData }) {
               </p>
             )}
             <div className="space-y-8">
-              <Ctas site={site} />
+              <div className="hidden md:block">
+                <Ctas site={site} />
+              </div>
               <div className="s-reveal" style={delay(4)}>
                 <InfoCard site={site} className="!px-0 !pb-0" />
               </div>
