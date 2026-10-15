@@ -8,6 +8,13 @@
     <!-- "Use my location" (delivery at checkout, ordering settings). Asked only when used. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Delivery riders on duty: LocationService, a foreground service of type "location" started
+         while the rider screen is open (so no ACCESS_BACKGROUND_LOCATION), with its notification.
+         WAKE_LOCK: a short partial wake lock while a position is taken and uploaded. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
@@ -80,5 +87,11 @@
             android:authorities="${applicationId}.files"
             android:exported="false"
             android:grantUriPermissions="true" />
+
+        <!-- A delivery rider's location while on duty (window.DineDeskAndroid.startLocationSharing). -->
+        <service
+            android:name=".LocationService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
     </application>
 </manifest>

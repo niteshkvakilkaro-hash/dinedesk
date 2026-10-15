@@ -41,6 +41,54 @@ Pages know they are in the app from the user-agent token `DineDeskApp/1`
 - Cookies, `localStorage` and DOM storage are kept. Plain http and mixed content only in the dev
   build (its network security config allows http to the PC's IP, `nip.io` and `localhost` only).
 
+## Rider location while on duty
+
+Delivery riders share their location with the restaurant while on duty (`/rider/`). A WebView stops
+running JavaScript in the background, so in the app a **foreground service** (`LocationService.java`)
+takes the positions and uploads them itself. Web side and contract:
+`frontend/src/features/rider/locationSharing.ts`; API: `POST /api/v1/tenant/rider/locations`
+(`RiderController::locations`).
+
+- **Bridge** (`window.DineDeskAndroid`, DineDesk pages only):
+  `startLocationSharing(json)` (`{ uploadUrl, token, intervalSec, tenantHost, locale, expiresAt }`),
+  `stopLocationSharing()` (sends what is queued once, then stops), `locationSharingStatus()`
+  (`{ running, lastSentAt, lastError, queued }`) and `sendLocationNow()`. The upload token goes only
+  to a DineDesk host (the same check as pages that open inside the app).
+- **Permissions**, asked when the rider goes on duty: Location (precise or approximate) and, on
+  Android 13+, Notifications (for the "sharing your location" notification; the service also runs
+  without it). Permission dialogs are asynchronous, so `startLocationSharing` returns `true` once the
+  dialog is shown and the service starts when Location is allowed; a refusal shows as
+  `lastError: "denied"` in the status (the rider screen checks it every 15 s). It returns `false` at
+  once when Location is switched off on the phone (`lastError: "position"`), the token has already
+  ended, or the settings are bad. **No "Allow all the time" (background location)**: a foreground
+  service of type `location` started while the app is on screen keeps "while in use" access even with
+  the screen off or another app open, which is all a shift needs, and Play reviews background location
+  strictly. Manifest: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION` (Android 14+),
+  `POST_NOTIFICATIONS`, `WAKE_LOCK` (held only for the seconds a position is taken and uploaded).
+- **Positions** come from Android's own `LocationManager` (GPS and network providers, no Google Play
+  services). Every `intervalSec` (300 s by default, at least 60) the best fresh position (or one
+  waited for up to 20 s) is queued with accuracy, speed, heading, battery % and its UTC time, and the
+  queue is uploaded in batches of 50. The queue holds at most 500 points (oldest dropped), is kept only
+  while the service runs and is **cleared when sharing stops**; nothing is recorded while the service
+  isn't running. Queue and answer handling are plain Java (`RiderQueue.java`), checked without
+  Android by `app/src/test/java/com/dinedesk/app/RiderQueueTest.java` (`javac` + `java`, see its header).
+- **Answers**: 200 → sent points dropped, follows `interval_sec`, stops when `on_duty` is false;
+  401/403 → stops (token ended); 409 `not_on_duty` → queue cleared, stops; 422 → that batch dropped;
+  429 / 5xx / no internet → kept for the next try. It also stops a minute before `expiresAt`.
+- **Notification**: "DineDesk — sharing your location while on duty". Tapping it opens the app on the
+  rider screen. Duty is ended on that screen (so the server knows), not from the notification.
+- **App closed or swiped away**: the service keeps going. **Phone restarted or app killed by the
+  system**: it does not come back by itself (`START_NOT_STICKY`: Android doesn't let a location
+  service start from the background, and the token may have ended); the rider opens the app again and
+  goes on duty.
+- **Dev build**: this works on the http dev build too (it doesn't need a secure page); uploads go over
+  plain http to the PC's IP / `nip.io`, which the dev network security config allows. Production is https only.
+
+**Battery savers.** Some phones (Xiaomi / Redmi / POCO, Oppo, Realme, Vivo, OnePlus, Samsung with
+"Put unused apps to sleep") still stop background apps. Tell riders to set **Battery → Unrestricted**
+(or "No restrictions"; on Xiaomi also turn on **Autostart**) for DineDesk in the phone's settings
+(Settings → Apps → DineDesk → Battery), and not to clear DineDesk with a "clean all" booster.
+
 Not in the app: **web push** (WebView has no Push API: alerts need the browser or the installed web
 app), and **pull to refresh** (it reloads by accident on pages with their own scrolling, like the
 POS and kitchen screen; the app has Retry and every page has its own refresh).
@@ -85,7 +133,7 @@ Testing on a phone:
    ```powershell
    cd android\webview-app
    $gradle = (Get-ChildItem "$env:USERPROFILE\.gradle\wrapper\dists" -Recurse -Filter gradle.bat | Where-Object FullName -match 'gradle-8\.1[3-9]')[0].FullName
-   & $gradle --no-daemon bundleProdRelease assembleProdRelease "-PplatformHost=dinedesk.in" "-PversionCode=3" "-PversionName=1.2"
+   & $gradle --no-daemon bundleProdRelease assembleProdRelease "-PplatformHost=dinedesk.in" "-PversionCode=4" "-PversionName=1.3"
    ```
    Without `-PplatformHost` or the upload key the build stops with a message saying what is missing.
    Output: `app/build/outputs/bundle/prodRelease/app-prod-release.aab` (upload to Play) and the APK.

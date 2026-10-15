@@ -13,6 +13,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Insets;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -73,6 +74,11 @@ public class MainActivity extends Activity {
     private static final int REQ_PERM_UPLOAD = 51;
     private static final int REQ_PERM_CAMERA = 52;
     private static final int REQ_PERM_LOCATION = 53;
+    private static final int REQ_PERM_RIDER = 54;
+    private static final int REQ_PERM_NOTIFY = 55;
+    /** The on-duty notification: open the rider screen (EXTRA_URL). */
+    static final String ACTION_OPEN_RIDER = "com.dinedesk.app.OPEN_RIDER";
+    static final String EXTRA_URL = "url";
     private static final String PREFS = "dinedesk";
     private static final String PREF_ALLOWED = "allowed_hosts";
     private static final Pattern HOST = Pattern.compile("^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$");
@@ -94,6 +100,8 @@ public class MainActivity extends Activity {
     private File cameraFile;
     private PermissionRequest pendingWebPermission;
     private String pendingGeoOrigin;
+    /** startLocationSharing's settings while Android asks the rider for location. */
+    private String pendingRiderConfig;
     private GeolocationPermissions.Callback pendingGeoCallback;
     private final List<WebView> printing = new ArrayList<>();
     private final Map<String, Incoming> incoming = new HashMap<>();
@@ -159,8 +167,30 @@ public class MainActivity extends Activity {
         web.setWebChromeClient(new Chrome());
         web.setDownloadListener((url, ua, disposition, mime, length) -> download(url, ua, disposition, mime));
 
-        if (state != null && web.restoreState(state) != null) return;
-        web.loadUrl(BuildConfig.START_URL);
+        // Positions or a token left behind by a killed process are not kept (the service isn't running).
+        LocationService.clearLeftovers(this);
+        String rider = riderUrl(getIntent());
+        if (state != null && web.restoreState(state) != null) {
+            if (rider != null) web.loadUrl(rider);
+            return;
+        }
+        web.loadUrl(rider != null ? rider : BuildConfig.START_URL);
+    }
+
+    /** The rider screen from the on-duty notification, when it is a DineDesk page. */
+    private String riderUrl(Intent intent) {
+        if (intent == null || !ACTION_OPEN_RIDER.equals(intent.getAction())) return null;
+        String url = intent.getStringExtra(EXTRA_URL);
+        return url != null && isAppHost(Uri.parse(url)) ? url : null;
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        String rider = riderUrl(intent);
+        // Already on the rider screen: just show the app as it is.
+        String path = Uri.parse(pageUrl).getPath();
+        if (rider != null && web != null && (path == null || !path.startsWith("/rider"))) web.loadUrl(rider);
     }
 
     /** Keeps the splash screen (Android 12+) or launch background up until the first page draws, at most 3 s. */
@@ -448,6 +478,16 @@ public class MainActivity extends Activity {
             if (any) pendingWebPermission.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
             else pendingWebPermission.deny();
             pendingWebPermission = null;
+        } else if (code == REQ_PERM_RIDER) {
+            String config = pendingRiderConfig;
+            pendingRiderConfig = null;
+            if (config == null) return;
+            if (granted(Manifest.permission.ACCESS_FINE_LOCATION) || granted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                startRiderService(config);
+            } else {
+                LocationService.noteError(this, "denied");
+                toast("Allow Location for DineDesk (Settings → Apps → DineDesk → Permissions) to share it while on duty.");
+            }
         } else if (code == REQ_PERM_LOCATION && pendingGeoCallback != null) {
             pendingGeoCallback.invoke(pendingGeoOrigin, any, false);
             pendingGeoCallback = null;
@@ -700,6 +740,102 @@ public class MainActivity extends Activity {
                 SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
                 prefs.edit().putStringSet(PREF_ALLOWED, new HashSet<>(allowedHosts)).apply();
             });
+        }
+
+        /**
+         * Rider on duty: json = { uploadUrl, token, intervalSec, tenantHost, locale, expiresAt }.
+         * true = started, or Android is asking the rider for location (the service starts when it is
+         * allowed; a refusal shows as lastError "denied" in locationSharingStatus). false = it can't
+         * start: bad settings, token already ended, or Location is switched off on the phone.
+         */
+        @JavascriptInterface
+        public boolean startLocationSharing(String json) {
+            if (!trustedPage || json == null) return false;
+            JSONObject o;
+            try {
+                o = new JSONObject(json);
+            } catch (Exception e) {
+                LocationService.noteError(MainActivity.this, "start_failed");
+                return false;
+            }
+            String upload = o.optString("uploadUrl", "");
+            // The token goes only to DineDesk itself (https in production; the dev PC over http).
+            if (o.optString("token", "").isEmpty() || upload.isEmpty() || !isAppHost(Uri.parse(upload))) {
+                LocationService.noteError(MainActivity.this, "start_failed");
+                return false;
+            }
+            long expires = o.isNull("expiresAt") ? -1 : RiderQueue.parseIso(o.optString("expiresAt", null));
+            if (expires > 0 && expires <= System.currentTimeMillis()) {
+                LocationService.noteError(MainActivity.this, "unauthorized");
+                return false;
+            }
+            if (!locationOn()) {
+                LocationService.noteError(MainActivity.this, "position");
+                toast("Turn on Location on this phone to share it while on duty.");
+                return false;
+            }
+            LocationService.noteError(MainActivity.this, null);
+            String config = o.toString();
+            boolean hasLocation = granted(Manifest.permission.ACCESS_FINE_LOCATION) || granted(Manifest.permission.ACCESS_COARSE_LOCATION);
+            boolean askNotify = Build.VERSION.SDK_INT >= 33 && !granted(Manifest.permission.POST_NOTIFICATIONS);
+            if (hasLocation) {
+                if (!startRiderService(config)) return false;
+                // The notification is optional for the service; ask once so the rider sees it.
+                if (askNotify) main.post(() -> requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_PERM_NOTIFY));
+                return true;
+            }
+            List<String> ask = new ArrayList<>();
+            ask.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            ask.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+            if (askNotify) ask.add(Manifest.permission.POST_NOTIFICATIONS);
+            main.post(() -> {
+                pendingRiderConfig = config;
+                requestPermissions(ask.toArray(new String[0]), REQ_PERM_RIDER);
+            });
+            return true;
+        }
+
+        /** Off duty: sends what is queued once, then stops (allowed from any page: it only stops). */
+        @JavascriptInterface
+        public void stopLocationSharing() {
+            main.post(() -> pendingRiderConfig = null);
+            LocationService.stop(MainActivity.this);
+        }
+
+        /** { running, lastSentAt, lastError, queued } */
+        @JavascriptInterface
+        public String locationSharingStatus() {
+            if (!trustedPage) return "";
+            return LocationService.status(MainActivity.this);
+        }
+
+        /** One position now (duty start, order picked up / delivered). */
+        @JavascriptInterface
+        public void sendLocationNow() {
+            if (trustedPage) LocationService.sendNow();
+        }
+    }
+
+    private boolean locationOn() {
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (lm == null) return false;
+        if (Build.VERSION.SDK_INT >= 28) return lm.isLocationEnabled();
+        try {
+            return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
+    /** Starts (or updates) the rider's location service; false when Android refuses it. */
+    private boolean startRiderService(String config) {
+        try {
+            LocationService.start(this, config);
+            return true;
+        } catch (RuntimeException e) {
+            // e.g. ForegroundServiceStartNotAllowedException: the app isn't on screen.
+            LocationService.noteError(this, "start_failed");
+            return false;
         }
     }
 
