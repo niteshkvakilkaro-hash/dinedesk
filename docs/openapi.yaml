@@ -59,6 +59,8 @@ tags:
   - name: Referrals
   - name: Directory (app)
   - name: Alerts (dashboard)
+  - name: Riders (dashboard)
+  - name: Rider (phone)
 components:
   securitySchemes:
     bearer:
@@ -791,6 +793,7 @@ paths:
     get:
       tags: [Ordering (public)]
       summary: Track an order (needs the private token)
+      description: 'While the order is out_for_delivery and its rider sent a position in the last 30 minutes, `rider` = { name_first, lat, lng, at } (first name and last position only: no phone, no route, no other riders); otherwise null.'
       parameters:
         - { $ref: '#/components/parameters/TenantHost' }
         - { name: id, in: path, required: true, schema: { type: string } }
@@ -860,6 +863,104 @@ paths:
       responses:
         '200': { description: Updated order }
         '422': { description: '`invalid_transition`, `awaiting_payment`, `reason_required`' }
+  /tenant/riders:
+    get:
+      tags: [Riders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Delivery riders with duty, last position and active orders, plus delivery orders waiting for a rider (orders.manage)
+      responses:
+        '200': { description: '{ riders: [{ id, name, phone, on_duty, duty_started_at, last: { lat, lng, accuracy_m, battery, at } | null, orders: [{ id, number, status, customer_name, address, lat, lng, total, payment_method, placed_at }] }], unassigned: [same order shape] }; meta { interval_sec, stale_minutes }' }
+        '403': { description: 'forbidden (needs orders.manage)' }
+  /tenant/riders/{id}/trail:
+    get:
+      tags: [Riders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: One rider's route for a day, oldest first (default today in the business timezone; at most 3000 points)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+        - { name: date, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { description: '{ rider_id, date, points: [{ lat, lng, at }] }' }
+        '422': { description: '`not_a_rider` (not a rider of this business)' }
+  /tenant/orders/{id}/rider:
+    post:
+      tags: [Riders (dashboard)]
+      security: [{ bearer: [] }]
+      summary: Give a delivery order to a rider, or take it back with rider_id null (orders.manage)
+      description: 'The rider gets a push alert in their language (lang staff.rider.*). Logged on the order (rider_assigned / rider_unassigned) and audited.'
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [rider_id], properties: { rider_id: { type: [integer, 'null'] } } } } } }
+      responses:
+        '200': { description: 'Order detail (as GET /tenant/orders/{id}, with rider: { id, name, assigned_at })' }
+        '422': { description: '`not_a_rider` (other business, other role, disabled), `not_delivery`, `order_closed`' }
+  /tenant/rider:
+    get:
+      tags: [Rider (phone)]
+      security: [{ bearer: [] }]
+      summary: The rider's own screen (deliveries.run)
+      responses:
+        '200': { description: '{ on_duty, duty_started_at, last_sent_at, interval_sec, orders: [{ id, number, status, customer_name, customer_phone, address { line1, line2, landmark, pincode, lat, lng }, notes, items_count, total, payment_method, payment_status, collect (cash to collect or null), placed_at, scheduled_for, next: out_for_delivery | completed | null }] } (only orders given to this rider)' }
+  /tenant/rider/duty:
+    post:
+      tags: [Rider (phone)]
+      security: [{ bearer: [] }]
+      summary: Start or end duty (location is stored only while on duty)
+      description: 'on=true also returns sharing = { token, expires_at, interval_sec }: an upload-only token for the Android app''s background location service (rejected on every other route; a new one replaces the old at each duty start). A duty ends by itself after dinedesk.riders.max_duty_hours (14).'
+      requestBody: { content: { application/json: { schema: { type: object, required: [on], properties: { on: { type: boolean } } } } } }
+      responses:
+        '200': { description: 'Same as GET /tenant/rider + sharing (null when going off duty)' }
+  /tenant/rider/orders/{id}/status:
+    post:
+      tags: [Rider (phone)]
+      security: [{ bearer: [] }]
+      summary: Picked up (out_for_delivery, from ready) or delivered (completed), own orders only
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [status], properties: { status: { type: string, enum: [out_for_delivery, completed] } } } } } }
+      responses:
+        '200': { description: Same as GET /tenant/rider }
+        '404': { description: Not this rider's order }
+        '422': { description: '`invalid_transition` (e.g. still being prepared), `awaiting_payment`' }
+  /tenant/rider/locations:
+    post:
+      tags: [Rider (phone)]
+      security: [{ bearer: [] }]
+      summary: A batch of positions (every dinedesk.riders.location_interval seconds, 300 by default; points queued offline may come together)
+      description: |
+        Used by the rider screen in the browser and by the Android app's foreground service. Headers:
+        Authorization: Bearer <token> (the session token, or the upload token from POST /tenant/rider/duty),
+        Accept: application/json, Content-Type: application/json, X-Tenant-Host, X-Locale.
+        Only points taken during one of the rider's duties (last 24 h) are kept; a point sent twice is
+        stored once. Throttled to 12 requests per minute per rider. Points are deleted after
+        dinedesk.riders.retention_days (7) by the daily riders:purge-locations.
+        Client handling: 200 drop the sent points (stop when on_duty is false, follow interval_sec);
+        401/403 stop; 409 not_on_duty drop the queue and stop; 422 drop that batch; 429/5xx/offline keep and retry.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [points]
+              properties:
+                points:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items:
+                    type: object
+                    required: [lat, lng, recorded_at]
+                    properties:
+                      lat: { type: number, minimum: -90, maximum: 90 }
+                      lng: { type: number, minimum: -180, maximum: 180 }
+                      accuracy_m: { type: [number, 'null'], minimum: 0 }
+                      speed: { type: [number, 'null'], description: metres per second }
+                      heading: { type: [number, 'null'], minimum: 0, maximum: 360 }
+                      battery: { type: [number, 'null'], minimum: 0, maximum: 100 }
+                      recorded_at: { type: string, format: date-time, description: 'not more than 2 min in the future, not older than 24 h' }
+      responses:
+        '200': { description: '{ accepted, on_duty, interval_sec }' }
+        '409': { description: '`not_on_duty` (no point fell inside a duty and the rider is off duty)' }
+        '422': { description: Validation (ranges, times, 1–50 points) }
+        '429': { description: Too many uploads }
   /tenant/notifications/read:
     post:
       tags: [Orders (dashboard)]
@@ -1258,7 +1359,7 @@ paths:
     post:
       tags: [Live updates]
       security: [{ bearer: [] }]
-      summary: 'Authorise a private live-update channel (Laravel Reverb / Pusher protocol): tenant.{business public id}.{orders|kitchen|tables|reservations}'
+      summary: 'Authorise a private live-update channel (Laravel Reverb / Pusher protocol): tenant.{business public id}.{orders|kitchen|tables|reservations|hotel|riders} (riders: orders.manage; rider.location, rider.duty, rider.assigned with ids only)'
       description: Events only say what changed (ids and status); screens refetch through the normal API. Each topic needs the matching permission.
       requestBody: { content: { application/json: { schema: { type: object, required: [socket_id, channel_name], properties: { socket_id: { type: string }, channel_name: { type: string, example: private-tenant.01HX….kitchen } } } } } }
       responses:

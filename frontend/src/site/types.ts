@@ -278,4 +278,6 @@ export interface CustomerOrder {
   payment_reference?: string | null;
   cancel_reason: string | null;
   timeline: { status: OrderStatus; at: string }[];
+  /** While out for delivery: the rider's first name and last position (only when recent). */
+  rider?: { name_first: string | null; lat: number; lng: number; at: string } | null;
 }

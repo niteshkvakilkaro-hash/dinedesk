@@ -3,6 +3,7 @@
 namespace App\Modules\Ordering\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Delivery\Services\Riders;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\Payment;
 use App\Modules\Ordering\Services\DeliveryZones;
@@ -133,10 +134,15 @@ class PublicOrderController extends Controller
         ], 'Order placed.');
     }
 
-    /** Tracking page data; needs the private token from the confirmation / message link. */
-    public function show(Request $request, string $publicId): JsonResponse
+    /**
+     * Tracking page data; needs the private token from the confirmation / message link. While the
+     * order is out for delivery it adds the rider's first name and last position (when recent).
+     */
+    public function show(Request $request, string $publicId, Riders $riders): JsonResponse
     {
-        return $this->ok($this->presenter->forCustomer($this->find($publicId, (string) $request->query('t'))));
+        $order = $this->find($publicId, (string) $request->query('t'));
+
+        return $this->ok($this->presenter->forCustomer($order) + ['rider' => $riders->forGuest($order)]);
     }
 
     /** The guest paid the restaurant's UPI ID and gives the reference (UTR) shown in their UPI app. */

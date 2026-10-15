@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useSession } from '@/hooks/useSession';
 import { Spinner, Toaster } from '@/components/ui';
 import { captureReferral } from '@/lib/referral';
+import { homePath } from '@/lib/home';
 
 const AppHome = lazy(() => import('@/features/app/AppHome'));
 const Landing = lazy(() => import('@/features/marketing/Landing'));
@@ -47,6 +48,8 @@ const AccountPage = lazy(() => import('@/features/account/AccountPage'));
 const RevenuePage = lazy(() => import('@/features/platform/Revenue'));
 const PlatformSettingsPage = lazy(() => import('@/features/platform/Settings'));
 const WaiterApp = lazy(() => import('@/features/waiter/WaiterApp'));
+const RiderApp = lazy(() => import('@/features/rider/RiderApp'));
+const RidersPage = lazy(() => import('@/features/riders/RidersPage'));
 const PlatformLayout = lazy(() => import('@/features/platform/PlatformLayout'));
 const Tenants = lazy(() => import('@/features/platform/Tenants'));
 const TenantDetail = lazy(() => import('@/features/platform/TenantDetail'));
@@ -73,7 +76,7 @@ function Guard({ need, children }: { need: Need; children: ReactNode }) {
   }
   if (isLoading || !session) return <FullPageSpinner />;
 
-  const home = session.next === 'platform' ? '/platform' : session.next === 'onboarding' ? '/onboarding' : '/dashboard';
+  const home = homePath(session);
   const allowed = { guest: false, onboarding: session.next === 'onboarding', tenant: session.next === 'dashboard', platform: session.next === 'platform' }[need];
 
   return allowed ? children : <Navigate to={home} replace />;
@@ -132,6 +135,7 @@ export default function PlatformApp() {
         <Route path="website" element={<WebsitePage />} />
         <Route path="gallery" element={<GalleryPage />} />
         <Route path="orders" element={<OrdersPage />} />
+        <Route path="riders" element={<RidersPage />} />
         <Route path="menu" element={<MenuPage />} />
         <Route path="menu/languages" element={<MenuLanguagesPage />} />
         <Route path="ordering" element={<OrderingSettingsPage />} />
@@ -152,9 +156,10 @@ export default function PlatformApp() {
         <Route path="domains" element={<DomainsPage />} />
         <Route path="account" element={<AccountPage />} />
       </Route>
-      {/* Full-screen staff apps: kitchen display and the waiter phone app (PWA). */}
+      {/* Full-screen staff apps: kitchen display, the waiter phone app (PWA) and the delivery rider screen. */}
       <Route path="kitchen" element={<Guard need="tenant"><KitchenDisplay /></Guard>} />
       <Route path="waiter/*" element={<Guard need="tenant"><WaiterApp /></Guard>} />
+      <Route path="rider/*" element={<Guard need="tenant"><RiderApp /></Guard>} />
       <Route path="platform" element={<Guard need="platform"><PlatformLayout /></Guard>}>
         <Route index element={<Tenants />} />
         <Route path="tenants/:id" element={<TenantDetail />} />

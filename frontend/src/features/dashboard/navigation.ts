@@ -1,7 +1,7 @@
 import {
   BedDouble, BellRing, Building2, CalendarClock, CalendarDays, CalendarRange, ChefHat, ClipboardList, Contact, CookingPot, CreditCard, Download, FileSpreadsheet, Gift, Globe, Globe2,
   Hotel, ImageIcon, Images, IndianRupee, Languages, LayoutDashboard, LineChart, Megaphone, MessageCircle, MessageSquareHeart, Network, Package, PartyPopper, Percent, Printer,
-  QrCode, ReceiptText, Repeat, Settings, Settings2, Smartphone, Sparkles, Star, Store, Tag, Timer, Truck, UserCheck, UserRound, Users, UtensilsCrossed, Vibrate, Wallet, WifiOff, Workflow, Bike, MapPin, Bell,
+  QrCode, ReceiptText, Repeat, Settings, Settings2, Smartphone, Sparkles, Star, Store, Tag, Timer, Truck, UserCheck, UserRound, Users, UtensilsCrossed, Vibrate, Wallet, WifiOff, Workflow, Bike, MapPin, Bell, Navigation,
 } from 'lucide-react';
 import type { Session } from '@/types';
 
@@ -19,6 +19,10 @@ export function accessFrom(session: Pick<Session, 'permissions' | 'features' | '
   const business = can('business.manage');
   return {
     orders: can('orders.view'),
+    // Delivery riders on a map, and who takes which order (those who move orders on).
+    riders: can('orders.manage') && has('online_ordering'),
+    // The rider's own phone screen (/rider/).
+    rider: can('deliveries.run'),
     reservations: can('reservations.manage') && has('reservations'),
     tables: (can('tables.manage') || can('tables.setup')) && has('qr_ordering'),
     tablesSetup: can('tables.setup') && has('qr_ordering'),
@@ -86,6 +90,7 @@ export const NAV: { key: NavGroupKey; items: NavDef[] }[] = [
       { to: '/dashboard/pos', label: 'pos', icon: Store, show: (a) => a.pos },
       { to: '/kitchen', label: 'kitchen', icon: ChefHat, show: (a) => a.kitchen },
       { to: '/waiter/', label: 'waiter', icon: Smartphone, show: (a) => a.waiter },
+      { to: '/dashboard/riders', label: 'riders', icon: Navigation, show: (a) => a.riders },
     ],
   },
   {
@@ -162,6 +167,7 @@ export const DESTINATIONS: Destination[] = [
   item('dayEnd', '/dashboard/day-end', ClipboardList, 'today', (a) => a.reports),
   page('kitchen', '/kitchen', ChefHat, 'today', (a) => a.kitchen),
   page('waiter', '/waiter/', Smartphone, 'today', (a) => a.waiter),
+  page('riders', '/dashboard/riders', Navigation, 'today', (a) => a.riders),
   // Menu & rooms
   page('menu', '/dashboard/menu', UtensilsCrossed, 'menuRooms', (a) => a.menu),
   item('aiImport', '/dashboard/menu?open=ai-import', Sparkles, 'menuRooms', (a) => a.menu),

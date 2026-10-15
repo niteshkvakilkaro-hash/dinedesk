@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router';
+import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { LogOut, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Search, UserRound, Wifi } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -40,7 +40,7 @@ export default function DashboardLayout() {
   const live = useLiveStatus((s) => s.connected);
   const tenantKey = session?.tenant?.id;
   const refresh = (...keys: string[]) => keys.forEach((k) => void qc.invalidateQueries({ queryKey: [k] }));
-  useLive(tenantKey, 'orders', canOrders, () => refresh('orders', 'orders-feed', 'pos-open', 'day-report'));
+  useLive(tenantKey, 'orders', canOrders, () => refresh('orders', 'orders-feed', 'pos-open', 'day-report', 'riders'));
   useLive(tenantKey, 'reservations', canReservations, () => refresh('reservations', 'reservations-feed'));
   useLive(tenantKey, 'tables', canRunTables && hasQr, () => refresh('tables-live', 'tables-feed', 'pos-open'));
   const [more, setMore] = useState(false);
@@ -126,6 +126,9 @@ export default function DashboardLayout() {
         {n}
       </span>
     ) : null;
+
+  // Delivery riders work from their own phone screen; only My account (language, password) is here for them.
+  if (session?.role === 'delivery' && !session.support && !pathname.startsWith('/dashboard/account')) return <Navigate to="/rider/" replace />;
 
   return (
     <div className="min-h-screen pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">

@@ -5,7 +5,10 @@ import { useOpenParam } from '@/lib/urlParams';
 import { BedDouble, Bell, BellOff, Bike, Clock, MapPin, Phone, RefreshCw, Search, ShoppingBag, Store, UtensilsCrossed } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatINR } from '@/lib/format';
-import { useCan, useSession } from '@/hooks/useSession';
+import { useCan, useFeature, useSession } from '@/hooks/useSession';
+import { Link } from 'react-router';
+import { useRiders } from '@/features/riders/api';
+import { RiderPicker } from '@/features/riders/RiderPicker';
 import { useDebounced } from '@/hooks/useDebounced';
 import { Alert, Badge, Dialog, EmptyState, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
 import type { OrderStatus, OrderType } from '@/site/types';
@@ -27,6 +30,7 @@ interface OrderRow {
   scheduled_for: string | null;
   placed_at: string;
   table_label: string | null;
+  rider_name?: string | null;
 }
 
 interface OrderDetail extends OrderRow {
@@ -42,6 +46,7 @@ interface OrderDetail extends OrderRow {
   cancel_reason: string | null;
   events: { status: string; note: string | null; at: string }[];
   next: OrderStatus[];
+  rider: { id: number; name: string | null; assigned_at: string | null } | null;
 }
 
 type View = 'active' | 'scheduled' | 'completed' | 'cancelled' | 'all';
@@ -168,6 +173,28 @@ function UpiCheck({ order }: { order: OrderDetail }) {
   );
 }
 
+/** Delivery orders: who takes it. Those who move orders on can give it to a rider or take it back. */
+function RiderSection({ order }: { order: OrderDetail }) {
+  const { t } = useTranslation();
+  const canManage = useCan('orders.manage');
+  const hasOrdering = useFeature('online_ordering');
+  const active = !['completed', 'cancelled'].includes(order.status);
+  const riders = useRiders(canManage && hasOrdering && active);
+  if (!order.rider && (!canManage || !active)) return null;
+  return (
+    <section className="flex flex-wrap items-center gap-3 rounded-xl border border-line p-4">
+      <Bike className="h-5 w-5 text-muted" aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <h3 className="text-sm font-bold">{t('riders.rider')}</h3>
+        <p className="text-sm text-muted">{order.rider?.name ?? t('riders.none')}</p>
+      </div>
+      {canManage && active && (riders.data ? (
+        riders.data.riders.length ? <RiderPicker orderId={order.internal_id} number={order.number} riders={riders.data.riders} current={order.rider?.id ?? null} /> : <Link to="/dashboard/riders" className="text-sm font-semibold text-brand-strong underline">{t('riders.noRiders')}</Link>
+      ) : riders.isLoading ? <Spinner className="h-4 w-4" /> : null)}
+    </section>
+  );
+}
+
 function OrderDetailDialog({ id, onClose, onCancel }: { id: number | null; onClose: () => void; onCancel: (o: { id: number; number: number }) => void }) {
   const { t } = useTranslation();
   const query = useQuery({ queryKey: ['order-detail', id], queryFn: async () => (await api.get<OrderDetail>(`/tenant/orders/${id}`)).data, enabled: !!id, refetchInterval: 15_000 });
@@ -220,6 +247,8 @@ function OrderDetailDialog({ id, onClose, onCancel }: { id: number | null; onClo
               </div>
             )}
           </section>
+
+          {o.type === 'delivery' && <RiderSection order={o} />}
 
           <section>
             <h3 className="font-bold">{t('orders.items')}</h3>
@@ -289,6 +318,12 @@ function OrderCard({ o, onOpen, onCancel }: { o: OrderRow; onOpen: () => void; o
         <div className="mt-2 flex flex-wrap gap-1.5">
           <Badge tone={o.status}>{t(`order.status.${o.status}`)}</Badge>
           <Badge tone={o.payment_status}>{t(`order.payShort.${o.payment_method}`)}</Badge>
+          {o.rider_name && (
+            <Badge tone="neutral">
+              <Bike className="mr-1 h-3 w-3" aria-hidden="true" />
+              {o.rider_name}
+            </Badge>
+          )}
           {o.scheduled_for && <Badge tone="pending">{t('orders.forTime', { time: new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', day: 'numeric', month: 'short' }).format(new Date(o.scheduled_for)) })}</Badge>}
         </div>
       </button>

@@ -35,5 +35,10 @@ return [
         'body' => ':plan · :date முதல் · :code',
         'default_plan' => 'மீல் பிளான்',
     ],
+    // A delivery order given to a rider (Delivery rider role).
+    'rider' => [
+        'title' => 'டெலிவரி #:number உங்களுக்கு ஒதுக்கப்பட்டது',
+        'collect' => 'பணம் ₹:amount வசூலிக்க வேண்டும்',
+    ],
     'push_test' => 'சோதனை அறிவிப்பு: இந்தச் சாதனத்தில் புஷ் அறிவிப்புகள் வேலை செய்கின்றன.',
 ];

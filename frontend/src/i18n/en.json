@@ -35,14 +35,16 @@
     "waiter": "Waiter",
     "kitchen": "Kitchen",
     "front_desk": "Front desk",
-    "housekeeping": "Housekeeping"
+    "housekeeping": "Housekeeping",
+    "delivery": "Delivery rider"
   },
   "roleHints": {
     "manager": "Menu, orders, reservations, reports. No billing.",
     "cashier": "POS billing, payments and order status.",
     "waiter": "Tables, take orders, send KOT.",
     "kitchen": "Kitchen display only.",
-    "front_desk": "Room bookings and guests (hotels)."
+    "front_desk": "Room bookings and guests (hotels).",
+    "delivery": "Their own deliveries; shares location while on duty."
   },
   "types": {
     "restaurant": "Restaurant",
@@ -210,7 +212,8 @@
       "rota": "Shifts & attendance",
       "tiffin": "Tiffin",
       "settings": "Settings",
-      "account": "My account"
+      "account": "My account",
+      "riders": "Riders"
     },
     "welcome": "Namaste, {{name}}",
     "demoBanner": "This is a demo business. Its data is sample content.",
@@ -679,6 +682,10 @@
           "title": "Download your data",
           "desc": "A copy of your menu, orders and customers",
           "keys": "download export backup data excel"
+        },
+        "riders": {
+          "desc": "Where your delivery riders are, and who takes which order",
+          "keys": "rider riders delivery boy location track tracking gps map route naqsha kahan hai"
         }
       }
     },
@@ -1719,7 +1726,9 @@
       "completed": "Completed",
       "cancelled": "Cancelled",
       "upi_reference": "UPI reference sent",
-      "payment_received": "Payment received"
+      "payment_received": "Payment received",
+      "rider_assigned": "Rider assigned",
+      "rider_unassigned": "Rider removed"
     },
     "statusLong": {
       "pending": "Waiting for the restaurant to confirm.",
@@ -1839,7 +1848,11 @@
       "hello": "Hi {{name}}, I'd like to order:",
       "totalLine": "Items total: {{total}} (GST and charges as per your bill)",
       "fill": "Name:\nPickup or delivery:\nAddress (for delivery):"
-    }
+    },
+    "riderOnWay": "{{name}} is on the way",
+    "riderUpdated": "Updated {{ago}}",
+    "riderMap": "Map: where {{name}} is",
+    "riderFallback": "Your rider"
   },
   "orders": {
     "title": "Orders",
@@ -4416,5 +4429,79 @@
     "openDashboard": "Open my dashboard",
     "startTrial": "Start free trial",
     "allPlaces": "All places"
+  },
+  "riders": {
+    "title": "Riders",
+    "subtitle": "Riders on duty share their location every {{minutes}} min. Give delivery orders to them here or from Orders.",
+    "hoursAgo_one": "{{count}} h ago",
+    "hoursAgo_other": "{{count}} h ago",
+    "assigned": "Rider assigned.",
+    "unassigned": "Rider removed.",
+    "assignTo": "Rider for order #{{number}}",
+    "choose": "Choose a rider",
+    "noRider": "No rider",
+    "nameOffDuty": "{{name}} (off duty)",
+    "onDuty": "On duty",
+    "offDuty": "Off duty",
+    "seen": "seen {{ago}}",
+    "battery": "Battery",
+    "staleHint": "No location for over {{minutes}} min: the phone may be off or without signal.",
+    "unassign": "Take order #{{number}} back from this rider",
+    "showRoute": "Today's route",
+    "hideRoute": "Hide route",
+    "emptyTitle": "No delivery riders yet",
+    "emptyText": "Add a team member with the Delivery rider role. They sign in on their phone, start duty and appear here.",
+    "addRider": "Add a rider",
+    "map": "Map of riders",
+    "mapFailed": "The map could not load. The list is up to date.",
+    "legendLive": "Location fresh",
+    "legendStale": "Older than {{minutes}} min",
+    "legendDrop": "Delivery address",
+    "legendRoute": "Today's route",
+    "noneOnDuty": "No rider is on duty right now.",
+    "listTitle": "{{on}} of {{total}} on duty",
+    "waiting": "Waiting for a rider ({{n}})",
+    "noneWaiting": "Every delivery order has a rider.",
+    "rider": "Rider",
+    "none": "Not given to a rider yet",
+    "noRiders": "Add riders first"
+  },
+  "rider": {
+    "title": "Deliveries",
+    "onDuty": "On duty",
+    "offDuty": "Off duty",
+    "since": "since {{time}}",
+    "startDuty": "Start duty",
+    "endDuty": "End duty",
+    "privacy": "Your location is shared with the restaurant only while you are on duty.",
+    "notSharing": "Location is not shared while you are off duty.",
+    "lastSent": "Location sent {{ago}}",
+    "waitingFirst": "Getting your location…",
+    "modeApp": "Sent every {{minutes}} min, also when the app is in the background.",
+    "modeWeb": "Sent every {{minutes}} min while this screen is open. Keep it open.",
+    "error": {
+      "denied": "Location permission is off. Allow location for DineDesk in the phone settings.",
+      "insecure": "Location needs a secure (https) address. Open DineDesk over https or use the DineDesk app.",
+      "unsupported": "This browser can't share location. Use the DineDesk app.",
+      "position": "Could not get your location. Check that GPS is on.",
+      "offline": "No internet. Locations will be sent when you are back online.",
+      "off_duty": "You are off duty, so location sharing has stopped.",
+      "start_failed": "The app could not start location sharing. Allow location (all the time) for DineDesk and start duty again.",
+      "unauthorized": "Location sharing stopped. Start duty again."
+    },
+    "myDeliveries": "My deliveries ({{n}})",
+    "empty": "No deliveries for you right now",
+    "emptyHint": "Orders given to you appear here, with an alert if alerts are on.",
+    "call": "Call {{name}}",
+    "collect": "Collect {{amount}} cash",
+    "paid": "Paid",
+    "openMaps": "Open in Maps",
+    "pickedUp": "Picked up · Out for delivery",
+    "delivered": "Delivered",
+    "deliveredCollected": "Delivered · {{amount}} collected",
+    "notReady": "Being prepared. Wait until the kitchen marks it ready.",
+    "noAccess": "This screen is for delivery riders.",
+    "doneToast": "Delivered. Thank you!",
+    "outToast": "Out for delivery. The customer can see where you are."
   }
 }

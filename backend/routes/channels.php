@@ -20,5 +20,7 @@ Broadcast::channel('tenant.{tenantKey}.{topic}', function (User $user, string $t
         'tables' => $can('tables.manage', 'tables.setup', 'orders.create'),
         'reservations' => $can('reservations.manage'),
         'hotel' => $can('rooms.manage', 'housekeeping.update'),
+        // Riders' positions: only those who assign deliveries (never other riders).
+        'riders' => $can('orders.manage'),
     };
 });

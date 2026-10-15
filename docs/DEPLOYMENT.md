@@ -306,6 +306,8 @@ Protect the Horizon dashboard (`/horizon`): in `app/Providers/HorizonServiceProv
 
 It runs: unpaid online orders and room holds released, booking reminders, **billing enforcement** (grace periods, read-only, hourly), the owners' **morning summary** (`reports:daily-summary`, hourly on the hour IST; each business at its chosen hour, once a day), automatic customer messages (10:00 IST), guest-ID clean-up, export clean-up and the **nightly database backup** (02:30). Set `DASHBOARD_URL` if the dashboard is not served at `APP_URL` (the summary links to it).
 
+**Delivery riders:** `riders:purge-locations` runs daily at 03:45 and deletes rider location points older than `RIDER_RETENTION_DAYS` (default 7); it also ends duties left on longer than `RIDER_MAX_DUTY_HOURS` (default 14). Riders send their location every `RIDER_LOCATION_INTERVAL` seconds (default 300). In a phone browser, location (`navigator.geolocation`) works **only over https** (or on localhost): serve the dashboard over https in production (Caddy does), otherwise the rider screen says location is unavailable. Inside the DineDesk Android app the app's own background service sends the location (see `frontend/src/features/rider/locationSharing.ts` for the contract).
+
 ## 9. Razorpay (platform account)
 
 1. Set the three `RAZORPAY_*` keys in `.env` (live keys from your Razorpay dashboard).
@@ -331,6 +333,7 @@ Each business connects its **own** Razorpay account for customer payments (Dashb
 ```bash
 cd /var/www/dinedesk && git pull
 cd backend && composer install --no-dev --optimize-autoloader && php artisan migrate --force
+php artisan db:seed --class=RoleSeeder --force   # new roles / permissions (e.g. Delivery rider)
 php artisan config:cache && php artisan route:cache && php artisan view:cache
 php artisan horizon:terminate && sudo supervisorctl restart reverb site-ssr
 cd ../frontend && npm ci && npm run build

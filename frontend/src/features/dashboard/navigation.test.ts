@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Session } from '@/types';
 import { accessFrom, destinationsFor, isSettingsPath, navGroups, SETTINGS_PAGES, settingsSections } from './navigation';
+import { homePath } from '@/lib/home';
 
 const session = (permissions: string[], features: string[] = [], extra: Partial<Session> = {}) =>
   ({ permissions, features: Object.fromEntries(features.map((f) => [f, true])), branches: [], tenant: { is_branch: false }, ...extra }) as unknown as Session;
@@ -84,5 +85,26 @@ describe('Settings page and search use the same gates', () => {
   it('sends kitchen staff to the kitchen screen for the printer', () => {
     const kitchen = destinationsFor(accessFrom(session(['kot.update'], ['kds'])));
     expect(kitchen.find((d) => d.id === 'printers')?.to).toBe('/kitchen');
+  });
+});
+
+describe('delivery riders', () => {
+  it('shows the Riders page to those who move orders on, when online ordering is in the plan', () => {
+    const cashier = accessFrom(session(['orders.view', 'orders.manage', 'pos.use'], ['online_ordering', 'pos']));
+    expect(ids(navGroups(cashier))).toContain('riders');
+    expect(destinationsFor(cashier).find((d) => d.id === 'riders')?.to).toBe('/dashboard/riders');
+    expect(ids(navGroups(accessFrom(session(['orders.view', 'orders.manage'], []))))).not.toContain('riders');
+    // Kitchen staff see orders, not where riders are.
+    expect(ids(navGroups(accessFrom(session(['kot.update', 'orders.view'], ['kds', 'online_ordering']))))).not.toContain('riders');
+  });
+
+  it('sends a rider to their own screen after sign-in, others to the dashboard', () => {
+    expect(homePath({ next: 'dashboard', role: 'delivery', support: null })).toBe('/rider/');
+    expect(homePath({ next: 'dashboard', role: 'cashier', support: null })).toBe('/dashboard');
+    expect(homePath({ next: 'onboarding', role: 'owner', support: null })).toBe('/onboarding');
+    expect(homePath({ next: 'platform', role: null, support: null })).toBe('/platform');
+    const rider = accessFrom(session(['deliveries.run'], ['online_ordering']));
+    expect(rider.rider).toBe(true);
+    expect(ids(navGroups(rider))).toEqual(['overview']);
   });
 });

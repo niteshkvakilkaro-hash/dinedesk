@@ -2,6 +2,7 @@
 
 namespace App\Modules\Ordering\Models;
 
+use App\Models\User;
 use App\Modules\Tenancy\Support\BelongsToTenant;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,7 @@ class Order extends Model
 
     protected $fillable = [
         'tenant_id', 'tracking_token', 'number', 'customer_id', 'type', 'status', 'scheduled_for', 'stock_deducted_at', 'discount_label', 'marketing_opt_in',
-        'customer_name', 'customer_phone', 'customer_email', 'address', 'delivery_zone_id', 'table_label', 'dining_table_id', 'table_session_id', 'room_booking_id', 'source', 'created_by', 'notes',
+        'customer_name', 'customer_phone', 'customer_email', 'address', 'delivery_zone_id', 'table_label', 'dining_table_id', 'table_session_id', 'room_booking_id', 'source', 'created_by', 'rider_id', 'rider_assigned_at', 'notes',
         'subtotal', 'tax_total', 'delivery_fee', 'packaging_fee', 'discount_total', 'total', 'prices_include_tax',
         'payment_method', 'payment_status', 'payment_reference', 'cancel_reason', 'locale', 'placed_at', 'client_ref', 'channel', 'channel_ref', 'commission',
     ];
@@ -34,6 +35,7 @@ class Order extends Model
         return [
             'scheduled_for' => 'datetime',
             'placed_at' => 'datetime',
+            'rider_assigned_at' => 'datetime',
             'address' => 'array',
             'subtotal' => 'decimal:2',
             'tax_total' => 'decimal:2',
@@ -70,6 +72,12 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /** The delivery rider taking this order (delivery orders only). */
+    public function rider(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rider_id');
     }
 
     public function isActive(): bool

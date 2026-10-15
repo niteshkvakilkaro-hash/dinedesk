@@ -41,5 +41,10 @@ return [
         'body' => ':plan · from :date · :code',
         'default_plan' => 'Meal plan',
     ],
+    // A delivery order given to a rider (Delivery rider role).
+    'rider' => [
+        'title' => 'Delivery #:number is yours',
+        'collect' => 'Collect cash ₹:amount',
+    ],
     'push_test' => 'Test alert: push notifications work on this device.',
 ];

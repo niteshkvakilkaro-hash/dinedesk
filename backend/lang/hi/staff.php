@@ -35,5 +35,10 @@ return [
         'body' => ':plan · :date से · :code',
         'default_plan' => 'मील प्लान',
     ],
+    // A delivery order given to a rider (Delivery rider role).
+    'rider' => [
+        'title' => 'डिलीवरी #:number आपको दी गई',
+        'collect' => 'कैश ₹:amount लेना है',
+    ],
     'push_test' => 'टेस्ट अलर्ट: इस डिवाइस पर पुश नोटिफ़िकेशन काम कर रहे हैं।',
 ];

@@ -46,6 +46,8 @@ class OrderPresenter
             'customer_phone' => $o->customer_phone,
             'customer_email' => $o->customer_email,
             'address_full' => $o->address,
+            // Delivery orders: the rider taking it (staff only; guests see a first name and position).
+            'rider' => $o->rider_id ? ['id' => $o->rider_id, 'name' => $o->rider?->name, 'assigned_at' => $o->rider_assigned_at?->toIso8601String()] : null,
             'events' => $o->events->map(fn ($e) => ['status' => $e->status, 'note' => $e->note, 'at' => $e->created_at->toIso8601String()])->values(),
             'next' => array_values(array_filter(
                 OrderFlow::TRANSITIONS[$o->status] ?? [],
@@ -87,6 +89,7 @@ class OrderPresenter
             'scheduled_for' => $o->scheduled_for?->toIso8601String(),
             'placed_at' => $o->placed_at->toIso8601String(),
             'table_label' => $o->table_label,
+            'rider_name' => $o->rider_id && $o->relationLoaded('rider') ? $o->rider?->name : null,
         ];
     }
 

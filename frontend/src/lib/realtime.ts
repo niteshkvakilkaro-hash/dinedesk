@@ -10,7 +10,7 @@ import { request } from './api';
  * If the socket is unavailable, screens keep polling (more slowly while connected).
  * Echo and the Pusher client are loaded only when a dashboard screen asks for live data.
  */
-export type LiveTopic = 'orders' | 'kitchen' | 'tables' | 'reservations' | 'hotel';
+export type LiveTopic = 'orders' | 'kitchen' | 'tables' | 'reservations' | 'hotel' | 'riders';
 
 export const useLiveStatus = create<{ connected: boolean; set: (v: boolean) => void }>((set) => ({ connected: false, set: (connected) => set({ connected }) }));
 

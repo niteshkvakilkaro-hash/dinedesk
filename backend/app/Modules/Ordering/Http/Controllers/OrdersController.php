@@ -30,7 +30,7 @@ class OrdersController extends Controller
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
         $tz = $this->context->require()->timezone;
-        $q = Order::query()->withSum('items', 'quantity');
+        $q = Order::query()->withSum('items', 'quantity')->with('rider:id,name');
 
         match ($data['view'] ?? 'active') {
             // Paid online orders and all pay-later ones; unpaid online orders stay out of the kitchen's way.

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Modules\Delivery\Services\Riders;
 use App\Modules\Notify\Support\WebPushChannel;
 use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Tenancy\Support\TenantContext;
@@ -18,11 +19,13 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
     /** Business modules; each may ship a routes.php mounted under /api/v1. */
-    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports', 'Hotel', 'Subscriptions', 'Branches', 'Domains', 'DataExport', 'Accounts', 'Notify', 'Finance', 'Staff', 'Tiffin', 'Referrals'];
+    public const MODULES = ['Identity', 'Onboarding', 'Settings', 'Plans', 'Platform', 'Website', 'Menu', 'Ordering', 'Tables', 'Reservations', 'Kitchen', 'Billing', 'Inventory', 'Marketing', 'Loyalty', 'Crm', 'Reports', 'Hotel', 'Subscriptions', 'Branches', 'Domains', 'DataExport', 'Accounts', 'Notify', 'Finance', 'Staff', 'Tiffin', 'Referrals', 'Delivery'];
 
     public function register(): void
     {
@@ -48,6 +51,9 @@ class AppServiceProvider extends ServiceProvider
         }
         Notification::extend('webpush', fn () => new WebPushChannel);
         $this->rateLimits();
+        // A rider's upload token (the app's background location service) works for that one route only.
+        Sanctum::authenticateAccessTokensUsing(fn (PersonalAccessToken $token, bool $isValid) => $isValid
+            && ($token->name !== Riders::TOKEN_NAME || request()->routeIs('rider.locations')));
         $this->moduleRoutes();
     }
 
@@ -137,6 +143,10 @@ class AppServiceProvider extends ServiceProvider
         // The app's public place finder: plenty for people searching, too slow to scrape.
         RateLimiter::for('directory', fn (Request $request) => Limit::perMinute(60)->by('dir|'.$request->ip())
             ->response($tooMany('Too many searches. Please wait a minute.')));
+
+        // Rider phones send a location batch every few minutes (more after being offline).
+        RateLimiter::for('rider-locations', fn (Request $request) => Limit::perMinute(12)->by('rider-loc|'.($request->user()?->id ?: $request->ip()))
+            ->response($tooMany('Too many location updates. Please wait a moment.')));
 
         RateLimiter::for('webhooks', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
 

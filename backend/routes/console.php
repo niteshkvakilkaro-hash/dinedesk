@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\DataExport\Models\DataExport;
+use App\Modules\Delivery\Services\Riders;
 use App\Modules\Hotel\Models\GuestDocument;
 use App\Modules\Hotel\Models\RoomBooking;
 use App\Modules\Hotel\Models\RoomCalendarFeed;
@@ -110,6 +111,14 @@ Artisan::command('hotel:purge-documents', function (TenantContext $context) {
 })->purpose('Delete guest ID documents past their keep date');
 
 Schedule::command('hotel:purge-documents')->dailyAt('03:30')->withoutOverlapping();
+
+// Riders' location points are kept dinedesk.riders.retention_days (7 by default); duties left on end by themselves.
+Artisan::command('riders:purge-locations', function () {
+    $deleted = Riders::purge();
+    $this->info("Deleted {$deleted} rider location point(s).");
+})->purpose('Delete rider location points past the keep period');
+
+Schedule::command('riders:purge-locations')->dailyAt('03:45')->withoutOverlapping();
 
 // Billing: trials and paid periods that ran out get a grace period, then read-only (hourly).
 Artisan::command('subscriptions:enforce', function () {

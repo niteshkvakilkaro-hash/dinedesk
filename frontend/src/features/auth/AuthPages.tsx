@@ -13,6 +13,7 @@ import { useSignIn } from '@/hooks/useSession';
 import { Alert, Field, Spinner } from '@/components/ui';
 import { PasswordInput } from '@/components/PasswordInput';
 import { LanguageToggle, Logo } from '@/components/Brand';
+import { homePath } from '@/lib/home';
 import type { AuthResult } from '@/types';
 
 function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle?: string; children: ReactNode; footer: ReactNode }) {
@@ -65,8 +66,7 @@ function useAfterAuth() {
   const navigate = useNavigate();
   return (result: AuthResult) => {
     signIn(result);
-    const next = result.session.next;
-    navigate(next === 'platform' ? '/platform' : next === 'onboarding' ? '/onboarding' : '/dashboard', { replace: true });
+    navigate(homePath(result.session), { replace: true });
   };
 }
 

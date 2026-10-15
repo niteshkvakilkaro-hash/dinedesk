@@ -27,10 +27,13 @@ final class Roles
 
     public const HOUSEKEEPING = 'housekeeping';
 
-    public const ALL = [self::OWNER, self::MANAGER, self::CASHIER, self::WAITER, self::KITCHEN, self::FRONT_DESK, self::HOUSEKEEPING];
+    /** Delivery rider: their own assigned orders and location sharing (the /rider/ screen). */
+    public const DELIVERY = 'delivery';
+
+    public const ALL = [self::OWNER, self::MANAGER, self::CASHIER, self::WAITER, self::KITCHEN, self::FRONT_DESK, self::HOUSEKEEPING, self::DELIVERY];
 
     /** Roles an owner can give to staff (owner is not assignable). */
-    public const ASSIGNABLE = [self::MANAGER, self::CASHIER, self::WAITER, self::KITCHEN, self::FRONT_DESK, self::HOUSEKEEPING];
+    public const ASSIGNABLE = [self::MANAGER, self::CASHIER, self::WAITER, self::KITCHEN, self::FRONT_DESK, self::HOUSEKEEPING, self::DELIVERY];
 
     public const PERMISSIONS = [
         'business.manage',     // business details, hours, domains
@@ -54,6 +57,7 @@ final class Roles
         'inventory.manage',    // raw materials, stock, recipes
         'marketing.manage',    // coupons, loyalty, gift cards, banners, campaigns
         'customers.view',      // CRM, feedback
+        'deliveries.run',      // rider: own assigned orders (picked up / delivered), duty and location sharing
     ];
 
     public const MATRIX = [
@@ -64,6 +68,7 @@ final class Roles
         self::KITCHEN => ['kot.update', 'orders.view'],
         self::FRONT_DESK => ['rooms.manage', 'housekeeping.update', 'reservations.manage', 'orders.view', 'orders.create', 'customers.view'],
         self::HOUSEKEEPING => ['housekeeping.update'],
+        self::DELIVERY => ['deliveries.run'],
     ];
 
     /** Create/refresh every permission and role (idempotent). */

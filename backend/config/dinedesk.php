@@ -136,4 +136,18 @@ return [
         'api_key' => env('ANTHROPIC_API_KEY'),
         'model' => env('DINEDESK_AI_MODEL', 'claude-opus-5-5'),
     ],
+    /*
+    | Delivery riders (role "delivery"): while on duty their phone sends its location every
+    | location_interval seconds (the DineDesk app in the background, the browser while /rider/ is
+    | open). Points are kept retention_days (riders:purge-locations, daily), a duty ends by itself
+    | after max_duty_hours, and guests see the rider on the tracking page only while the order is
+    | out for delivery and the last point is at most guest_max_age_minutes old.
+    */
+    'riders' => [
+        'location_interval' => (int) env('RIDER_LOCATION_INTERVAL', 300),
+        'retention_days' => (int) env('RIDER_RETENTION_DAYS', 7),
+        'stale_minutes' => 15,
+        'guest_max_age_minutes' => 30,
+        'max_duty_hours' => (int) env('RIDER_MAX_DUTY_HOURS', 14),
+    ],
 ];

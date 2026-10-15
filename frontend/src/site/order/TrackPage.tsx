@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router';
 import { intlLocale } from '@/i18n/locale';
 import { useTranslation } from 'react-i18next';
@@ -10,9 +11,14 @@ import { orderEstimate } from './eta';
 import { OrderAgain } from './OrderAgain';
 import { UpiPay } from './UpiPay';
 import { FeedbackForm } from '../ui/Growth';
-import type { OrderStatus, SiteData } from '../types';
+import type { CustomerOrder, OrderStatus, SiteData } from '../types';
 import { BillSummary } from './Cart';
 import { useSkin } from './skin';
+import { MapBoundary } from '@/components/MapBoundary';
+import { agoText } from '@/features/rider/time';
+
+// The map (Leaflet) loads only when a rider is on the way.
+const MapView = lazy(() => import('@/components/MapView'));
 
 const ICONS: Record<OrderStatus, typeof Check> = {
   pending: ReceiptText,
@@ -76,6 +82,8 @@ export default function TrackPage({ site }: { site: SiteData }) {
         {cancelled && order.cancel_reason && <p className="mt-1 text-t-muted">{t('order.reason', { reason: order.cancel_reason })}</p>}
         {order.payment_status === 'refund_due' && <p className="mt-1 text-t-muted">{t('order.refundDue')}</p>}
       </div>
+
+      {order.status === 'out_for_delivery' && order.rider && <RiderOnMap rider={order.rider} />}
 
       <UpiPay site={site} order={order} token={token} />
 
@@ -142,6 +150,28 @@ export default function TrackPage({ site }: { site: SiteData }) {
         </aside>
       </div>
     </Wrap>
+  );
+}
+
+/** Out for delivery: where the rider was last seen (first name and position only, refreshed with the page). */
+function RiderOnMap({ rider }: { rider: NonNullable<CustomerOrder['rider']> }) {
+  const { t } = useTranslation();
+  const skin = useSkin();
+  useNow(); // re-render so "updated X min ago" stays right
+  const name = rider.name_first || t('order.riderFallback');
+  return (
+    <section className={`mt-6 overflow-hidden ${skin.card}`} aria-labelledby="rider-h">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 p-4">
+        <Bike className="h-5 w-5 shrink-0" aria-hidden="true" />
+        <h2 id="rider-h" className="flex-1 font-semibold">{t('order.riderOnWay', { name })}</h2>
+        <p className="text-sm text-t-muted">{t('order.riderUpdated', { ago: agoText(t, rider.at) })}</p>
+      </div>
+      <MapBoundary fallback={null}>
+        <Suspense fallback={<div className="h-56 animate-pulse bg-black/5" />}>
+          <MapView label={t('order.riderMap', { name })} markers={[{ id: 'rider', lat: rider.lat, lng: rider.lng, label: name, tone: 'live' }]} fitKey="rider" className="h-56 sm:h-64" zoom={15} />
+        </Suspense>
+      </MapBoundary>
+    </section>
   );
 }
 
