@@ -5,6 +5,7 @@ namespace Tests\Feature\Website;
 use App\Modules\Menu\Support\SampleMenu;
 use App\Modules\Settings\Support\OpeningHours;
 use App\Modules\Tenancy\Models\Tenant;
+use App\Modules\Tenancy\Models\TenantDomain;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Modules\Website\Models\GalleryImage;
 use Carbon\CarbonImmutable;
@@ -164,12 +165,20 @@ class WebsiteTest extends TestCase
     public function test_the_platform_domain_has_its_own_robots_and_sitemap(): void
     {
         $domain = config('dinedesk.platform_domain');
-        $this->get('/robots.txt', ['X-Tenant-Host' => $domain])->assertOk()
-            ->assertSee("Allow: /\nDisallow: /dashboard", false)->assertSee("Sitemap: https://{$domain}/sitemap.xml");
+        $robots = $this->get('/robots.txt', ['X-Tenant-Host' => $domain])->assertOk()
+            ->assertSee("Allow: /\n", false)->assertSee("Sitemap: https://{$domain}/sitemap.xml")->getContent();
+        foreach (['/dashboard', '/app', '/signup', '/login', '/rider', '/waiter', '/kitchen', '/platform', '/onboarding'] as $private) {
+            $this->assertStringContainsString("Disallow: {$private}\n", $robots);
+        }
+        // app.{domain} is the app itself: nothing there is for search engines.
+        $this->get('/robots.txt', ['X-Tenant-Host' => "app.{$domain}"])->assertOk()->assertSee("Disallow: /\n", false)->assertDontSee('Allow:')->assertDontSee('Sitemap:');
+
         $xml = $this->get('/sitemap.xml', ['X-Tenant-Host' => "www.{$domain}"])->assertOk()->getContent();
+        $this->assertNotFalse(simplexml_load_string($xml));
         $this->assertStringContainsString("<loc>https://{$domain}/pricing</loc>", $xml);
         $this->assertStringContainsString("<loc>https://{$domain}/features/qr-menu-ordering</loc>", $xml);
         $this->assertStringNotContainsString('/dashboard', $xml);
+        $this->assertStringNotContainsString('/login', $xml);
     }
 
     public function test_robots_and_sitemap_per_business(): void
@@ -177,22 +186,65 @@ class WebsiteTest extends TestCase
         $live = $this->business('Cafe Sol', 'growth', ['status' => 'live']);
         $draft = $this->business('Spice Route');
         $demo = $this->business('Demo Cafe', 'growth', ['status' => 'live', 'is_demo' => true]);
+        $suspended = $this->business('Old Cafe', 'growth', ['status' => 'suspended']);
+        $host = $this->host($live);
 
-        $this->get('/robots.txt', ['X-Tenant-Host' => $this->host($live)])
-            ->assertOk()->assertSee('Allow: /')->assertSee("Sitemap: https://{$this->host($live)}/sitemap.xml");
-        $this->get('/robots.txt', ['X-Tenant-Host' => $this->host($draft)])->assertSee('Disallow: /');
-        $this->get('/robots.txt', ['X-Tenant-Host' => $this->host($demo)])->assertSee('Disallow: /');
-        $this->get('/robots.txt', ['X-Tenant-Host' => 'nobody.dinedesk.test'])->assertSee('Disallow: /');
+        $robots = $this->get('/robots.txt', ['X-Tenant-Host' => $host])
+            ->assertOk()->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
+            ->assertSee("Allow: /\n", false)->assertSee("Sitemap: https://{$host}/sitemap.xml")->getContent();
+        // Personal pages and QR landings are never crawled; the public pages are.
+        foreach (['/checkout', '/order/', '/orders', '/account', '/bookings', '/t/', '/r/', '/table', '/stay', '/api/'] as $private) {
+            $this->assertStringContainsString("Disallow: {$private}\n", $robots);
+        }
+        $this->assertStringNotContainsString('Disallow: /menu', $robots);
+        $this->assertStringNotContainsString("Disallow: /\n", $robots);
+        foreach ([$this->host($draft), $this->host($demo), $this->host($suspended), 'nobody.dinedesk.test'] as $closed) {
+            $this->get('/robots.txt', ['X-Tenant-Host' => $closed])->assertSee("Disallow: /\n", false)->assertDontSee('Allow:')->assertDontSee('Sitemap:');
+        }
 
-        $xml = $this->get('/sitemap.xml', ['X-Tenant-Host' => $this->host($live)])
+        $xml = $this->get('/sitemap.xml', ['X-Tenant-Host' => $host])
             ->assertOk()->assertHeader('Content-Type', 'application/xml; charset=UTF-8')->getContent();
-        $this->assertStringContainsString("<loc>https://{$this->host($live)}/menu</loc>", $xml);
-        $this->assertStringNotContainsString('/gallery<', $xml); // no photos yet
+        $doc = simplexml_load_string($xml);
+        $this->assertNotFalse($doc, 'valid XML');
+        $this->assertStringContainsString("<loc>https://{$host}/menu</loc>", $xml);
+        $this->assertStringContainsString("<loc>https://{$host}/</loc>", $xml);
+        // Every language version is listed, each with all 12 languages + x-default as alternates.
+        $this->assertStringContainsString("<loc>https://{$host}/menu?lang=ta</loc>", $xml);
+        $this->assertStringContainsString("<xhtml:link rel=\"alternate\" hreflang=\"ta-IN\" href=\"https://{$host}/menu?lang=ta\"/>", $xml);
+        $this->assertStringContainsString("<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://{$host}/menu\"/>", $xml);
+        $doc->registerXPathNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+        $menu = $doc->xpath("//s:url[s:loc='https://{$host}/menu?lang=hi']")[0];
+        $menu->registerXPathNamespace('x', 'http://www.w3.org/1999/xhtml');
+        $menu->registerXPathNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+        $this->assertCount(13, $menu->xpath('x:link'));
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', (string) $menu->xpath('s:lastmod')[0]);
+        $this->assertStringNotContainsString('/gallery', $xml); // no photos yet
+        $this->assertStringNotContainsString('/rooms', $xml); // not a hotel
+        $this->assertStringNotContainsString('/reserve', $xml); // table booking is off
+        $this->assertStringNotContainsString('/checkout', $xml);
         $this->assertStringNotContainsString('spice-route', $xml);
         $this->get('/sitemap.xml', ['X-Tenant-Host' => $this->host($draft)])->assertNotFound();
+        $this->get('/sitemap.xml', ['X-Tenant-Host' => $this->host($demo)])->assertNotFound();
 
-        $this->getJson('/api/v1/site', ['X-Tenant-Host' => $this->host($live)])->assertJsonPath('data.seo.indexable', true);
+        $this->getJson('/api/v1/site', ['X-Tenant-Host' => $host])->assertJsonPath('data.seo.indexable', true)->assertJsonPath('data.seo.canonical', "https://{$host}");
         $this->getJson('/api/v1/site', ['X-Tenant-Host' => $this->host($demo)])->assertJsonPath('data.seo.indexable', false);
+    }
+
+    public function test_a_primary_custom_domain_is_the_one_address_search_engines_get(): void
+    {
+        $live = $this->business('Cafe Sol', 'growth', ['status' => 'live']);
+        $sub = $this->host($live);
+        TenantDomain::where('tenant_id', $live->id)->update(['is_primary' => false]);
+        TenantDomain::create(['tenant_id' => $live->id, 'domain' => 'cafesol.in', 'type' => 'custom', 'is_primary' => true, 'verified_at' => now()]);
+
+        // Both addresses name the custom domain as canonical (no duplicate content).
+        $this->getJson('/api/v1/site', ['X-Tenant-Host' => $sub])->assertJsonPath('data.seo.canonical', 'https://cafesol.in');
+        $this->getJson('/api/v1/site', ['X-Tenant-Host' => 'cafesol.in'])->assertJsonPath('data.seo.canonical', 'https://cafesol.in');
+        $this->get('/robots.txt', ['X-Tenant-Host' => $sub])->assertSee('Sitemap: https://cafesol.in/sitemap.xml');
+        $this->get('/sitemap.xml', ['X-Tenant-Host' => $sub])->assertStatus(301)->assertRedirect('https://cafesol.in/sitemap.xml');
+        $xml = $this->get('/sitemap.xml', ['X-Tenant-Host' => 'cafesol.in'])->assertOk()->getContent();
+        $this->assertStringContainsString('<loc>https://cafesol.in/menu</loc>', $xml);
+        $this->assertStringNotContainsString($sub, $xml);
     }
 
     public function test_suspended_sites_are_hidden(): void

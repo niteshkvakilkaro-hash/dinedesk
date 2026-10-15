@@ -1,82 +1,52 @@
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
-import type { PageKey } from '@/themes/types';
 import type { SiteData } from './types';
-import { useSiteMenu } from './data';
-import { actionsSchema, geoSchema, menuSchema } from './schema';
-import { localize } from './localize';
-import { htmlLang, isRtl, LANGUAGE_CODES } from '@/i18n/locale';
+import { useSiteGallery, useSiteMenu } from './data';
+import { useHotel } from './hotel';
+import { siteHead } from './seoHead';
 
-const PATHS: Record<PageKey, string> = { home: '/', menu: '/menu', about: '/about', gallery: '/gallery', contact: '/contact' };
-
-const SCHEMA_TYPE: Record<string, string> = { restaurant: 'Restaurant', cafe: 'CafeOrCoffeeShop', cloud_kitchen: 'FoodEstablishment', hotel: 'Hotel' };
-const DAY_NAMES: Record<string, string> = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' };
+// JSON inside <script>: stop "</script>" in owner text from closing the tag early.
+const ldJson = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
 
 /**
- * Title, description, canonical, Open Graph and schema.org JSON-LD. Built
- * only from what the owner entered: no ratings, reviews or invented claims.
+ * Title, description, canonical, language alternates, Open Graph and schema.org JSON-LD
+ * (built in seoHead.ts). Only from what the owner entered: no ratings, reviews or invented claims.
+ * `isPrivate`: checkout, order tracking, QR landings … (noindex).
  */
-/**
- * `title` alone = a private page (noindex). `title` + `path` = an extra public page (e.g. /reserve).
- */
-export function Seo({ site, page, themeColor, title = null, path }: { site: SiteData; page: PageKey; themeColor: string; title?: string | null; path?: string }) {
+export function Seo({ site, path, themeColor, title = null, isPrivate = false }: { site: SiteData; path: string; themeColor: string; title?: string | null; isPrivate?: boolean }) {
   const { t, i18n } = useTranslation();
-  const pageTitle = title ? `${title} · ${site.name}` : page === 'home' ? site.seo.title : `${t(`site.nav.${page}`)} · ${site.name}`;
-  // In the page's language (Hindi field, translations, else English).
-  const description = localize(site.seo, 'description', i18n.language) ?? site.seo.description;
-  const url = `${site.seo.canonical}${path ?? PATHS[page]}`;
-  const c = site.content.contact;
   const { data: menu } = useSiteMenu();
-  const geo = geoSchema(site);
-  const actions = actionsSchema(site);
-
-  const jsonLd: Record<string, unknown> = {
-    '@context': 'https://schema.org',
-    '@type': SCHEMA_TYPE[site.business_type] ?? 'LocalBusiness',
-    name: site.name,
-    url: site.seo.canonical,
-    ...(site.seo.image ? { image: site.seo.image } : {}),
-    ...(c.phone ? { telephone: c.phone } : {}),
-    ...(c.email ? { email: c.email } : {}),
-    ...(c.address || site.city
-      ? { address: { '@type': 'PostalAddress', ...(c.address ? { streetAddress: c.address } : {}), ...(site.city ? { addressLocality: site.city } : {}), addressCountry: 'IN' } }
-      : {}),
-    // The menu page carries the whole menu; other pages point to it.
-    ...(site.has_menu && page === 'menu' && menu?.length ? { hasMenu: menuSchema(site, menu) } : site.has_menu && site.business_type !== 'hotel' ? { hasMenu: `${site.seo.canonical}/menu` } : {}),
-    ...(geo ? { geo } : {}),
-    ...(actions.length ? { potentialAction: actions } : {}),
-    ...(site.opening_hours
-      ? {
-          openingHoursSpecification: Object.entries(site.opening_hours)
-            .filter(([, h]) => !h.closed)
-            .map(([d, h]) => ({ '@type': 'OpeningHoursSpecification', dayOfWeek: DAY_NAMES[d], opens: h.open, closes: h.close })),
-        }
-      : {}),
-    ...(site.hotel?.has_rooms ? { checkinTime: site.hotel.check_in_time, checkoutTime: site.hotel.check_out_time } : {}),
-    sameAs: Object.values(site.content.socials).filter(Boolean),
-  };
+  const { data: gallery } = useSiteGallery(!!site.has_gallery && path === '/gallery');
+  const { data: hotel } = useHotel(!!site.hotel?.has_rooms && path === '/rooms');
+  const head = siteHead({ site, path, title, isPrivate, lang: i18n.language, t, menu, gallery, hotel });
 
   return (
     <Helmet>
-      <html lang={htmlLang(i18n.language)} dir={isRtl(i18n.language) ? 'rtl' : 'ltr'} />
-      <title>{pageTitle}</title>
-      <meta name="description" content={description} />
-      <link rel="canonical" href={url} />
+      <html lang={head.htmlLang} dir={head.dir} />
+      <title>{head.title}</title>
+      <meta name="description" content={head.description} />
+      <meta name="robots" content={head.indexable ? 'index, follow, max-image-preview:large' : 'noindex, nofollow'} />
+      <link rel="canonical" href={head.canonical} />
       {/* The same page in every language (English is the default address). */}
-      {LANGUAGE_CODES.map((code) => <link key={code} rel="alternate" hrefLang={htmlLang(code)} href={code === 'en' ? url : `${url}?lang=${code}`} />)}
-      <link rel="alternate" hrefLang="x-default" href={url} />
-      {(!site.seo.indexable || (title && !path)) && <meta name="robots" content="noindex, nofollow" />}
+      {head.alternates.map((a) => <link key={a.hreflang} rel="alternate" hrefLang={a.hreflang} href={a.href} />)}
       <meta name="theme-color" content={themeColor} />
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content={site.name} />
-      <meta property="og:title" content={pageTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:url" content={url} />
-      <meta property="og:locale" content={htmlLang(i18n.language).replace('-', '_')} />
-      {site.seo.image && <meta property="og:image" content={site.seo.image} />}
-      <meta name="twitter:card" content={site.seo.image ? 'summary_large_image' : 'summary'} />
-      {site.theme.logo && <link rel="icon" href={site.theme.logo.src} />}
-      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+      <meta property="og:title" content={head.title} />
+      <meta property="og:description" content={head.description} />
+      <meta property="og:url" content={head.canonical} />
+      <meta property="og:locale" content={head.ogLocale} />
+      {head.ogLocaleAlternates.map((l) => <meta key={l} property="og:locale:alternate" content={l} />)}
+      {head.image && <meta property="og:image" content={head.image} />}
+      {head.image && <meta property="og:image:alt" content={head.imageAlt} />}
+      <meta name="twitter:card" content={head.image ? 'summary_large_image' : 'summary'} />
+      <meta name="twitter:title" content={head.title} />
+      <meta name="twitter:description" content={head.description} />
+      {head.image && <meta name="twitter:image" content={head.image} />}
+      {site.theme.logo ? <link rel="icon" href={site.theme.logo.src} /> : <link rel="icon" type="image/png" href="/site-icon-192.png" />}
+      <link rel="apple-touch-icon" href="/site-icon-192.png" />
+      <link rel="manifest" href="/site.webmanifest" />
+      {head.jsonLd.map((ld, i) => <script key={i} type="application/ld+json">{ldJson(ld)}</script>)}
     </Helmet>
   );
 }

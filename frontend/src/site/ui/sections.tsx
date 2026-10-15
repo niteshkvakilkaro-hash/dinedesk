@@ -333,7 +333,7 @@ export function Ambience({ site }: { site: SiteData }) {
           {items.map((g, i) => (
             <li key={g.id} className={`s-reveal s-zoom ${royal ? 'aspect-square' : i === 0 ? 'col-span-2 row-span-2' : ''}`} style={delay(i)}>
               <button type="button" className="block h-full w-full" onClick={() => setIndex(i)} aria-label={t('site.openPhoto', { alt: g.alt_text })}>
-                <SiteImg image={g.image!} alt="" sizes={i === 0 ? '(min-width: 768px) 50vw, 100vw' : '(min-width: 768px) 25vw, 50vw'} className="s-media h-full w-full" />
+                <SiteImg image={g.image!} alt={g.alt_text || g.caption || site.name} sizes={i === 0 ? '(min-width: 768px) 50vw, 100vw' : '(min-width: 768px) 25vw, 50vw'} className="s-media h-full w-full" />
               </button>
             </li>
           ))}

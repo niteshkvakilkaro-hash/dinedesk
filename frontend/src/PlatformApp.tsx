@@ -91,6 +91,23 @@ function ReferralCapture() {
   return null;
 }
 
+/** Only the marketing pages are for search engines; sign-in, the dashboard and the staff apps are not. */
+const isMarketingPath = (pathname: string) => pathname === '/' || pathname === '/pricing' || pathname === '/themes' || pathname.startsWith('/features/');
+function RobotsMeta() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    if (isMarketingPath(pathname)) return; // the marketing pages set "index, follow" themselves (usePageMeta)
+    let el = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (!el) {
+      el = document.createElement('meta');
+      el.name = 'robots';
+      document.head.appendChild(el);
+    }
+    el.content = 'noindex, nofollow';
+  }, [pathname]);
+  return null;
+}
+
 /** Sign-up, onboarding, business dashboard and super admin (loaded only on the platform host). */
 export default function PlatformApp() {
   // The dashboard installs like an app (manifest + a push-only service worker); business websites have their own.
@@ -113,6 +130,7 @@ export default function PlatformApp() {
     // reducedMotion="user": Motion drops movement for people who ask for less motion.
     <MotionConfig reducedMotion="user">
       <ReferralCapture />
+      <RobotsMeta />
       <Suspense fallback={<FullPageSpinner />}>
     <Routes>
       {/* DineDesk's own marketing pages */}

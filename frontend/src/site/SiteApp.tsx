@@ -10,6 +10,7 @@ import { getTheme, isThemeKey, themeVars } from '@/themes/registry';
 import type { PageKey, ThemeKey, ThemeModule } from '@/themes/types';
 import { useOpenStatus, useSite, useSiteGallery, useSiteMenu } from './data';
 import { Seo } from './Seo';
+import { EXTRA_PAGES } from './seoHead';
 import { PREVIEW } from './preview';
 import { SkinContext } from './order/skin';
 import { Cart } from './order/Cart';
@@ -148,7 +149,6 @@ function SiteLayout({ site, module, themeColor }: { site: SiteData; module: Them
   const { pathname } = useLocation();
   const { Shell } = module;
   const page = PAGES.find((p) => p.path === pathname)?.key ?? 'home';
-  // Checkout and order pages are private: never indexed.
   // Checkout, order, table and booking-lookup pages are private: never indexed. The booking page is public.
   const privateTitle = pathname.startsWith('/checkout')
     ? t('order.checkoutTitle')
@@ -169,10 +169,12 @@ function SiteLayout({ site, module, themeColor }: { site: SiteData; module: Them
             : pathname.startsWith('/stay') || pathname.startsWith('/r/')
               ? t('site.stay.yourBooking')
               : null;
-  const publicTitle = pathname === '/reserve' ? { title: t('site.reserveTitle'), path: '/reserve' } : pathname === '/offers' ? { title: t('site.offers.title'), path: '/offers' } : pathname === '/rooms' ? { title: t('site.stay.title'), path: '/rooms' } : pathname === '/events' ? { title: t('site.events.title'), path: '/events' } : null;
+  // The extra public pages (rooms, events, offers, tiffin, book a table) have their own titles.
+  const extra = EXTRA_PAGES[pathname];
+  const publicTitle = extra ? t(extra === 'rooms' ? 'site.stay.title' : extra === 'reserve' ? 'site.reserveTitle' : `site.${extra}.title`) : null;
   return (
     <SkinContext.Provider value={module.skin}>
-      <Seo site={site} page={page} themeColor={themeColor} title={privateTitle ?? publicTitle?.title ?? null} path={publicTitle?.path} />
+      <Seo site={site} path={privateTitle ? pathname : (PAGES.find((p) => p.path === pathname) || extra ? pathname : '/')} themeColor={themeColor} title={privateTitle ?? publicTitle} isPrivate={!!privateTitle} />
       <Shell site={site} page={page}>
         <Outlet />
       </Shell>

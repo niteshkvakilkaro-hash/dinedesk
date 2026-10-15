@@ -13,10 +13,9 @@ import { getTheme, themeVars } from '@/themes/registry';
 import { SiteBody } from '@/site/SiteApp';
 import type { SiteData } from '@/site/types';
 
-/** Public pages worth rendering on the server (everything else is personal or a form step). */
-export const SSR_PATHS = ['/', '/menu', '/about', '/gallery', '/contact', '/rooms', '/events', '/offers', '/tiffin', '/reserve'];
+export { SSR_PATHS, pageKind } from '@/site/seoHead';
 
-export interface SiteSsrData { site: SiteData; menu?: unknown; gallery?: unknown; hotel?: unknown }
+export interface SiteSsrData { site: SiteData; menu?: unknown; gallery?: unknown; hotel?: unknown; offers?: unknown; tiffin?: unknown }
 
 /** `lang`: the page's language (?lang=…), else English. */
 export async function renderSite(url: string, data: SiteSsrData, lang = 'en') {
@@ -28,6 +27,8 @@ export async function renderSite(url: string, data: SiteSsrData, lang = 'en') {
   if (data.menu) queryClient.setQueryData(['site', 'menu'], data.menu);
   if (data.gallery) queryClient.setQueryData(['site', 'gallery'], data.gallery);
   if (data.hotel) queryClient.setQueryData(['site', 'hotel'], data.hotel);
+  if (data.offers) queryClient.setQueryData(['site', 'offers'], data.offers);
+  if (data.tiffin) queryClient.setQueryData(['site', 'tiffin'], data.tiffin);
 
   const def = getTheme(site.theme.key);
   const module = await def.load();

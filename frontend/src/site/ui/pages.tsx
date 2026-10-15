@@ -299,7 +299,7 @@ function Gallery({ site }: PageProps) {
             <li key={g.id} className="s-reveal s-zoom mb-3 break-inside-avoid md:mb-4" style={delay(i % 3)}>
               <button type="button" className="block w-full" onClick={() => setIndex(i)} aria-label={t('site.openPhoto', { alt: g.alt_text })}>
                 <span className="s-media block" style={{ aspectRatio: `${g.image!.width} / ${g.image!.height}` }}>
-                  <SiteImg image={g.image!} alt="" sizes="(min-width: 768px) 33vw, 50vw" className="h-full w-full" />
+                  <SiteImg image={g.image!} alt={g.alt_text || g.caption || site.name} sizes="(min-width: 768px) 33vw, 50vw" className="h-full w-full" />
                 </span>
               </button>
               {g.caption && <p className="s-small s-muted mt-2">{g.caption}</p>}

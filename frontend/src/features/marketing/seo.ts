@@ -28,7 +28,8 @@ export interface PageHead {
 export function marketingHead(path: string, t: TFunction): PageHead {
   const faq = t('mk.faq.items', { returnObjects: true }) as { q: string; a: string }[];
   const crumbs = (name: string) => breadcrumbJsonLd([{ name: 'DineDesk', path: '/' }, { name, path }]);
-  if (path === '/pricing') return { title: t('mk.seo.pricingTitle'), description: t('mk.seo.pricingDesc'), path, jsonLd: [orgJsonLd()[0], faqJsonLd(faq), crumbs(t('mk.nav.pricing'))] };
+  // The pricing page repeats the home page's FAQ: it is marked up once, on the home page.
+  if (path === '/pricing') return { title: t('mk.seo.pricingTitle'), description: t('mk.seo.pricingDesc'), path, jsonLd: [orgJsonLd()[0], crumbs(t('mk.nav.pricing'))] };
   if (path === '/themes') return { title: t('mk.seo.themesTitle'), description: t('mk.seo.themesDesc'), path, jsonLd: [orgJsonLd()[0], crumbs(t('mk.nav.themes'))] };
   const feature = path.startsWith('/features/') ? featureBySlug(path.slice('/features/'.length)) : undefined;
   if (feature) {

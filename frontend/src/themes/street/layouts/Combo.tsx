@@ -72,7 +72,7 @@ export function ComboBuilder() {
                     transition={SPRING}
                   >
                     <input type="radio" name={`combo-${c.id}`} className="sr-only" checked={on} onChange={() => setPicks({ ...picks, [c.id]: i.id })} />
-                    {i.image ? <img src={i.image.src} alt="" className="h-20 w-20 rounded-full border-2 border-[#141414] object-cover" /> : (
+                    {i.image ? <img src={i.image.src} alt="" width={80} height={80} loading="lazy" decoding="async" className="h-20 w-20 rounded-full border-2 border-[#141414] object-cover" /> : (
                       <span className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#141414] bg-[#FFF1C7]" style={{ ['--art-ink' as string]: '#141414', ['--art-a' as string]: '#FFCB2E', ['--art-b' as string]: '#D7261E' }}>
                         <FoodArt art={artFor(i.name)} className="h-12 w-12" />
                       </span>

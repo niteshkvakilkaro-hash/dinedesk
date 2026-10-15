@@ -139,6 +139,15 @@ see the page before any JavaScript runs (much faster first paint on phones, and 
 search engines); the app then takes over the same page. If the renderer is down or a page can't be
 rendered, the normal app is served, so websites keep working.
 
+For search engines the renderer also answers with the right status: addresses a site doesn't have
+(e.g. `/rooms` on a restaurant, mistyped paths) and unknown or suspended businesses get **404**;
+personal pages (checkout, order tracking, profile, bookings, table/room QR landings), unpublished
+and demo sites get `X-Robots-Tag: noindex` plus a robots meta tag; `/menu/` redirects (301) to
+`/menu`. Each language is rendered at `?lang=<code>` and names itself as canonical, with all 12
+languages as `hreflang` alternates (the sitemap lists them too). When a business has a verified
+primary custom domain, every page on its subdomain names the custom domain as canonical, and the
+subdomain's `sitemap.xml` redirects (301) to the custom domain's.
+
 ## 5. Nginx (behind Caddy, plain HTTP on 127.0.0.1:8081)
 
 `/etc/nginx/sites-available/dinedesk`:
@@ -186,8 +195,12 @@ server {
     location / { try_files $marketing$uri/index.html $uri @page; }
     # Pages: the platform gets the app; business websites go through the server-side renderer,
     # and fall back to the app if it is down.
+    # (On the platform these are sign-in, dashboard and staff-app pages: not for search engines.)
     location @page {
-        if ($platform) { rewrite ^ /index.html break; }
+        if ($platform) {
+            add_header X-Robots-Tag "noindex, nofollow" always;
+            rewrite ^ /index.html break;
+        }
         proxy_pass http://127.0.0.1:3005;
         proxy_set_header Host $host;
         proxy_connect_timeout 2s;
