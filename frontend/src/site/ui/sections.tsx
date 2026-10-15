@@ -361,7 +361,7 @@ export function Reserve({ site }: { site: SiteData }) {
               <h2 id="reserve-title" className="s-h2 mt-3">
                 {t('site.reserveTitle')}
               </h2>
-              <p className="mt-4 max-w-lg text-lg opacity-90">{online ? t('site.reserveTextOnline') : t('site.reserveText')}</p>
+              <p className="mt-4 max-w-lg text-lg opacity-90">{online ? t(c.phone ? 'site.reserveTextOnline' : 'site.reserveTextOnlineOnly') : t('site.reserveText')}</p>
             </div>
             <div className="col-span-4 flex flex-wrap gap-3 md:col-span-5 md:justify-end">
               {online && (

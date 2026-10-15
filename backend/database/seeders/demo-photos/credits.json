@@ -575,5 +575,93 @@
     "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
     "source": "https://commons.wikimedia.org/wiki/File:Mandawa-Havel%C3%AE_307-Private_courtyard-20131007.jpg",
     "alt": "Painted haveli courtyard, Mandawa"
+  },
+  "cover-coastal": {
+    "title": "Sadya - An art.jpeg",
+    "author": "Sreerajsadanand",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Sadya_-_An_art.jpeg",
+    "alt": "Kerala sadya feast served on a banana leaf with rice, curries and pappadam"
+  },
+  "masala-dosa": {
+    "title": "Masala Dosa or Dosai.JPG",
+    "author": "OdetomyLife",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Masala_Dosa_or_Dosai.JPG",
+    "alt": "Masala dosa on a banana leaf with sambar and chutneys"
+  },
+  "idli-vada": {
+    "title": "Idly Wada.jpg",
+    "author": "Rajesh dangi at English Wikipedia",
+    "license": "CC BY 2.5",
+    "license_url": "https://creativecommons.org/licenses/by/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Idly_Wada.jpg",
+    "alt": "Idli and medu vada with sambar and chutneys on a banana leaf"
+  },
+  "appam": {
+    "title": "Appam and stew.jpg",
+    "author": "Nithajay",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Appam_and_stew.jpg",
+    "alt": "Lacy appam topped with vegetable stew"
+  },
+  "fish-curry": {
+    "title": "Fish Curry Kerala.jpg",
+    "author": "Samphotography",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Fish_Curry_Kerala.jpg",
+    "alt": "Kerala red fish curry with curry leaves in a white bowl"
+  },
+  "payasam": {
+    "title": "Paal payasam.JPG",
+    "author": "Ross thres",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Paal_payasam.JPG",
+    "alt": "Paal payasam in a glass bowl beside rice grains"
+  },
+  "ambience-coastal-1": {
+    "title": "Food For Onam Sadhya - Grand Traditional Vegetarian Feast Served On A Banana Leaf - WikiConference India 2026 - Kochi 2026-09-04 03534.jpg",
+    "author": "Gangulybiswarup",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Food_For_Onam_Sadhya_-_Grand_Traditional_Vegetarian_Feast_Served_On_A_Banana_Leaf_-_WikiConference_India_2026_-_Kochi_2026-09-04_03534.jpg",
+    "alt": "Buffet of steel buckets of Kerala curries laid out in a restaurant"
+  },
+  "neer-dosa": {
+    "title": "NeerDosa.jpg",
+    "author": "Ramuias13",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:NeerDosa.jpg",
+    "alt": "Neer dosa with sambar and chutney on a steel plate"
+  },
+  "prawn-fry": {
+    "title": "Prawn Fry.JPG",
+    "author": "Rekhashastry",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Prawn_Fry.JPG",
+    "alt": "Kerala style prawn fry with onions and curry leaves on a banana leaf"
+  },
+  "lemon-rice": {
+    "title": "Lemon Rice - Perfect use of Left over rice.JPG",
+    "author": "Zeel Patel",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Lemon_Rice_-_Perfect_use_of_Left_over_rice.JPG",
+    "alt": "Lemon rice tempered with curry leaves and chilli"
+  },
+  "curd-rice": {
+    "title": "Curd Rice.jpg",
+    "author": "Sudharshan Shanmugasundaram",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Curd_Rice.jpg",
+    "alt": "Curd rice with pomegranate, fried chillies and pappadam"
   }
 }

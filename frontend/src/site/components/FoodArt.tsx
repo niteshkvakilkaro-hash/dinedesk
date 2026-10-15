@@ -115,10 +115,13 @@ const ART: Record<ArtKey, JSX.Element> = {
 };
 
 const KEYWORDS: [RegExp, ArtKey][] = [
+  // South Indian tiffin and meals: a plate with bowls of sambar and chutney.
+  [/dosa|idli|uttapam|appam|idiyappam|pongal|upma|sadya|meals/i, 'thali'],
+  [/parotta|porotta/i, 'bread'],
   [/naan|roti|paratha|kulcha|bread|bhatura/i, 'bread'],
   [/tikka|kabab|kebab|seekh|tandoori chicken|skewer/i, 'kebab'],
   [/rice|biryani|pulao|khichdi/i, 'rice'],
-  [/jamun|kulfi|halwa|kheer|rasmalai|dessert|sweet|mithai|ice cream|gola/i, 'sweet'],
+  [/jamun|kulfi|halwa|kheer|payasam|rasmalai|dessert|sweet|mithai|ice cream|gola/i, 'sweet'],
   [/coffee|cappuccino|latte|espresso|brew|chai|tea/i, 'coffee'],
   [/croissant|bread|cake|bake|muffin|cookie|toast/i, 'bakery'],
   [/omelette|egg|anda/i, 'egg'],

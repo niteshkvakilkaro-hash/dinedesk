@@ -153,7 +153,7 @@ function Split({ site }: { site: SiteData }) {
   const style = themeStyle(site);
   const cover = site.theme.cover;
   return (
-    <section className={`relative overflow-hidden pb-16 pt-10 md:pb-24 md:pt-16 ${site.theme.key === 'haveli' ? 's-jaali' : ''}`} aria-labelledby="hero-title">
+    <section className={`s-hero-split relative overflow-hidden pb-16 pt-10 md:pb-24 md:pt-16 ${site.theme.key === 'haveli' ? 's-jaali' : ''}`} aria-labelledby="hero-title">
       <div className="s-wrap s-grid items-center gap-y-12">
         <div className="col-span-4 md:col-span-6">
           <p className="s-reveal s-eyebrow">{kicker}</p>
@@ -174,11 +174,13 @@ function Split({ site }: { site: SiteData }) {
         </div>
         <div className={`relative col-span-4 md:col-span-6 lg:col-span-5 lg:col-start-8 ${site.theme.key === 'kulhad' ? 's-glow' : ''}`}>
           {cover ? (
-            <div>
+            <div className="s-hero-photo">
               <SiteImg image={cover} alt={t('site.coverAlt', { name: site.name })} sizes="(min-width: 1024px) 480px, 100vw" priority className={`s-media aspect-[4/5] w-full ${style.imageMask === 'arch' ? 's-media-arch' : ''}`} />
             </div>
           ) : (
-            <div className={`s-media aspect-[4/5] w-full ${style.imageMask === 'arch' ? 's-media-arch' : ''}`} aria-hidden="true" />
+            <div className="s-hero-photo">
+              <div className={`s-media aspect-[4/5] w-full ${style.imageMask === 'arch' ? 's-media-arch' : ''}`} aria-hidden="true" />
+            </div>
           )}
           <div className="s-reveal mt-4 md:absolute md:-left-12 md:bottom-10 md:mt-0 md:w-80" style={delay(3)}>
             <InfoCard site={site} />

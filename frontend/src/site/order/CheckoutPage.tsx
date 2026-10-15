@@ -285,11 +285,11 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
             <fieldset className="mt-5 min-w-0">
               <legend className="text-sm font-semibold">{t('order.whenTitle')}</legend>
               <div className="mt-2 grid grid-cols-2 gap-2">
-                <label className={`flex min-h-12 items-center gap-2 px-3 ${skin.chip} ${status && !status.is_open ? 'opacity-50' : ''}`}>
+                <label className={`flex min-h-12 items-center gap-2 px-3 py-1.5 !whitespace-normal leading-tight ${skin.chip} ${status && !status.is_open ? 'opacity-50' : ''}`}>
                   <input type="radio" name="when" checked={when === 'now'} disabled={!!status && !status.is_open} onChange={() => setWhen('now')} className="accent-[var(--t-primary)]" />
                   {t('order.asap')}
                 </label>
-                <label className={`flex min-h-12 items-center gap-2 px-3 ${skin.chip} ${!days.length ? 'opacity-50' : ''}`}>
+                <label className={`flex min-h-12 items-center gap-2 px-3 py-1.5 !whitespace-normal leading-tight ${skin.chip} ${!days.length ? 'opacity-50' : ''}`}>
                   <input type="radio" name="when" checked={when === 'later'} disabled={!days.length} onChange={() => setWhen('later')} className="accent-[var(--t-primary)]" />
                   {t('order.later')}
                 </label>

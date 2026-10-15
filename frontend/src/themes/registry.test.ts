@@ -2,8 +2,8 @@ import { contrastRatio } from '@/lib/contrast';
 import { getTheme, isThemeKey, textSafe, THEME_KEYS, THEMES, themeVars } from './registry';
 
 describe('theme registry', () => {
-  it('has the seven themes, each complete', () => {
-    expect(THEME_KEYS).toEqual(['haveli', 'ember', 'bistro', 'kulhad', 'qsr', 'street', 'rajwada']);
+  it('has the eight themes, each complete', () => {
+    expect(THEME_KEYS).toEqual(['haveli', 'ember', 'bistro', 'kulhad', 'qsr', 'street', 'rajwada', 'coastal']);
     for (const key of THEME_KEYS) {
       const def = THEMES[key];
       expect(def.key).toBe(key);

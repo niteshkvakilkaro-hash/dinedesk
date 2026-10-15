@@ -101,7 +101,7 @@ export function ReservePage({ site }: { site: SiteData }) {
     const noContact = site.business_type === 'cloud_kitchen' || (!c.phone && !c.whatsapp);
     return (
       <>
-        <PageHeader site={site} eyebrow={site.name} title={t('site.reserveTitle')} lead={t('site.res.offline')} />
+        <PageHeader site={site} eyebrow={site.name} title={t('site.reserveTitle')} lead={t(noContact ? 'site.res.offlineNoContact' : 'site.res.offline')} />
         {noContact ? (
           <div className="s-wrap flex flex-wrap gap-3">
             {site.has_menu && (
@@ -217,7 +217,7 @@ export function ReservePage({ site }: { site: SiteData }) {
                 </button>
               </div>
             </div>
-            <p className="s-small s-muted mt-3">{t('site.res.bigGroups', { count: r.max_party })}</p>
+            <p className="s-small s-muted mt-3">{t(site.content.contact.phone ? 'site.res.bigGroups' : 'site.res.bigGroupsNoPhone', { count: r.max_party })}</p>
           </fieldset>
 
           <fieldset className="s-card min-w-0 p-5 sm:p-6">

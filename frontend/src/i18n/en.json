@@ -924,7 +924,7 @@
     "reduceMotionSystem": "Your device is already set to reduce motion.",
     "closedToday": "Closed today",
     "holiday": "Holiday",
-    "today": "today",
+    "today": "Today",
     "holidaysTitle": "Upcoming closures",
     "foodType": {
       "veg": "Vegetarian",
@@ -1059,6 +1059,7 @@
       "replay": "Replay"
     },
     "reserveTextOnline": "Pick a day and time online in under a minute, or call us.",
+    "reserveTextOnlineOnly": "Pick a day and time online in under a minute.",
     "reserveOnline": "Book online",
     "res": {
       "bookingId": "Booking ID",
@@ -1086,6 +1087,7 @@
       "guestCount_one": "{{count}} guest",
       "guestCount_other": "{{count}} guests",
       "offline": "Online booking isn't available right now. Call or message us and we'll keep a table for you.",
+      "offlineNoContact": "Online booking isn't available right now. Have a look at the menu, or find our address and hours on the contact page.",
       "err": {
         "time": "Choose a time."
       },
@@ -1096,6 +1098,7 @@
       "fewer": "Fewer guests",
       "more": "More guests",
       "bigGroups": "Booking for more than {{count}}? Please call us.",
+      "bigGroupsNoPhone": "Booking for more than {{count}}? Book for {{count}} and add the full number in the notes.",
       "pickDay": "Pick a day",
       "pickTime": "Pick a time",
       "dayFull": "This day is fully booked. Please try another day.",
@@ -1427,7 +1430,8 @@
       "ember": "Dark and warm: live fire, bars and premium dinners.",
       "kulhad": "Warm chai café: soft cards, earthy colours, breakfast and desserts.",
       "qsr": "Modern quick service: bold photos, pill buttons, fast ordering.",
-      "rajwada": "Royal Rajasthani hotel & restaurant: forest green, antique gold, cream, rounded photos."
+      "rajwada": "Royal Rajasthani hotel & restaurant: forest green, antique gold, cream, rounded photos.",
+      "coastal": "South Indian & coastal restaurants: banana-leaf green, turmeric gold, sea teal, kolam dots, leaf-shaped photos."
     },
     "colorsTitle": "Your colours",
     "colorsHint": "Optional. Leave empty to use the theme's colours.",
@@ -3613,7 +3617,7 @@
         },
         "look": {
           "title": "Look like a premium brand",
-          "text": "Seven designed themes for fine dining, cafés, QSRs, street food and hotels. Your logo and colours, checked for readability."
+          "text": "Eight designed themes for fine dining, cafés, South Indian kitchens, QSRs, street food and hotels. Your logo and colours, checked for readability."
         },
         "run": {
           "title": "Run the whole floor",
@@ -3754,7 +3758,7 @@
       "pricingTitle": "Pricing: DineDesk restaurant software plans",
       "pricingDesc": "DineDesk plans for restaurants, cafés and hotels: website, online ordering, QR ordering, POS and more. Start with a free trial, no card needed.",
       "themesTitle": "Restaurant website themes and live demos | DineDesk",
-      "themesDesc": "Seven restaurant website themes for fine dining, cafés, QSRs, street food and hotels. Open a live demo on your phone."
+      "themesDesc": "Eight restaurant website themes for fine dining, cafés, South Indian kitchens, QSRs, street food and hotels. Open a live demo on your phone."
     },
     "feature": {
       "whatYouGet": "What you get",
@@ -3771,8 +3775,8 @@
         "lead": "Pick a theme, add your logo, photos and menu, and you are live on your own address. Guests see your menu, today's hours and how to reach you in a tap.",
         "points": [
           {
-            "title": "Seven designed themes",
-            "text": "Fine dining, café, grill, QSR, street food and hotel looks, each with its own fonts and motion."
+            "title": "Eight designed themes",
+            "text": "Fine dining, café, grill, South Indian, QSR, street food and hotel looks, each with its own fonts and motion."
           },
           {
             "title": "Your menu, always current",

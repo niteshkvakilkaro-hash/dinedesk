@@ -1499,3 +1499,222 @@
     font-weight: 800;
   }
 }
+
+/*
+ * ---------- Coastal: South Indian & coastal kitchens ----------
+ * Coconut cream, banana-leaf green, turmeric gold and a deep sea teal. A kasavu stripe (the gold
+ * border of a Kerala mundu) under the header and over the tabs, kolam dots on eyebrows and
+ * dividers, a leaf-shaped hero photo on a sea-teal leaf, banana-leaf veins on the booking band and a
+ * wave into the teal footer. Thin lines and dots only, drawn in CSS, so text contrast never changes.
+ * Built from the theme variables, so the owner's colours (primary = leaf, accent = turmeric) carry through.
+ */
+@layer components {
+  /* Header: cream, with a kasavu stripe (a 2px and a 1px gold line) along its foot. */
+  .theme-coastal .s-header::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -5px;
+    height: 5px;
+    pointer-events: none;
+    background:
+      linear-gradient(var(--t-accent), var(--t-accent)) top / 100% 2px no-repeat,
+      linear-gradient(var(--t-accent), var(--t-accent)) bottom / 100% 1px no-repeat;
+  }
+  .theme-coastal .s-header .s-nav-link::after {
+    left: 50%;
+    right: auto;
+    bottom: 5px;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
+    border-radius: 999px;
+    background: var(--t-accent);
+    transform: scale(0);
+    transform-origin: center;
+  }
+  .theme-coastal .s-header .s-nav-link:hover::after,
+  .theme-coastal .s-header .s-nav-link[aria-current='page']::after {
+    transform: scale(1);
+  }
+  .theme-coastal .s-header .s-nav-link[aria-current='page'] {
+    color: var(--t-link);
+  }
+
+  /* Eyebrows in sea teal; section eyebrows open with a kolam (four dots in a diamond). */
+  .theme-coastal .s-eyebrow {
+    font-family: var(--t-font-body);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--t-x-teal);
+  }
+  .theme-coastal .s-section .s-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-inline-end: 12px;
+    vertical-align: -0.05em;
+    rotate: 45deg;
+    background: radial-gradient(circle, var(--t-accent) 1.9px, transparent 2.4px) 0 0 / 6px 6px;
+  }
+  .theme-coastal .s-display,
+  .theme-coastal .s-h1 {
+    line-height: 1.04;
+  }
+
+  /* Cards: a hairline and a soft sea-coloured shadow. */
+  .theme-coastal .s-card {
+    box-shadow:
+      inset 0 0 0 1px var(--t-line),
+      0 14px 34px -24px rgb(10 49 56 / 0.4);
+  }
+  .theme-coastal .s-chip[aria-pressed='true'],
+  .theme-coastal .s-chip[aria-selected='true'],
+  .theme-coastal .s-chip[aria-checked='true'],
+  .theme-coastal .s-chip.is-active {
+    background: var(--t-primary);
+    border-color: var(--t-primary);
+    color: var(--t-on-primary);
+  }
+  .theme-coastal .s-dish-name {
+    font-family: var(--t-font-display);
+    font-weight: 600;
+    font-size: 1.1875rem;
+    line-height: 1.25;
+  }
+  .theme-coastal .s-price {
+    font-family: var(--t-font-display);
+    font-size: 1.0625em;
+  }
+  /* Quick actions: leaf-green discs with a thin turmeric ring. */
+  .theme-coastal .s-quick-icon {
+    box-shadow:
+      0 0 0 3px var(--t-surface),
+      0 0 0 4.5px var(--t-accent);
+  }
+
+  /* Hero: warm morning light, a leaf-shaped photo on a sea-teal leaf, kolam dots behind it. */
+  .theme-coastal .s-hero-split {
+    background:
+      radial-gradient(60% 70% at 100% 0%, color-mix(in srgb, var(--t-accent) 16%, transparent), transparent 70%),
+      radial-gradient(50% 60% at 0% 100%, color-mix(in srgb, var(--t-x-teal) 7%, transparent), transparent 70%);
+  }
+  .theme-coastal .s-hero-photo {
+    position: relative;
+    isolation: isolate;
+    padding-inline-end: 14px;
+    padding-block-end: 14px;
+  }
+  .theme-coastal .s-hero-photo .s-media {
+    border-radius: 46% 28px 46% 28px / 34% 28px 34% 28px;
+  }
+  [dir='rtl'] .theme-coastal .s-hero-photo .s-media {
+    border-radius: 28px 46% 28px 46% / 28px 34% 28px 34%;
+  }
+  .theme-coastal .s-hero-photo::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset-block: 14px 0;
+    inset-inline: 14px 0;
+    border-radius: 46% 28px 46% 28px / 34% 28px 34% 28px;
+    background:
+      repeating-linear-gradient(118deg, transparent 0 16px, rgb(255 255 255 / 0.08) 16px 17px),
+      var(--t-x-teal);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--t-accent) 70%, transparent);
+  }
+  [dir='rtl'] .theme-coastal .s-hero-photo::before {
+    border-radius: 28px 46% 28px 46% / 28px 34% 28px 34%;
+  }
+  .theme-coastal .s-hero-photo::after {
+    content: '';
+    position: absolute;
+    z-index: -2;
+    top: -18px;
+    inset-inline-start: -18px;
+    width: 112px;
+    height: 112px;
+    background: radial-gradient(circle, var(--t-accent) 2px, transparent 2.6px) 0 0 / 16px 16px;
+    opacity: 0.85;
+  }
+
+  /* Kolam divider: a dotted line with a diamond of dots in the middle. */
+  .s-kolam {
+    display: flex;
+    height: 16px;
+    align-items: center;
+    gap: 12px;
+    color: var(--t-accent);
+  }
+  .s-kolam::before,
+  .s-kolam::after {
+    content: '';
+    flex: 1;
+    height: 4px;
+    background: radial-gradient(circle, currentColor 1.6px, transparent 2.1px) 0 50% / 10px 4px repeat-x;
+  }
+  .s-kolam > span {
+    width: 14px;
+    height: 14px;
+    rotate: 45deg;
+    background: radial-gradient(circle, currentColor 2px, transparent 2.5px) 0 0 / 7px 7px;
+  }
+
+  /* Booking band: banana-leaf veins instead of rings, and a kasavu edge along the foot. */
+  .theme-coastal .s-cta-band {
+    box-shadow:
+      inset 0 -6px 0 -2px var(--t-accent),
+      0 24px 48px -30px color-mix(in srgb, var(--t-primary) 80%, transparent);
+  }
+  .theme-coastal .s-cta-band::before {
+    background: repeating-linear-gradient(118deg, transparent 0 22px, color-mix(in srgb, var(--t-on-primary) 11%, transparent) 22px 23px);
+  }
+  [dir='rtl'] .theme-coastal .s-cta-band::before {
+    background: repeating-linear-gradient(62deg, transparent 0 22px, color-mix(in srgb, var(--t-on-primary) 11%, transparent) 22px 23px);
+  }
+
+  /* Footer: deep sea teal, rising out of the page on a wave, with turmeric eyebrows. */
+  .theme-coastal footer.s-alt {
+    position: relative;
+    margin-top: 28px;
+    border-top: 0;
+    background: var(--t-x-teal-deep);
+    color: var(--t-x-cream);
+  }
+  .theme-coastal footer.s-alt::before {
+    content: '';
+    position: absolute;
+    inset: -15px 0 auto;
+    height: 16px;
+    background: var(--t-x-teal-deep);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='16' viewBox='0 0 64 16'%3E%3Cpath d='M0 16V9C10 9 20 2 32 2S54 9 64 9V16Z'/%3E%3C/svg%3E") 0 0 / 64px 16px repeat-x;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='16' viewBox='0 0 64 16'%3E%3Cpath d='M0 16V9C10 9 20 2 32 2S54 9 64 9V16Z'/%3E%3C/svg%3E") 0 0 / 64px 16px repeat-x;
+  }
+  .theme-coastal footer.s-alt .s-eyebrow {
+    color: var(--t-accent);
+  }
+  .theme-coastal footer.s-alt .s-muted,
+  .theme-coastal footer.s-alt .border-t-line {
+    color: color-mix(in srgb, var(--t-x-cream) 80%, transparent);
+    border-color: color-mix(in srgb, var(--t-x-cream) 18%, transparent);
+  }
+  .site-root.theme-coastal footer.s-alt :focus-visible {
+    outline-color: var(--t-accent);
+  }
+
+  /* Bottom tabs: a kasavu stripe along the top; the current tab on a leaf-green pill. */
+  .theme-coastal .s-tabbar {
+    box-shadow:
+      0 -1px 0 var(--t-line),
+      inset 0 2px 0 var(--t-accent);
+  }
+  .theme-coastal .s-tabbar > [aria-current='page'] .s-tab-icon,
+  .theme-coastal .s-tabbar > .is-active .s-tab-icon {
+    background: var(--t-primary);
+    color: var(--t-on-primary);
+  }
+  .theme-coastal .s-tabbar > [aria-current='page'],
+  .theme-coastal .s-tabbar > .is-active {
+    color: var(--t-link);
+  }
+}

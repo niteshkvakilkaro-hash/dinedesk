@@ -29,11 +29,18 @@ export function SectionHead({ eyebrow, title, lead, action, id, center = false, 
   );
 }
 
-/** Haveli's gold double rule; a plain hairline elsewhere. */
+/** Haveli's gold double rule, Coastal's kolam dots; a plain hairline elsewhere. */
 export function Divider({ site, className = '' }: { site: SiteData; className?: string }) {
   if (site.theme.key === 'haveli') {
     return (
       <div className={`s-divider ${className}`} aria-hidden="true">
+        <span />
+      </div>
+    );
+  }
+  if (site.theme.key === 'coastal') {
+    return (
+      <div className={`s-kolam ${className}`} aria-hidden="true">
         <span />
       </div>
     );

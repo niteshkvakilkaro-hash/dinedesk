@@ -19,6 +19,7 @@ final class Themes
         'qsr' => ['primary' => '#D2302A', 'accent' => '#E8A54B', 'background' => '#F3F1EC', 'text' => '#141414', 'accent_role' => 'fill'],
         'street' => ['primary' => '#D7261E', 'accent' => '#FFCB2E', 'background' => '#FFF9EC', 'text' => '#141414', 'accent_role' => 'fill'],
         'rajwada' => ['primary' => '#24392D', 'accent' => '#F4D49A', 'background' => '#F7F0E5', 'text' => '#1C2A21', 'accent_role' => 'fill'],
+        'coastal' => ['primary' => '#15663B', 'accent' => '#EBA72B', 'background' => '#FBF8F0', 'text' => '#132A1F', 'accent_role' => 'fill'],
     ];
 
     /** Home page sections an owner can reorder or hide. The hero is always first. */

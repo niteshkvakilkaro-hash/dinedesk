@@ -21,6 +21,9 @@ import streetPreview from './street/preview.png';
 import * as rajwada from './rajwada/tokens';
 import { motion as rajwadaMotion } from './rajwada/motion';
 import rajwadaPreview from './rajwada/preview.png';
+import * as coastal from './coastal/tokens';
+import { motion as coastalMotion } from './coastal/motion';
+import coastalPreview from './coastal/preview.png';
 
 const def = (
   key: ThemeKey,
@@ -45,6 +48,7 @@ export const THEMES: Record<ThemeKey, ThemeDefinition> = {
   qsr: def('qsr', 'Modern QSR', qsr, qsrMotion, qsrPreview, () => import('./qsr/layouts').then((m) => m.default)),
   street: def('street', 'Street Pop', street, streetMotion, streetPreview, () => import('./street/layouts').then((m) => m.default)),
   rajwada: def('rajwada', 'Rajwada Royal', rajwada, rajwadaMotion, rajwadaPreview, () => import('./rajwada/layouts').then((m) => m.default)),
+  coastal: def('coastal', 'Coastal', coastal, coastalMotion, coastalPreview, () => import('./coastal/layouts').then((m) => m.default)),
 };
 
 export const THEME_KEYS = Object.keys(THEMES) as ThemeKey[];

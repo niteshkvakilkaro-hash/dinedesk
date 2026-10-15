@@ -52,6 +52,24 @@ class WebsiteTest extends TestCase
         $this->getJson('/api/v1/site', ['X-Tenant-Host' => $this->host($tenant)])->assertJsonPath('data.theme.key', 'bistro');
     }
 
+    public function test_coastal_theme_and_its_south_indian_sample_menu(): void
+    {
+        $tenant = $this->business();
+        $this->actingAsUser($this->ownerOf($tenant));
+
+        // Turmeric is a fill under dark text, so a light owner accent is fine and a dark one warns.
+        $this->putJson('/api/v1/tenant/website/theme', ['theme' => 'coastal', 'accent_color' => '#F2C94C'])
+            ->assertOk()->assertJsonPath('data.theme.key', 'coastal')->assertJsonCount(0, 'meta.warnings');
+        $this->putJson('/api/v1/tenant/website/theme', ['accent_color' => '#1B3A2B'])
+            ->assertOk()->assertJsonPath('meta.warnings.0.field', 'accent_color');
+
+        app(TenantContext::class)->run($tenant, fn () => SampleMenu::install('south'));
+        $this->getJson('/api/v1/site/menu', ['X-Tenant-Host' => $this->host($tenant)])
+            ->assertOk()->assertJsonCount(4, 'data')
+            ->assertJsonPath('data.0.items.0.name', 'Masala Dosa')
+            ->assertJsonPath('data.0.items.0.is_demo', true);
+    }
+
     public function test_only_theme_managers_can_edit_the_website(): void
     {
         $tenant = $this->business();

@@ -153,7 +153,9 @@ dinedesk/
 
 **Try it:** on http://haveli-demo.localhost:5173/reserve (also Ember, Bistro, Kulhad) book a table, then confirm it as the demo owner under **Bookings**. For QR ordering, open **Tables → Set up & QR codes** as the owner, open a table's link (or scan its QR from a phone on the same network), order, call a waiter, then settle the bill on the **Live** tab.
 
-### Website redesign (before Phase 4)
+### Coastal theme (8th theme)
+
+**Coastal** is for South Indian and coastal restaurants (Kerala, Tamil Nadu, Udupi and Karnataka, Andhra, Goa, Mangalore): dosa and idli, meals on a banana leaf, seafood and filter coffee. It uses coconut cream, banana-leaf green, turmeric gold and sea teal, with Baloo 2 headings over Geist. The details are kasavu gold stripes, kolam dots, a leaf-shaped hero photo, banana-leaf veins on the booking band and a wave into a teal footer, all drawn in CSS. The demo is **Coastal Demo** (Kochi) with a sample South Indian menu (labelled Demo; prices are examples). It has freely licensed, credited photos and no invented contact details or reviews. Owner sign-in: `demo-coastal@example.com` / `DemoOwner2026`. The theme is in the onboarding theme picker, Website → Design and the marketing `/themes` page. Design notes: [docs/DESIGN.md](docs/DESIGN.md).
 
 ### Website redesign (before Phase 4)
 
@@ -262,16 +264,18 @@ npm run dev                   # http://localhost:5173
 | http://kulhad-demo.localhost:5173 | **Demo** site, Kulhad Warm theme |
 | http://qsr-demo.localhost:5173 | **Demo** site, Modern QSR theme |
 | http://street-demo.localhost:5173 | **Demo** site, Street Pop theme |
+| http://hotel-demo.localhost:5173 | **Demo** site, Rajwada Royal theme (hotel with a restaurant) |
+| http://coastal-demo.localhost:5173 | **Demo** site, Coastal theme (South Indian, Kochi) |
 | http://haveli-demo.localhost:5173/style-guide | Style guide of that site's theme (works on every business site) |
 | http://localhost:5173/kitchen | Kitchen Display (signed in as a kitchen-capable user) |
 | http://localhost:5173/waiter/ | Waiter phone app (installable PWA) |
 | http://localhost:5173/rider/ | Delivery rider screen (sign in as a Delivery rider) · `/dashboard/riders` for the owner's map |
 | http://localhost:5173/dashboard/pos | POS and billing · `/dashboard/day-end` for the day-end report |
-| demo-owner@example.com (Haveli), demo-ember@, demo-bistro@, demo-kulhad@, demo-qsr@, demo-street@example.com / DemoOwner2026 | Demo business owners (development seed only; never created when APP_ENV=production) |
+| demo-owner@example.com (Haveli), demo-ember@, demo-bistro@, demo-kulhad@, demo-qsr@, demo-street@, demo-hotel@, demo-coastal@example.com / DemoOwner2026 | Demo business owners (development seed only; never created when APP_ENV=production) |
 
 Add `?preview=1&preview_theme=street` to a business site inside the dashboard's iframe to see the live preview mode; outside an iframe the flag is ignored.
 
-**Try an order:** open a demo site during its hours (Haveli 11:00–23:00, Ember 12:00–23:30, Bistro 08:00–22:00, Kulhad 07:00–22:00, QSR 11:00–01:00, Street 12:00–01:00 IST — otherwise schedule it for later), add dishes, check out with delivery to pincode `302001` (Haveli), `122002` (Ember), `560034` (Bistro), `226001` (Kulhad), `411001` (QSR) or `400050` (Street), then sign in as that demo's owner and open **Orders**. Customer messages are written to `backend/storage/logs/laravel.log` in development. To try Razorpay, paste your own **test** keys in Dashboard → Ordering.
+**Try an order:** open a demo site during its hours (Haveli 11:00–23:00, Ember 12:00–23:30, Bistro 08:00–22:00, Kulhad 07:00–22:00, QSR 11:00–01:00, Street 12:00–01:00, Coastal 07:30–22:30 IST — otherwise schedule it for later), add dishes, check out with delivery to pincode `302001` (Haveli), `122002` (Ember), `560034` (Bistro), `226001` (Kulhad), `411001` (QSR), `400050` (Street) or `682016` (Coastal), then sign in as that demo's owner and open **Orders**. Customer messages are written to `backend/storage/logs/laravel.log` in development. To try Razorpay, paste your own **test** keys in Dashboard → Ordering.
 
 Mobile OTP in development: codes are written to `backend/storage/logs/laravel.log`, and shown on screen when `APP_ENV=local` and `OTP_DEV_ECHO=true`. No SMS provider is connected yet.
 

@@ -41,6 +41,7 @@ export const DEMO_SLUG: Record<ThemeKey, string> = {
   kulhad: 'kulhad-demo',
   qsr: 'qsr-demo',
   street: 'street-demo',
+  coastal: 'coastal-demo',
 };
 
 /** Indexable marketing pages (the backend's SeoController::PLATFORM_PAGES lists the same). */

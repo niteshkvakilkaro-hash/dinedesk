@@ -116,6 +116,29 @@ final class SampleMenu
                 ['Rasmalai', 'रसमलाई', null, 120, 'veg', 0, false, false],
             ]],
         ],
+        // South Indian and coastal (the Coastal theme's demo): tiffin, meals on a banana leaf, filter coffee.
+        'south' => [
+            ['Tiffin', 'टिफ़िन', [
+                ['Masala Dosa', 'मसाला डोसा', 'Crisp rice-and-lentil dosa with potato masala, coconut chutney and sambar.', 120, 'veg', 1, true, false],
+                ['Idli Vada', 'इडली वड़ा', 'Two steamed idlis and a crisp medu vada with sambar and chutneys.', 90, 'veg', 1, true, false],
+                ['Neer Dosa', 'नीर डोसा', 'Soft, lacy Mangalorean rice dosas with coconut chutney.', 100, 'veg', 0, false, false],
+                ['Appam with Vegetable Stew', 'अप्पम और वेजिटेबल स्टू', 'Two lace-edged appams with a mild coconut-milk stew.', 160, 'veg', 0, false, true],
+            ]],
+            ['Meals & Curries', 'मील्स और करी', [
+                ['Kerala Fish Curry Meals', 'केरल फ़िश करी मील्स', 'Kerala rice, fish curry, thoran, sambar, rasam, pickle and pappadam on a banana leaf.', 280, 'non_veg', 2, true, false],
+                ['Chicken Chettinad', 'चिकन चेट्टिनाड', 'Chicken in a roasted pepper, fennel and coconut masala.', 320, 'non_veg', 3, false, false],
+                ['Kerala Prawn Roast', 'केरल प्रॉन रोस्ट', 'Prawns roasted with shallots, curry leaves, pepper and coconut oil.', 420, 'non_veg', 2, false, true],
+            ]],
+            ['Parotta & Rice', 'परोटा और चावल', [
+                ['Kerala Parotta', 'केरल परोटा', 'Flaky, layered flatbread.', 40, 'veg', 0, false, false],
+                ['Lemon Rice', 'लेमन राइस', 'Rice tempered with mustard, curry leaves, peanuts and lime.', 120, 'veg', 1, false, false],
+                ['Curd Rice', 'कर्ड राइस', 'Cool curd rice with a mustard and ginger tempering.', 110, 'veg', 0, false, false],
+            ]],
+            ['Coffee & Sweets', 'कॉफ़ी और मिठाई', [
+                ['Filter Coffee', 'फ़िल्टर कॉफ़ी', 'Chicory blend, frothed and served in a davara and tumbler.', 50, 'veg', 0, true, false],
+                ['Palada Payasam', 'पालड़ा पायसम', 'Rice flakes slow-cooked in sweetened milk.', 110, 'veg', 0, false, false],
+            ]],
+        ],
         'qsr' => [
             ['Burgers', 'बर्गर', [
                 ['Classic Veg Burger', 'क्लासिक वेज बर्गर', 'Crisp veg patty, lettuce, tomato, house sauce.', 149, 'veg', 0, true, false],
@@ -161,6 +184,7 @@ final class SampleMenu
         'Margherita' => [['Regular', 'रेगुलर', 249], ['Medium', 'मीडियम', 399]],
         'Tandoori Paneer Pizza' => [['Regular', 'रेगुलर', 329], ['Medium', 'मीडियम', 499]],
         'Pepperoni Pizza' => [['Regular', 'रेगुलर', 379], ['Medium', 'मीडियम', 549]],
+        'Kerala Parotta' => [['1 pc', '1 पीस', 40], ['2 pcs', '2 पीस', 75]],
     ];
 
     // Menu key => [[group, group_hi, min, max, [[addon, addon_hi, price, food_type]], [dishes]]]
@@ -183,6 +207,10 @@ final class SampleMenu
         ],
         'chai' => [
             ['Add-ons', 'ऐड-ऑन', 0, 2, [['Extra ginger', 'एक्स्ट्रा अदरक', 10, 'veg'], ['Less sugar', 'कम चीनी', 0, 'veg']], ['Kulhad Masala Chai', 'Elaichi Chai']],
+        ],
+        'south' => [
+            ['Extras', 'एक्स्ट्रा', 0, 3, [['Extra sambar', 'एक्स्ट्रा सांभर', 20, 'veg'], ['Extra coconut chutney', 'एक्स्ट्रा नारियल चटनी', 15, 'veg'], ['Gunpowder podi with ghee', 'घी के साथ पोडी', 25, 'veg']],
+                ['Masala Dosa', 'Idli Vada', 'Neer Dosa']],
         ],
         'qsr' => [
             ['Make it a meal', 'मील बनाएँ', 0, 1, [['Fries + soft drink', 'फ़्राइज़ + सॉफ़्ट ड्रिंक', 99, 'veg'], ['Fries + Cold coffee', 'फ़्राइज़ + कोल्ड कॉफ़ी', 129, 'veg']],

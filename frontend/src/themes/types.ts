@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import type { SiteData } from '@/site/types';
 
-export type ThemeKey = 'haveli' | 'ember' | 'bistro' | 'kulhad' | 'qsr' | 'street' | 'rajwada';
+export type ThemeKey = 'haveli' | 'ember' | 'bistro' | 'kulhad' | 'qsr' | 'street' | 'rajwada' | 'coastal';
 export type PageKey = 'home' | 'menu' | 'about' | 'gallery' | 'contact';
 
 /**

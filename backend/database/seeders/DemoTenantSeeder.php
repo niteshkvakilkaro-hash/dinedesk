@@ -31,7 +31,7 @@ use Illuminate\Support\Str;
  * with a working menu, cart, checkout and order tracking.
  *
  * - Plus "Hotel Demo": a hotel with a restaurant on the Pro plan (rooms, booking, front desk).
- * - All seven are flagged is_demo, labelled "Demo" on the site and never indexed.
+ * - All of them are flagged is_demo, labelled "Demo" on the site and never indexed.
  * - No invented contact details, reviews or ratings. Prices are illustrative.
  * - Photos are freely licensed pictures from Wikimedia Commons and Flickr (found
  *   through Openverse; database/seeders/demo-photos, credits.json). They are not
@@ -42,6 +42,15 @@ use Illuminate\Support\Str;
 class DemoTenantSeeder extends Seeder
 {
     private const PHOTOS = __DIR__.'/demo-photos';
+
+    /** Dish slug => bundled photo, where one photo fits a dish with a longer name. */
+    private const PHOTO_ALIAS = [
+        'filter-coffee' => 'south-indian-filter-coffee',
+        'appam-with-vegetable-stew' => 'appam',
+        'kerala-fish-curry-meals' => 'fish-curry',
+        'palada-payasam' => 'payasam',
+        'kerala-prawn-roast' => 'prawn-fry',
+    ];
 
     private const DEMOS = [
         [
@@ -79,6 +88,13 @@ class DemoTenantSeeder extends Seeder
             'hours' => ['12:00', '01:00'], 'location' => [19.0596, 72.8295], 'packaging' => 10,
             'zones' => [['Bandra', ['400050', '400051', '400052'], 25, 149, 499], ['Within 4 km', 4, 40, 199, null]],
             'gallery' => ['ambience-street-1', 'pani-puri', 'vada-pav', 'ambience-street-2', 'pav-bhaji'],
+        ],
+        // South Indian & coastal (Kochi): tiffin, meals on a banana leaf, seafood and filter coffee.
+        [
+            'theme' => 'coastal', 'name' => 'Coastal Demo', 'type' => 'restaurant', 'menu' => 'south', 'city' => 'Kochi', 'email' => 'demo-coastal@example.com',
+            'hours' => ['07:30', '22:30'], 'location' => [9.9312, 76.2673], 'packaging' => 10,
+            'zones' => [['Ernakulam & Fort Kochi', ['682001', '682011', '682016', '682035'], 30, 199, 599], ['Within 5 km', 5, 45, 249, null]],
+            'gallery' => ['ambience-coastal-1', 'masala-dosa', 'fish-curry', 'idli-vada', 'appam', 'prawn-fry'],
         ],
         // Hotel with a restaurant (Pro plan): rooms, booking engine, front desk, room service by QR.
         [
@@ -143,12 +159,12 @@ class DemoTenantSeeder extends Seeder
             $content['about_hi'] = "यह DineDesk पर {$theme} थीम दिखाने के लिए बनाया गया डेमो बिज़नेस है। मेनू, दाम और टेक्स्ट नमूना सामग्री हैं, कोई असली रेस्टोरेंट नहीं। फ़ोटो Wikimedia Commons और Flickr (Openverse के ज़रिए) से मुक्त लाइसेंस वाली तस्वीरें हैं, जिनका श्रेय हर पेज के नीचे दिया गया है; ये इस बिज़नेस की नहीं हैं।";
             $content['milestones'] = [
                 ['year' => 'Step 1', 'title' => 'Sign up', 'title_hi' => 'साइन अप', 'text' => 'Create an account with your phone or email.', 'text_hi' => 'फ़ोन या ईमेल से अकाउंट बनाएँ।'],
-                ['year' => 'Step 2', 'title' => 'Pick a theme', 'title_hi' => 'थीम चुनें', 'text' => 'Six website designs, with your colours and logo.', 'text_hi' => 'छह वेबसाइट डिज़ाइन, अपने रंग और लोगो के साथ।'],
+                ['year' => 'Step 2', 'title' => 'Pick a theme', 'title_hi' => 'थीम चुनें', 'text' => 'Eight website designs, with your colours and logo.', 'text_hi' => 'आठ वेबसाइट डिज़ाइन, अपने रंग और लोगो के साथ।'],
                 ['year' => 'Step 3', 'title' => 'Take orders', 'title_hi' => 'ऑर्डर लें', 'text' => 'Delivery, takeaway, table bookings and QR ordering at the table.', 'text_hi' => 'डिलीवरी, टेकअवे, टेबल बुकिंग और टेबल पर QR से ऑर्डर।'],
             ];
             app(SiteContent::class)->save($content);
 
-            SampleMenu::install($demo['menu'] ?? SampleMenu::keyFor($tenant->business_type), fn (string $slug) => $this->photo($tenant, $slug, 'menu'));
+            SampleMenu::install($demo['menu'] ?? SampleMenu::keyFor($tenant->business_type), fn (string $slug) => $this->photo($tenant, self::PHOTO_ALIAS[$slug] ?? $slug, 'menu'));
 
             foreach ($demo['gallery'] as $i => $slug) {
                 $image = $this->photo($tenant, $slug, 'gallery');
