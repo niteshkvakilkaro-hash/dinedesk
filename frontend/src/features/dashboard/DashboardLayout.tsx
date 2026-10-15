@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router';
+import { revealSelectedTabs } from '@/lib/urlParams';
 import { useTranslation } from 'react-i18next';
 import { LogOut, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Search, UserRound, Wifi } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -21,7 +22,7 @@ import { SettingsBackLink } from './SettingsHub';
 export default function DashboardLayout() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { data: session } = useSession();
   const signOut = useSignOut();
   // The header language menu also saves the choice on the account (alerts to this person use it).
@@ -90,6 +91,17 @@ export default function DashboardLayout() {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
   useEffect(() => rememberPage(pathname), [pathname]);
+  // A new page starts at the top (the browser keeps the old scroll position in a single-page app,
+  // so a page opened from search could show its middle). ?open= links that target a section
+  // scroll there afterwards (scrollToSection waits for the section).
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  // Tab bars that scroll sideways on phones: show the selected tab (e.g. ?tab=suppliers).
+  useEffect(() => {
+    const id = window.setTimeout(() => revealSelectedTabs(), 300);
+    return () => window.clearTimeout(id);
+  }, [pathname, search]);
   // Keep the current page visible in a long sidebar.
   const sideNav = useRef<HTMLElement>(null);
   useEffect(() => {

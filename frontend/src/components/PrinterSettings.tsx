@@ -3,12 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { Printer } from 'lucide-react';
 import { Dialog, Toggle } from '@/components/ui';
 import { kotSlip, printSlip, setPrinterPrefs, slipDocument, usePrinterPrefs } from '@/lib/print';
+import { useOpenParam } from '@/lib/urlParams';
 
 /** "Printer" button + settings for this device's receipt printer (POS and kitchen screen). */
 export function PrinterButton({ business, className = 'btn-ghost !min-h-10 text-sm', showKot = true, showBill = true }: { business: string; className?: string; showKot?: boolean; showBill?: boolean }) {
   const { t, i18n } = useTranslation();
   const prefs = usePrinterPrefs();
   const [open, setOpen] = useState(false);
+  // Search result 'Printer' links here with ?open=printer.
+  useOpenParam((v) => v === 'printer' && setOpen(true));
   const test = () =>
     printSlip(
       slipDocument(

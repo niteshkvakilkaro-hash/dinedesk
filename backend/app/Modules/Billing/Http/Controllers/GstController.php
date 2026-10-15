@@ -41,7 +41,11 @@ class GstController extends Controller
         $report = $this->gst->month($this->context->require(), $this->month($request));
         unset($report['invoices']);
 
-        return $this->ok($report + ['ledgers' => array_values(self::LEDGERS)]);
+        // The sales ledger is one per GST rate ("Sales @ 5%"); show that, not the raw template.
+        $ledgers = self::LEDGERS;
+        $ledgers['sales'] = str_replace(':rate%', '5% / 12% / 18% (one per GST rate)', $ledgers['sales']);
+
+        return $this->ok($report + ['ledgers' => array_values($ledgers)]);
     }
 
     public function export(Request $request, string $section): StreamedResponse

@@ -43,14 +43,53 @@ export function useOpenParam(onOpen: (value: string) => void, ready = true) {
   }, [value, ready, setParams]);
 }
 
-/** Scrolls to the section with id `find-<name>` (used with useOpenParam). */
+/**
+ * Scrolls to the section with id `find-<name>` (used with useOpenParam). On a slow phone the
+ * section may not exist yet, and content loading above it pushes it down after the scroll, so
+ * it waits for the section (up to 5 s) and lines it up again once the page has settled. The
+ * header and bottom tabs are kept clear with `scroll-margin` (see index.css).
+ */
 export function scrollToSection(name: string) {
-  requestAnimationFrame(() => {
-    const el = document.getElementById(`find-${name}`);
-    if (!el) return;
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    el.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const started = Date.now();
+  const find = () => document.getElementById(`find-${name}`);
+  const go = (el: HTMLElement, behavior: ScrollBehavior) => el.scrollIntoView({ block: 'start', behavior });
+  const attempt = () => {
+    const el = find();
+    if (!el) {
+      if (Date.now() - started < 5000) window.setTimeout(attempt, 150);
+      return;
+    }
+    go(el, reduce ? 'auto' : 'smooth');
     el.classList.add('find-flash');
     window.setTimeout(() => el.classList.remove('find-flash'), 1600);
+    // Images, lists and cards above may still be loading: line it up again, without animation.
+    let last = el.getBoundingClientRect().top;
+    let checks = 0;
+    const settle = window.setInterval(() => {
+      const now = find();
+      checks += 1;
+      if (!now || checks > 8) return window.clearInterval(settle);
+      const top = now.getBoundingClientRect().top;
+      if (Math.abs(top - last) > 4 && checks > 2) go(now, 'auto');
+      last = now.getBoundingClientRect().top;
+    }, 250);
+  };
+  requestAnimationFrame(attempt);
+}
+
+/**
+ * Tab bars scroll sideways on phones: centre the selected tab so one opened from a link
+ * (?tab=suppliers) isn't cut off at the edge. Only the bar scrolls, never the page.
+ */
+export function revealSelectedTabs(root: ParentNode = document) {
+  root.querySelectorAll<HTMLElement>('[role="tablist"]').forEach((list) => {
+    const tab = list.querySelector<HTMLElement>('[aria-selected="true"]');
+    let box: HTMLElement | null = list;
+    while (box && box.scrollWidth <= box.clientWidth) box = box.parentElement === document.body ? null : box.parentElement;
+    if (!tab || !box) return;
+    const tabBox = tab.getBoundingClientRect();
+    const barBox = box.getBoundingClientRect();
+    box.scrollLeft += tabBox.left - barBox.left - (barBox.width - tabBox.width) / 2;
   });
 }

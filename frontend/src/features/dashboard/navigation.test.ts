@@ -84,7 +84,7 @@ describe('Settings page and search use the same gates', () => {
 
   it('sends kitchen staff to the kitchen screen for the printer', () => {
     const kitchen = destinationsFor(accessFrom(session(['kot.update'], ['kds'])));
-    expect(kitchen.find((d) => d.id === 'printers')?.to).toBe('/kitchen');
+    expect(kitchen.find((d) => d.id === 'printers')?.to).toBe('/kitchen?open=printer');
   });
 });
 

@@ -163,7 +163,7 @@ export const DESTINATIONS: Destination[] = [
   page('pos', '/dashboard/pos', Store, 'today', (a) => a.pos),
   item('appOrders', '/dashboard/pos', Bike, 'today', (a) => a.pos),
   item('offlinePos', '/dashboard/pos', WifiOff, 'today', (a) => a.pos),
-  item('printers', '/dashboard/pos', Printer, 'today', (a) => a.pos || a.kitchen),
+  item('printers', '/dashboard/pos?open=printer', Printer, 'today', (a) => a.pos || a.kitchen),
   item('dayEnd', '/dashboard/day-end', ClipboardList, 'today', (a) => a.reports),
   page('kitchen', '/kitchen', ChefHat, 'today', (a) => a.kitchen),
   page('waiter', '/waiter/', Smartphone, 'today', (a) => a.waiter),
@@ -228,7 +228,7 @@ export const DESTINATIONS: Destination[] = [
 
 /** Where the printer settings are: the POS, or the kitchen screen for kitchen staff. */
 export function destinationFor(d: Destination, a: Access) {
-  return d.id === 'printers' && !a.pos ? { ...d, to: '/kitchen' } : d;
+  return d.id === 'printers' && !a.pos ? { ...d, to: '/kitchen?open=printer' } : d;
 }
 
 export function destinationsFor(access: Access) {
