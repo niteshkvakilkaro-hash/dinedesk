@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { Plug } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { Alert, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
 
@@ -38,9 +40,9 @@ export default function PlatformSettingsPage() {
       {errors.form && <Alert>{errors.form}</Alert>}
       <section className="card space-y-2 p-5 text-sm">
         <h2 className="text-lg font-bold">{t('platform.settings.payments')}</h2>
-        <p>{f.razorpay_configured ? t('platform.settings.razorpayOn') : t('platform.settings.razorpayOff')}</p>
-        <p>{t('platform.settings.webhook')} <code className="break-all rounded bg-ink/5 px-1.5 py-0.5">{f.webhook_url}</code></p>
-        <p className="text-muted">{t('platform.settings.webhookEvents')}</p>
+        <p>{f.razorpay_configured ? t('platform.settings.razorpayReady') : t('platform.settings.razorpayMissing')}</p>
+        {/* Keys, webhook URL and events: Integrations (the server .env still works as a fallback). */}
+        <Link to="/platform/integrations" className="btn-outline !min-h-10 text-sm"><Plug className="h-4 w-4" aria-hidden="true" /> {t('platform.settings.openIntegrations')}</Link>
         <p>{t('platform.settings.domainTarget')} <code className="rounded bg-ink/5 px-1.5 py-0.5">{f.domain_target}</code></p>
       </section>
       <form className="card space-y-4 p-5" onSubmit={(e) => { e.preventDefault(); save.mutate(); }} noValidate>

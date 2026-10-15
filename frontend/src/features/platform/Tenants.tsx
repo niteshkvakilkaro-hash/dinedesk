@@ -8,6 +8,7 @@ import { formatDate, formatDateTime, formatINR, formatPhone } from '@/lib/format
 import { useDebounced } from '@/hooks/useDebounced';
 import { Badge, DemoBadge, EmptyState, ErrorState, SkeletonRows } from '@/components/ui';
 import type { PlatformTenantRow } from '@/types';
+import { OpenDashboardButton } from './SupportDialog';
 
 interface Summary {
   total: number;
@@ -133,6 +134,8 @@ export default function Tenants() {
                       <span className="block text-xs text-muted">
                         {t(`types.${r.business_type}`)} · {r.city}
                       </span>
+                      {/* Support: open this business's dashboard (reason required, audited). */}
+                      <OpenDashboardButton tenant={{ id: r.id, name: r.name }} className="btn-outline mt-2 !min-h-9 !px-3 text-xs" disabled={r.status === 'suspended'} />
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-semibold">{r.plan.name}</span>

@@ -9,6 +9,7 @@ use App\Modules\Hotel\Services\CalendarSync;
 use App\Modules\Hotel\Services\GuestDocuments;
 use App\Modules\Hotel\Services\RoomBookings;
 use App\Modules\Marketing\Services\Automations;
+use App\Modules\Notify\Support\VapidKeys;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Services\OrderFlow;
 use App\Modules\Plans\Services\FeatureService;
@@ -27,7 +28,6 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Storage;
-use Minishlink\WebPush\VAPID;
 use Symfony\Component\Process\Process;
 
 Artisan::command('inspire', function () {
@@ -220,7 +220,7 @@ Schedule::command('backup:database')->dailyAt('02:30')->withoutOverlapping();
 
 // Keys for push alerts on staff phones: run once, put the two lines in .env.
 Artisan::command('webpush:vapid', function () {
-    $keys = VAPID::createVapidKeys();
+    $keys = VapidKeys::create();
     $this->line('WEBPUSH_VAPID_PUBLIC='.$keys['publicKey']);
     $this->line('WEBPUSH_VAPID_PRIVATE='.$keys['privateKey']);
     $this->info('Add these to backend/.env (and keep the private key secret).');

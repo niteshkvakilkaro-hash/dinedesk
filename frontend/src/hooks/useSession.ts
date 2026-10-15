@@ -72,13 +72,15 @@ export function useSignOut() {
   const qc = useQueryClient();
   const setToken = useAuthStore((s) => s.setToken);
   return async () => {
+    // In a support session "Sign out" ends the session (audited) and returns to the own sign-in.
+    const support = isSupportTab();
     try {
-      await api.post('/auth/logout');
+      await api.post(support ? '/support/end' : '/auth/logout');
     } catch {
       /* token may already be invalid */
     }
     setToken(null);
-    forgetSession();
+    if (!support) forgetSession();
     qc.clear();
   };
 }

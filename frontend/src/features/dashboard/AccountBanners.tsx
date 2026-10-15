@@ -1,38 +1,71 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { LifeBuoy } from 'lucide-react';
+import { ArrowLeft, LifeBuoy } from 'lucide-react';
 import { api } from '@/lib/api';
-import { formatDate, formatDateTime } from '@/lib/format';
-import { endSupportTab } from '@/stores/auth';
+import { formatDate } from '@/lib/format';
+import { supportTabInfo, useAuthStore } from '@/stores/auth';
 import { useCan } from '@/hooks/useSession';
 import { Alert } from '@/components/ui';
 import type { Session } from '@/types';
 import { switchOutlet } from '@/features/account/BranchesPage';
 
-/** A super admin working inside this business: always visible, with "End session". */
+/** "3:33 pm" in IST: a support session lasts an hour, the date is today. */
+const timeOf = (iso: string) => new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }).format(new Date(iso));
+
+/**
+ * A super admin working inside this business (support mode): always visible, with "Back to super
+ * admin", which ends the session (audited) and returns to the business in the platform panel.
+ * When the hour is up the tab goes back by itself and the panel says the session expired.
+ */
 export function SupportBar({ session }: { session: Session }) {
   const { t } = useTranslation();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const leaveSupport = useAuthStore((s) => s.leaveSupport);
   const [busy, setBusy] = useState(false);
+  const expiresAt = session.support?.expires_at;
+  useEffect(() => {
+    if (!expiresAt) return undefined;
+    const expire = () => {
+      leaveSupport('expired');
+      qc.clear();
+    };
+    const ms = Date.parse(expiresAt) - Date.now();
+    if (ms <= 0) {
+      expire();
+      return undefined;
+    }
+    // Timers can't wait longer than ~24 days; a session lasts an hour.
+    const id = window.setTimeout(expire, Math.min(ms + 1000, 2 ** 31 - 1));
+    return () => window.clearTimeout(id);
+  }, [expiresAt, leaveSupport, qc]);
   if (!session.support) return null;
-  const end = async () => {
+  const back = async () => {
     setBusy(true);
     try {
       await api.post('/support/end');
     } catch {
       /* already ended or expired */
     }
-    endSupportTab();
-    window.close();
-    window.location.assign('/platform');
+    const info = supportTabInfo();
+    leaveSupport('ended');
+    qc.clear();
+    // Opened as its own browser tab: close it (the panel is still open in the first tab).
+    if (info?.newTab) window.close();
+    navigate(info?.tenantId ? `/platform/tenants/${info.tenantId}` : '/platform', { replace: true });
   };
   return (
     <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-[#7c2d12] px-4 py-2 text-center text-sm font-semibold text-white" role="status">
-      <LifeBuoy className="h-4 w-4" aria-hidden="true" />
-      <span>{t('support.bar', { name: session.tenant?.name, time: formatDateTime(session.support.expires_at) })}</span>
+      <LifeBuoy className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <span>{t('support.mode', { name: session.tenant?.name })}</span>
       <span className="rounded bg-white/15 px-2 py-0.5 text-xs">{session.support.read_only ? t('support.readOnly') : t('support.canChange')}</span>
-      <span className="font-normal opacity-90">“{session.support.reason}”</span>
-      <button type="button" className="rounded bg-white px-3 py-1 text-xs font-bold text-[#7c2d12]" onClick={() => void end()} disabled={busy}>{t('support.end')}</button>
+      <span className="font-normal">{t('support.ends', { time: timeOf(session.support.expires_at) })}</span>
+      <span className="hidden font-normal opacity-90 sm:inline">“{session.support.reason}”</span>
+      <button type="button" className="inline-flex min-h-9 items-center gap-1 rounded bg-white px-3 py-1 text-xs font-bold text-[#7c2d12]" onClick={() => void back()} disabled={busy}>
+        <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> {t('support.back')}
+      </button>
     </div>
   );
 }

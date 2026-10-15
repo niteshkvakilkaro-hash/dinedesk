@@ -12,10 +12,12 @@ use App\Support\Messaging\LiveMessenger;
 use App\Support\Messaging\LogMessenger;
 use App\Support\Messaging\Messenger;
 use App\Support\Messaging\MessengerChannel;
+use App\Support\PlatformConfig;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -41,11 +43,21 @@ class AppServiceProvider extends ServiceProvider
 
         // AI features (menu import, dish descriptions); tests bind a fake.
         $this->app->bind(Ai::class, ClaudeAi::class);
+
+        // Keys saved in the super admin panel (Integrations); .env stays the fallback.
+        $this->app->singleton(PlatformConfig::class);
     }
 
     public function boot(): void
     {
         JsonResource::withoutWrapping();
+        // Integration keys saved in the panel, for this request / command, and again before every
+        // queued job (a worker runs for hours; the saved values are cached 60 s, cleared on save).
+        // Never while caching config: the saved secrets would be written to bootstrap/cache in plain text.
+        if (! in_array($_SERVER['argv'][1] ?? '', ['config:cache', 'optimize'], true) || ! $this->app->runningInConsole()) {
+            $this->app->make(PlatformConfig::class)->apply();
+        }
+        Queue::before(fn () => $this->app->make(PlatformConfig::class)->apply());
         foreach (['whatsapp', 'sms'] as $channel) {
             Notification::extend($channel, fn ($app) => new MessengerChannel($app->make(Messenger::class), $channel));
         }
@@ -133,6 +145,12 @@ class AppServiceProvider extends ServiceProvider
             ->response($tooMany('That is enough test summaries for one hour. Please try again later.')));
         RateLimiter::for('campaigns', fn (Request $request) => Limit::perHour(10)->by('campaign|'.$request->user()?->id));
         RateLimiter::for('support', fn (Request $request) => Limit::perHour(20)->by('support|'.$request->user()?->id));
+        // Integration "Test" buttons send real messages / API calls.
+        RateLimiter::for('integration-test', fn (Request $request) => [
+            Limit::perMinute(5)->by('int-test|'.$request->user()?->id)
+                ->response($tooMany('Too many tests. Please wait a minute.')),
+            Limit::perHour(40)->by('int-test-h|'.$request->user()?->id),
+        ]);
         RateLimiter::for('exports', fn (Request $request) => Limit::perHour(3)->by('export|'.$request->user()?->id));
         RateLimiter::for('tls-ask', fn (Request $request) => Limit::perMinute(60)->by('tls|'.$request->ip()));
 

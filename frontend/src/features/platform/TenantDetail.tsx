@@ -9,6 +9,7 @@ import { tenantSiteUrl } from '@/lib/host';
 import { Alert, Badge, DemoBadge, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
 import type { PlatformTenantDetail, TenantStatus } from '@/types';
 import { SupportPanel } from './SupportPanel';
+import { OpenDashboardButton } from './SupportDialog';
 import { ReferralsPanel } from './ReferralsPanel';
 
 function ChangeForm({ tenant }: { tenant: PlatformTenantDetail }) {
@@ -153,8 +154,9 @@ export default function TenantDetail() {
             {t(`types.${tenant.business_type}`)} · {tenant.city} · {tenant.gstin ?? 'GSTIN —'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge tone={tenant.status}>{t(`statuses.${tenant.status}`)}</Badge>
+          <OpenDashboardButton tenant={{ id: tenant.id, name: tenant.name }} className="btn-primary !min-h-10" disabled={tenant.status === 'suspended'} />
           <a className="btn-outline !min-h-10" href={tenantSiteUrl(tenant.slug)} target="_blank" rel="noopener noreferrer">
             {tenant.site_host} <ExternalLink className="h-4 w-4" aria-hidden="true" />
           </a>
@@ -208,7 +210,7 @@ export default function TenantDetail() {
 
       {tenant.referrals && <ReferralsPanel tenantId={tenant.id} r={tenant.referrals} />}
 
-      <SupportPanel tenantId={tenant.id} name={tenant.name} />
+      <SupportPanel tenantId={tenant.id} name={tenant.name} suspended={tenant.status === 'suspended'} />
 
       <section className="card p-5" aria-labelledby="activity-title">
         <h2 id="activity-title" className="text-lg font-bold">

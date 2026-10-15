@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\DataExport\Http\Controllers\DataExportController;
+use App\Modules\Platform\Http\Controllers\IntegrationController;
 use App\Modules\Platform\Http\Controllers\PlatformPlanController;
 use App\Modules\Platform\Http\Controllers\PlatformSettingsController;
 use App\Modules\Platform\Http\Controllers\RevenueController;
@@ -25,6 +26,12 @@ Route::middleware(['auth:sanctum', 'platform.admin', 'throttle:api'])->prefix('p
     Route::get('revenue', RevenueController::class);
     Route::get('settings', [PlatformSettingsController::class, 'show']);
     Route::put('settings', [PlatformSettingsController::class, 'update']);
+
+    // Integrations: the platform's own keys (Razorpay, AI, WhatsApp, SMS, email, web push).
+    Route::get('integrations', [IntegrationController::class, 'show']);
+    Route::post('integrations/webpush/generate', [IntegrationController::class, 'generateVapid']);
+    Route::put('integrations/{integration}', [IntegrationController::class, 'update']);
+    Route::post('integrations/{integration}/test', [IntegrationController::class, 'test'])->middleware('throttle:integration-test');
 });
 
 // The support token itself ends its session (it can't reach the platform routes above).

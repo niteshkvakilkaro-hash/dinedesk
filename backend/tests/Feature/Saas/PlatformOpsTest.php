@@ -4,6 +4,7 @@ namespace Tests\Feature\Saas;
 
 use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Domains\Services\DnsLookup;
+use App\Modules\Menu\Models\MenuCategory;
 use App\Modules\Menu\Models\MenuItem;
 use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Plans\Models\Plan;
@@ -46,6 +47,31 @@ class PlatformOpsTest extends SaasTestCase
         $this->travel(61)->minutes();
         $this->app['auth']->forgetGuards();
         $this->getJson('/api/v1/tenant/menu', ['Authorization' => "Bearer {$token}"])->assertUnauthorized();
+    }
+
+    public function test_read_only_support_refuses_every_write_and_never_touches_the_admins_own_account(): void
+    {
+        $this->actingAsUser($this->owner())->postJson('/api/v1/tenant/menu/categories', ['name' => 'Soups', 'is_active' => true])->assertCreated();
+        $category = MenuCategory::withoutGlobalScopes()->where('name', 'Soups')->value('id');
+        $this->app['auth']->forgetGuards();
+        $token = $this->actingAsUser($this->admin)->postJson("/api/v1/platform/tenants/{$this->tenant->public_id}/support", ['reason' => 'Owner asked why a dish is hidden', 'read_only' => true])->json('data.token');
+        $this->app['auth']->forgetGuards();
+        $h = ['Authorization' => "Bearer {$token}"];
+
+        $this->getJson('/api/v1/tenant/menu', $h)->assertOk();
+        $this->putJson("/api/v1/tenant/menu/categories/{$category}", ['name' => 'Broths', 'is_active' => true], $h)->assertForbidden()->assertJsonPath('meta.code', 'support_read_only');
+        $this->deleteJson("/api/v1/tenant/menu/categories/{$category}", [], $h)->assertForbidden()->assertJsonPath('meta.code', 'support_read_only');
+        $this->putJson('/api/v1/tenant/business', ['name' => 'Taken over'], $h)->assertForbidden()->assertJsonPath('meta.code', 'support_read_only');
+        $this->assertSame('Soups', MenuCategory::withoutGlobalScopes()->find($category)->name);
+        // The admin's own account (language, password) can't be changed with a support token.
+        $this->patchJson('/api/v1/account', ['locale' => 'hi'], $h)->assertForbidden()->assertJsonPath('meta.code', 'support_session');
+        $this->assertNotSame('hi', $this->admin->fresh()->locale);
+        // Refused writes are not changes; the end is recorded.
+        $this->postJson('/api/v1/support/end', [], $h)->assertOk();
+        $this->assertSame(0, AuditLog::where('action', 'support.change')->count());
+        $this->assertSame(['support.started', 'support.ended'], AuditLog::where('tenant_id', $this->tenant->id)->where('action', 'like', 'support.%')->orderBy('id')->pluck('action')->all());
+        $this->app['auth']->forgetGuards();
+        $this->getJson('/api/v1/tenant/menu', $h)->assertUnauthorized();
     }
 
     public function test_revenue_dashboard_counts_real_paying_businesses_only(): void

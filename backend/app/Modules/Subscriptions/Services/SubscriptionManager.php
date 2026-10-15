@@ -27,6 +27,12 @@ use Illuminate\Support\Facades\DB;
  */
 class SubscriptionManager
 {
+    /** Razorpay webhook events the platform handles (enable these in the Razorpay dashboard). */
+    public const WEBHOOK_EVENTS = [
+        'subscription.authenticated', 'subscription.activated', 'subscription.charged', 'subscription.pending',
+        'subscription.halted', 'subscription.cancelled', 'subscription.completed',
+    ];
+
     public function __construct(
         private readonly PlatformRazorpay $razorpay,
         private readonly PlatformSettings $settings,

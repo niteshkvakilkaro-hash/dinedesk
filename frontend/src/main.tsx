@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import { ApiError, setUnauthorizedHandler } from '@/lib/api';
-import { useAuthStore } from '@/stores/auth';
+import { isSupportTab, useAuthStore } from '@/stores/auth';
 import '@/i18n';
 import '@/styles/index.css';
 import { getTheme, isThemeKey } from '@/themes/registry';
@@ -28,9 +28,11 @@ const queryClient = new QueryClient({
   },
 });
 
-// An expired or revoked token signs the user out everywhere in the app.
+// An expired or revoked token signs the user out everywhere in the app. In a support tab it only
+// means the support session is over: back to the super admin's own sign-in.
 setUnauthorizedHandler(() => {
-  useAuthStore.getState().setToken(null);
+  if (isSupportTab()) useAuthStore.getState().leaveSupport('expired');
+  else useAuthStore.getState().setToken(null);
   queryClient.clear();
 });
 

@@ -47,6 +47,7 @@ const DomainsPage = lazy(() => import('@/features/account/DomainsPage'));
 const AccountPage = lazy(() => import('@/features/account/AccountPage'));
 const RevenuePage = lazy(() => import('@/features/platform/Revenue'));
 const PlatformSettingsPage = lazy(() => import('@/features/platform/Settings'));
+const IntegrationsPage = lazy(() => import('@/features/platform/Integrations'));
 const WaiterApp = lazy(() => import('@/features/waiter/WaiterApp'));
 const RiderApp = lazy(() => import('@/features/rider/RiderApp'));
 const RidersPage = lazy(() => import('@/features/riders/RidersPage'));
@@ -183,6 +184,7 @@ export default function PlatformApp() {
         <Route path="tenants/:id" element={<TenantDetail />} />
         <Route path="plans" element={<Plans />} />
         <Route path="revenue" element={<RevenuePage />} />
+        <Route path="integrations" element={<IntegrationsPage />} />
         <Route path="settings" element={<PlatformSettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -80,6 +80,9 @@ REVERB_SCHEME=https
 REVERB_SERVER_HOST=127.0.0.1
 REVERB_SERVER_PORT=8080
 
+# Integration keys (Razorpay, Anthropic, WhatsApp, MSG91, SMTP mail, web push) can also be set
+# in the super admin panel → Integrations (stored encrypted with APP_KEY). A value saved there wins;
+# the .env values below stay the fallback, so either way works.
 # The platform's own Razorpay account (business subscriptions)
 RAZORPAY_KEY_ID=rzp_live_...
 RAZORPAY_KEY_SECRET=...
@@ -321,13 +324,19 @@ It runs: unpaid online orders and room holds released, booking reminders, **bill
 
 **Delivery riders:** `riders:purge-locations` runs daily at 03:45 and deletes rider location points older than `RIDER_RETENTION_DAYS` (default 7); it also ends duties left on longer than `RIDER_MAX_DUTY_HOURS` (default 14). Riders send their location every `RIDER_LOCATION_INTERVAL` seconds (default 300). In a phone browser, location (`navigator.geolocation`) works **only over https** (or on localhost): serve the dashboard over https in production (Caddy does), otherwise the rider screen says location is unavailable. Inside the DineDesk Android app the app's own background service sends the location (see `frontend/src/features/rider/locationSharing.ts` for the contract).
 
-## 9. Razorpay (platform account)
+## 9. Razorpay (platform account) and other integrations
 
-1. Set the three `RAZORPAY_*` keys in `.env` (live keys from your Razorpay dashboard).
-2. Webhook → URL `https://dinedesk.in/api/v1/webhooks/razorpay-platform`, secret = `RAZORPAY_WEBHOOK_SECRET`, events: `subscription.activated`, `subscription.charged`, `subscription.pending`, `subscription.halted`, `subscription.cancelled`, `subscription.completed`.
+1. Super admin panel → **Integrations** → Razorpay: key ID, key secret and webhook secret (live keys from your Razorpay dashboard), then **Test connection**. (Or set the three `RAZORPAY_*` keys in `.env`; a value saved in the panel wins.)
+2. Webhook → URL `https://dinedesk.in/api/v1/webhooks/razorpay-platform` (shown on the Integrations page), secret = the webhook secret, events: `subscription.authenticated`, `subscription.activated`, `subscription.charged`, `subscription.pending`, `subscription.halted`, `subscription.cancelled`, `subscription.completed`.
 3. In the super admin panel: **Plans** → set monthly and yearly prices (before GST). **Settings** → legal name, GSTIN, address, invoice prefix, grace days. GST is charged on subscriptions only once a GSTIN is set.
 
 Each business connects its **own** Razorpay account for customer payments (Dashboard → Ordering); those webhooks go to `/api/v1/webhooks/razorpay/{business id}`.
+
+The same **Integrations** page holds the AI key and model (Anthropic), WhatsApp (Meta Cloud API) and SMS (MSG91) keys, the **messaging mode** (Log only / Live, the panel's version of `MESSAGING_DRIVER`), the SMTP mail server (saving a host there sends all email through it) and the web push keys (**Generate keys** does what `php artisan webpush:vapid` does; new keys stop alerts on every device that had them on). Each field shows whether its value is saved in the panel, comes from the server `.env`, or is not set; each integration has a **Test** button (rate-limited). Notes:
+
+- Secrets are encrypted with `APP_KEY` and never sent back to the browser (only "set" and the last 4 characters). Saving or removing one asks for the super admin's password; every change is in the audit log by field name, never by value. If `APP_KEY` changes, re-enter the secrets (the `.env` values are used meanwhile).
+- Saved values are applied at the start of every request, command and queued job and cached for 60 seconds; saving clears the cache, so Horizon / `queue:work` pick a change up at their next job without a restart.
+- `php artisan config:cache` and `optimize` never include panel values (they stay out of `bootstrap/cache`).
 
 ## 10. Backups
 

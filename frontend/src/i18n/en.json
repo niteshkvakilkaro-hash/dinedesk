@@ -748,7 +748,8 @@
       "tenants": "Businesses",
       "plans": "Plans",
       "revenue": "Revenue",
-      "settings": "Settings"
+      "settings": "Settings",
+      "integrations": "Integrations"
     },
     "tenants": {
       "title": "Businesses",
@@ -831,10 +832,6 @@
       "title": "Platform settings",
       "subtitle": "Who issues the subscription invoices, GST and the grace period.",
       "payments": "Subscription payments",
-      "razorpayOn": "Razorpay keys are set (RAZORPAY_KEY_ID / SECRET in the server .env).",
-      "razorpayOff": "Razorpay keys are not set. Add RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET and RAZORPAY_WEBHOOK_SECRET to the server .env.",
-      "webhook": "Webhook URL:",
-      "webhookEvents": "Events: subscription.activated, subscription.charged, subscription.pending, subscription.halted, subscription.cancelled, subscription.completed.",
       "domainTarget": "Custom domains point (CNAME) to:",
       "seller": "Invoice details",
       "sellerHint": "Shown on every subscription invoice. Leave empty what you don't have; GST is charged only once a GSTIN is set.",
@@ -850,15 +847,15 @@
       "graceHint": "After a failed payment or the end of a trial, before read-only.",
       "gstRate": "GST rate",
       "gstHint": "Applies once the GSTIN is set.",
-      "sacHint": "Check with your CA."
+      "sacHint": "Check with your CA.",
+      "razorpayReady": "Razorpay keys are set: businesses can pay online.",
+      "razorpayMissing": "Razorpay keys are not set yet: businesses can't pay online.",
+      "openIntegrations": "Payment keys and other integrations"
     },
     "support": {
       "title": "Support access",
-      "text": "Open {{name}}'s dashboard in a new tab for one hour. The reason, the session and any change are recorded in their activity log under your name.",
       "reason": "Reason",
       "reasonHint": "e.g. Owner called about a wrong price (at least 10 characters).",
-      "allowChanges": "Allow changes (otherwise view only)",
-      "open": "Open as support",
       "viewOnly": "view only",
       "changes_one": "{{count}} change",
       "changes_other": "{{count}} changes",
@@ -869,7 +866,16 @@
       "exportReason": "Reason (e.g. owner asked for a copy)",
       "export": "Export data",
       "exportStarted": "Export started.",
-      "download": "Download"
+      "download": "Download",
+      "openDashboard": "Open dashboard",
+      "dialogTitle": "Open {{name}}'s dashboard",
+      "dialogText": "You'll work inside this business for one hour. The reason, the session and every change are recorded in its activity log under your name.",
+      "changesHint": "You can change things. Every change is recorded.",
+      "viewOnlyHint": "Off: view only. Nothing can be changed.",
+      "start": "Start support session",
+      "newTab": "Open in a new tab",
+      "suspended": "This business is suspended. Restore it first.",
+      "panelText": "Open {{name}}'s dashboard as support: a reason is required and everything is recorded in their activity log under your name."
     },
     "referrals": {
       "title": "Referrals",
@@ -888,6 +894,100 @@
       "markApplied": "Mark applied",
       "note": "How was it given? (saved to the audit log)",
       "pendingCredits": "{{n}} referral rewards are waiting to be applied by hand."
+    },
+    "integrations": {
+      "title": "Integrations",
+      "subtitle": "The platform's own keys: subscription payments, AI, WhatsApp, SMS, email and staff alerts.",
+      "howItWorks": "A value saved here is used instead of the server .env. Leave a field empty to keep using the server value. Secret keys are stored encrypted and never shown again, only their last 4 characters; saving or removing one asks for your password.",
+      "ready": "Ready",
+      "notReady": "Not set up",
+      "source": {
+        "saved": "Saved here",
+        "env": "From server .env",
+        "unset": "Not set"
+      },
+      "savedAt": "Saved {{time}}",
+      "serverValue": "Server: {{value}}",
+      "emptyUsesServer": "Empty: the server value is used.",
+      "keepHint": "Leave empty to keep the current key.",
+      "remove": "Remove the key saved here",
+      "undoRemove": "Keep it",
+      "willRemove": "Will be removed when you save",
+      "password": "Your password",
+      "passwordHint": "Needed to save or remove a secret key.",
+      "test": "Test connection",
+      "sendTest": "Send test",
+      "testPhone": "Mobile number",
+      "testEmail": "Email address",
+      "testHint": "Tests use the saved keys: save your changes first.",
+      "razorpay": {
+        "title": "Razorpay (subscriptions)",
+        "text": "The platform's own Razorpay account: businesses pay their DineDesk plan through it. (Each business's customer payments use that business's own keys.)",
+        "key_id": "Key ID",
+        "key_secret": "Key secret",
+        "webhook_secret": "Webhook secret",
+        "webhook": "Webhook URL to paste in Razorpay:",
+        "events": "Enable these events:"
+      },
+      "ai": {
+        "title": "AI (Claude by Anthropic)",
+        "text": "Menu import from photos, dish descriptions and translations. Without a key these features stay off.",
+        "api_key": "API key",
+        "model": "Model"
+      },
+      "messaging": {
+        "title": "Messaging mode",
+        "text": "Whether WhatsApp messages and SMS codes are really sent.",
+        "log": "Log only (development)",
+        "logHint": "Messages are written to the server log. Nothing is sent.",
+        "live": "Live",
+        "liveHint": "Real WhatsApp messages and SMS codes, with the keys below.",
+        "liveWarning": "Live sends real messages to customers and staff and uses your WhatsApp and MSG91 credit. Test the keys below first."
+      },
+      "whatsapp": {
+        "title": "WhatsApp (Meta Cloud API)",
+        "text": "Order and booking updates. Messages go through one approved utility template whose body is a single variable.",
+        "token": "Access token",
+        "phone_number_id": "Phone number ID",
+        "template": "Template name",
+        "language": "Template language",
+        "api_version": "API version"
+      },
+      "sms": {
+        "title": "SMS (MSG91)",
+        "text": "Only for one-time codes (sign-in, loyalty), through a DLT-approved OTP template.",
+        "auth_key": "Auth key",
+        "otp_template_id": "OTP template ID",
+        "code_variable": "Code variable name"
+      },
+      "mail": {
+        "title": "Email (SMTP)",
+        "text": "Invoices, password resets and emails to owners. When a host is saved here, all email goes through this server.",
+        "current": "Mailer in use now: {{mailer}}",
+        "host": "SMTP host",
+        "port": "Port",
+        "encryption": "Encryption",
+        "username": "Username",
+        "password": "Password",
+        "from_address": "From address",
+        "from_name": "From name",
+        "enc": {
+          "tls": "TLS (STARTTLS, port 587)",
+          "ssl": "SSL (port 465)",
+          "none": "None",
+          "default": "Server default"
+        }
+      },
+      "webpush": {
+        "title": "Staff alerts (web push)",
+        "text": "Push alerts for new orders and bookings on staff phones and computers.",
+        "public_key": "Public key",
+        "none": "No keys yet: staff can't switch on push alerts.",
+        "generate": "Generate keys",
+        "regenerate": "Generate new keys",
+        "warning": "New keys stop alerts on every phone and computer that has them switched on. Staff will need to switch alerts on again.",
+        "generated": "New keys saved."
+      }
     }
   },
   "site": {
@@ -3377,10 +3477,13 @@
     }
   },
   "support": {
-    "bar": "Support session in {{name}} · ends {{time}}",
     "readOnly": "View only",
     "canChange": "Can make changes",
-    "end": "End session"
+    "mode": "Support mode — {{name}}",
+    "ends": "ends {{time}}",
+    "back": "Back to super admin",
+    "ended": "Support session ended.",
+    "expiredNotice": "The support session in {{name}} has expired. Start a new one if you still need it."
   },
   "billingBanner": {
     "open": "Open Billing",

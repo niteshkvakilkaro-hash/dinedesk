@@ -2388,6 +2388,37 @@ paths:
       summary: Save platform settings (audited)
       responses:
         '200': { description: Saved }
+  /platform/integrations:
+    get:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: 'Integration keys (razorpay, ai, whatsapp, sms, messaging, mail, webpush): per field { source: saved|env|unset, updated_at } plus value (plain fields) or { set, last4 } (secrets, never the value); ready flags, mailer, Razorpay webhook URL and events'
+      responses:
+        '200': { description: OK }
+  /platform/integrations/{integration}:
+    put:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: 'Save one integration (razorpay, ai, whatsapp, sms, messaging, mail). An empty secret keeps the saved one, an empty plain field falls back to .env, remove[] clears saved values. current_password is required when a secret is set or removed. Audited by field name'
+      requestBody: { content: { application/json: { schema: { type: object, required: [values], properties: { values: { type: object }, remove: { type: array, items: { type: string } }, current_password: { type: string } } } } } }
+      responses:
+        '200': { description: Same shape as GET /platform/integrations }
+        '422': { description: Validation error (e.g. current_password) }
+  /platform/integrations/{integration}/test:
+    post:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: 'Test with the saved keys (razorpay, ai: no body; whatsapp, sms: { phone }; mail: { email }). 5 a minute, 40 an hour'
+      responses:
+        '200': { description: '{ ok, message }' }
+        '429': { description: Too many tests }
+  /platform/integrations/webpush/generate:
+    post:
+      tags: [Platform (super admin)]
+      security: [{ bearer: [] }]
+      summary: 'New VAPID keys for web push (current_password required; existing device subscriptions stop working)'
+      responses:
+        '200': { description: Same shape as GET /platform/integrations }
   /platform/tenants/{publicId}/support:
     get:
       tags: [Platform (super admin)]
