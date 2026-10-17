@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Notify\Http\Controllers\DeviceController;
 use App\Modules\Notify\Http\Controllers\InAppAlertController;
 use App\Modules\Notify\Http\Controllers\PushController;
 use Illuminate\Support\Facades\Route;
@@ -16,4 +17,10 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api'])->prefix('tena
 Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api'])->prefix('tenant/alerts')->group(function () {
     Route::get('/', [InAppAlertController::class, 'index']);
     Route::post('{id}/read', [InAppAlertController::class, 'read'])->whereUuid('id')->name('saas.alerts.read');
+});
+
+// Phones with the DineDesk Android app (Firebase notifications): anyone signed in, own devices only.
+Route::middleware(['auth:sanctum', 'throttle:api'])->prefix('devices')->group(function () {
+    Route::post('/', [DeviceController::class, 'store']);
+    Route::delete('{token}', [DeviceController::class, 'destroy'])->where('token', '[A-Za-z0-9_:.\-]{1,512}');
 });

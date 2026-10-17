@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Bell, Bot, CreditCard, Mail, MessageCircle, MessageSquareText, Radio } from 'lucide-react';
+import { Bell, Bot, CreditCard, Mail, MessageCircle, MessageSquareText, Radio, Smartphone } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatDateTime } from '@/lib/format';
 import { Alert, Badge, Dialog, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/components/ui';
@@ -9,10 +9,12 @@ import { PasswordInput } from '@/components/PasswordInput';
 
 type Source = 'saved' | 'env' | 'unset';
 interface FieldInfo { secret: boolean; source: Source; updated_at: string | null; value?: string | null; set?: boolean; last4?: string | null }
-type Key = 'razorpay' | 'ai' | 'whatsapp' | 'sms' | 'messaging' | 'mail' | 'webpush';
+type Key = 'razorpay' | 'ai' | 'whatsapp' | 'sms' | 'messaging' | 'mail' | 'webpush' | 'firebase';
 interface IntegrationsData {
   integrations: Record<Key, Record<string, FieldInfo>>;
-  ready: Record<'razorpay' | 'ai' | 'whatsapp' | 'sms' | 'mail' | 'webpush', boolean>;
+  ready: Record<'razorpay' | 'ai' | 'whatsapp' | 'sms' | 'mail' | 'webpush' | 'firebase', boolean>;
+  /** The Firebase key in use: its project and account (the private key never leaves the server). */
+  firebase: { project_id: string; client_email: string } | null;
   mailer: string;
   webhook_url: string;
   webhook_events: string[];
@@ -261,6 +263,94 @@ function WebPush({ data }: { data: IntegrationsData }) {
   );
 }
 
+/**
+ * Firebase (notifications in the DineDesk Android app): the service-account key JSON, pasted or
+ * read from the downloaded file. Shown afterwards only as its project and account.
+ */
+function Firebase({ data }: { data: IntegrationsData }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const fi = data.integrations.firebase.credentials;
+  const [json, setJson] = useState('');
+  const [removing, setRemoving] = useState(false);
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const save = useMutation<IntegrationsData, ApiError>({
+    mutationFn: async () => (await api.put<IntegrationsData>('/platform/integrations/firebase', {
+      values: removing ? {} : { credentials: json.trim() },
+      remove: removing ? ['credentials'] : [],
+      current_password: password,
+    })).data,
+    onSuccess: (d) => {
+      qc.setQueryData(QK, d);
+      setJson('');
+      setRemoving(false);
+      setPassword('');
+      setErrors({});
+      toast.success(t('common.saved'));
+    },
+    onError: (e) => setErrors(e.errors ? Object.fromEntries(Object.entries(e.errors).map(([k, v]) => [k.replace(/^values\./, ''), v[0]])) : { form: e.message }),
+  });
+  const readFile = (file: File | undefined) => {
+    if (!file || file.size > 20_000) return;
+    void file.text().then(setJson);
+  };
+  const dirty = removing || json.trim() !== '';
+
+  return (
+    <Card icon={Smartphone} title={t('platform.integrations.firebase.title')} text={t('platform.integrations.firebase.text')} badge={<ReadyBadge ready={data.ready.firebase} />}>
+      {data.firebase ? (
+        <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
+          <dt className="font-semibold">{t('platform.integrations.firebase.project')}</dt>
+          <dd className="break-all font-mono text-xs">{data.firebase.project_id}</dd>
+          <dt className="font-semibold">{t('platform.integrations.firebase.account')}</dt>
+          <dd className="break-all font-mono text-xs">{data.firebase.client_email}</dd>
+          <dt className="sr-only">{t('platform.integrations.firebase.credentials')}</dt>
+          <dd className="sm:col-start-2"><SourceBadge info={fi} /></dd>
+        </dl>
+      ) : (
+        <p className="text-sm">{t('platform.integrations.firebase.none')}</p>
+      )}
+      <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }} noValidate>
+        {errors.form && <Alert>{errors.form}</Alert>}
+        <Field label={t('platform.integrations.firebase.credentials')} hint={t('platform.integrations.firebase.pasteHint')} error={errors.credentials}>
+          {(a) => (
+            <div className="space-y-2">
+              <textarea {...a} className="field-input min-h-28 font-mono text-xs" spellCheck={false} autoComplete="off" disabled={removing} placeholder={fi.set ? '••••••••' : '{ "type": "service_account", … }'} value={json} onChange={(e) => setJson(e.target.value)} />
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="btn-outline cursor-pointer !min-h-10 text-sm">
+                  {t('platform.integrations.firebase.chooseFile')}
+                  <input type="file" accept=".json,application/json" className="sr-only" disabled={removing} onChange={(e) => { readFile(e.target.files?.[0]); e.target.value = ''; }} />
+                </label>
+                {fi.source === 'saved' && (
+                  <button type="button" className="text-sm font-semibold text-danger underline-offset-2 hover:underline" onClick={() => { setRemoving(!removing); setJson(''); }}>
+                    {removing ? t('platform.integrations.undoRemove') : t('platform.integrations.remove')}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </Field>
+        {dirty && (
+          <Field label={t('platform.integrations.password')} hint={t('platform.integrations.passwordHint')} error={errors.current_password}>
+            {(a) => <PasswordInput {...a} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />}
+          </Field>
+        )}
+        <div className="flex justify-end">
+          <button type="submit" className="btn-primary" disabled={save.isPending || !dirty || !password}>
+            {save.isPending ? <Spinner /> : t('common.save')}
+          </button>
+        </div>
+      </form>
+      <p className="text-xs text-muted">{t('platform.integrations.firebase.appBuild')}</p>
+      <div className="space-y-1">
+        <TestBox integration="firebase" kind="none" />
+        <p className="text-xs text-muted">{t('platform.integrations.firebase.testHint')}</p>
+      </div>
+    </Card>
+  );
+}
+
 /** Super admin → Integrations: the platform's own payment, AI, messaging, email and push keys. */
 export default function IntegrationsPage() {
   const { t } = useTranslation();
@@ -297,6 +387,7 @@ export default function IntegrationsPage() {
       {card(sms)}
       {card(mail, <p className="text-sm">{t('platform.integrations.mail.current', { mailer: data.mailer })}</p>)}
       <WebPush data={data} />
+      <Firebase key={JSON.stringify([data.firebase, data.integrations.firebase])} data={data} />
     </div>
   );
 }

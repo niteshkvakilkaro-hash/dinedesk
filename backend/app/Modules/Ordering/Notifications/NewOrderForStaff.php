@@ -2,6 +2,7 @@
 
 namespace App\Modules\Ordering\Notifications;
 
+use App\Modules\Notify\Support\FcmChannel;
 use App\Modules\Notify\Support\StaffText;
 use App\Modules\Ordering\Models\Order;
 use Illuminate\Notifications\Notification;
@@ -13,7 +14,13 @@ class NewOrderForStaff extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'webpush'];
+        return ['database', 'webpush', ...FcmChannel::for($notifiable)];
+    }
+
+    /** The same alert in the DineDesk Android app; rings (channel "orders"). */
+    public function toFcm(object $notifiable): array
+    {
+        return $this->toWebPush($notifiable) + ['kind' => 'order', 'channel' => 'orders'];
     }
 
     /** Push alert on staff phones (see Notify module), in the recipient's language. */

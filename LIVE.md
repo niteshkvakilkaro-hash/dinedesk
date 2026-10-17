@@ -19,7 +19,7 @@ Neeche har jagah `dinedesk.in` likha hai — isko apne asli domain se badal diji
 | 7 | **Email (SMTP)** — jaise Zoho Mail, Google Workspace, Amazon SES, Brevo | — | Order/booking emails, invoice | Free se ~₹100 / mahina |
 | 8 | **Backup storage** — Backblaze B2 / AWS S3 / Google Drive | — | Roz ka backup server ke bahar rakhne ke liye | Bahut kam |
 | 9 | **Google Play Developer account** | play.google.com/console | Android app Play Store par | $25 ek baar |
-| 10 | **Firebase project** (free) | console.firebase.google.com | App notifications (abhi bana nahi) | Free |
+| 10 | **Firebase project** (free) | console.firebase.google.com | App notifications (code ready hai, sirf project + 2 files chahiye) | Free |
 
 > Keemat sirf andaaza hai — kharidne se pehle provider ki site par dekh lijiye.
 
@@ -241,6 +241,7 @@ cron mein:
    - **SMS (MSG91):** auth key, OTP template ID (DLT approved).
    - **Email (SMTP):** host, port, user, password, from address/name.
    - **Web push:** "Generate keys".
+   - **Firebase (app notifications):** Firebase console → Project settings → Service accounts → **Generate new private key** se mili `.json` file yahan paste karein (ya file chunein), password daal kar Save. Phone par DineDesk app mein super admin se sign in karke **Test** dabaiye. App ke liye alag file `google-services.json` chahiye (Step 6 dekhiye). Firebase project mein do Android apps jodiye: `in.dinedesk.app` aur `com.dinedesk.admin.local`.
    - **Messaging mode:** sab test hone ke baad **Live**.
 5. `.env` se `SUPER_ADMIN_PASSWORD` hata dijiye.
 
@@ -274,15 +275,16 @@ Har restaurant apna **khud ka Razorpay** (grahakon se paisa) apne dashboard → 
    & "$jdk\bin\keytool.exe" -genkeypair -keystore android\keys\dinedesk-upload.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
    ```
    aur `android\webview-app\upload-keystore.properties` (git mein nahi jaati): `storeFile=…`, `storePassword=…`, `keyAlias=upload`, `keyPassword=…`.
-2. **Build:**
+2. **Firebase file:** Firebase console → Project settings → Your apps se `google-services.json` download karke `android\webview-app\app\google-services.json` mein rakhiye (git mein nahi jaati). Iske bina app banegi, par notifications band rahenge.
+3. **Build:**
    ```powershell
    cd android\webview-app
    $gradle = (Get-ChildItem "$env:USERPROFILE\.gradle\wrapper\dists" -Recurse -Filter gradle.bat | Where-Object FullName -match 'gradle-8\.1[3-9]')[0].FullName
-   & $gradle --no-daemon bundleProdRelease assembleProdRelease "-PplatformHost=dinedesk.in" "-PversionCode=4" "-PversionName=1.3"
+   & $gradle --no-daemon bundleProdRelease assembleProdRelease "-PplatformHost=dinedesk.in" "-PversionCode=5" "-PversionName=1.4"
    ```
    Output: `app/build/outputs/bundle/prodRelease/app-prod-release.aab` → Play Console mein upload. Har naye upload par `versionCode` badhaiye.
-3. Play Console mein: app naam **DineDesk**, package `in.dinedesk.app` (ek baar publish ke baad badal nahi sakta), privacy policy URL, screenshots, **location permission ka kaaran** ("delivery rider ki location sirf duty ke dauraan, owner ko delivery track karne ke liye") aur data safety form.
-4. Pehle **Internal testing** → phir Closed → phir Production.
+4. Play Console mein: app naam **DineDesk**, package `in.dinedesk.app` (ek baar publish ke baad badal nahi sakta), privacy policy URL, screenshots, **location permission ka kaaran** ("delivery rider ki location sirf duty ke dauraan, owner ko delivery track karne ke liye") aur data safety form.
+5. Pehle **Internal testing** → phir Closed → phir Production.
 
 ---
 
@@ -317,7 +319,7 @@ Update se pehle backup le lena achcha hai: `php artisan backup:database`.
 
 ## 9. Live ke baad bhi jo kaam baaki rahenge
 
-- **App notifications (Firebase):** Firebase project + `google-services.json` + service account file aane par banana.
+- **App notifications (Firebase):** code ban gaya hai; Firebase project, `google-services.json` (app) aur service account key (Integrations) daalne par chalu.
 - **Translations ka native speaker review** (12 bhashayein AI se bani hain).
 - **Swiggy/Zomato, ONDC, Google Business Profile, MakeMyTrip** — inke partner program ki approval ke baad.
 - Lighthouse / PageSpeed se asli domain par speed check.

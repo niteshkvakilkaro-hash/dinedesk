@@ -4,6 +4,9 @@ namespace App\Modules\Platform\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Audit\Models\AuditLog;
+use App\Modules\Notify\Models\PushDevice;
+use App\Modules\Notify\Support\SendFcm;
+use App\Modules\Notify\Support\StaffText;
 use App\Modules\Notify\Support\VapidKeys;
 use App\Modules\Subscriptions\Services\PlatformRazorpay;
 use App\Modules\Subscriptions\Services\SubscriptionManager;
@@ -12,22 +15,24 @@ use App\Support\ApiException;
 use App\Support\Messaging\LiveMessenger;
 use App\Support\Messaging\Messenger;
 use App\Support\PlatformConfig;
+use App\Support\Push\Fcm;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
  * Super admin → Integrations: the platform's own Razorpay, AI, WhatsApp, SMS, email and web push
- * keys. Secrets are stored encrypted and never sent back (only "set" and the last 4 characters);
+ * keys, and the Firebase key for notifications in the DineDesk Android app. Secrets are stored encrypted and never sent back (only "set" and the last 4 characters);
  * saving or removing one needs the admin's password. Every change is audited by field name,
  * never by value. Anything not saved here comes from the server .env.
  */
 class IntegrationController extends Controller
 {
     /** Integrations edited with the form (web push keys are only generated). */
-    private const EDITABLE = ['razorpay', 'ai', 'whatsapp', 'sms', 'messaging', 'mail'];
+    private const EDITABLE = ['razorpay', 'ai', 'whatsapp', 'sms', 'messaging', 'mail', 'firebase'];
 
     public function __construct(private readonly PlatformConfig $config) {}
 
@@ -59,9 +64,16 @@ class IntegrationController extends Controller
             'values.language.regex' => 'Use a language code like en or en_US.',
             'values.api_version.regex' => 'Use a version like v21.0.',
         ]);
-        $values = array_intersect_key((array) $data['values'], $fields);
+        $values = array_intersect_key((array) ($data['values'] ?? []), $fields);
         if (isset($values['from_name'])) {
             $values['from_name'] = strip_tags((string) $values['from_name']);
+        }
+        if (filled($values['credentials'] ?? null)) {
+            // Only what sending needs is kept (the downloaded file has more ids and links).
+            $key = Fcm::parse((string) $values['credentials']) ?? throw ValidationException::withMessages([
+                'values.credentials' => 'Paste the whole service-account key file from Firebase (Project settings → Service accounts → Generate new private key).',
+            ]);
+            $values['credentials'] = json_encode(['type' => 'service_account'] + $key, JSON_UNESCAPED_SLASHES);
         }
 
         $result = $this->config->save($integration, $values, $data['remove'] ?? [], $request->user()->id);
@@ -93,7 +105,7 @@ class IntegrationController extends Controller
         $data = $request->validate(match ($integration) {
             'whatsapp', 'sms' => ['phone' => ['required', 'string', 'max:20']],
             'mail' => ['email' => ['required', 'email:rfc', 'max:160']],
-            'razorpay', 'ai' => [],
+            'razorpay', 'ai', 'firebase' => [],
             default => abort(404),
         });
         try {
@@ -102,6 +114,7 @@ class IntegrationController extends Controller
                 'ai' => $this->testAi(),
                 'whatsapp', 'sms' => $this->testMessage($integration, $data['phone']),
                 'mail' => $this->testMail($data['email']),
+                'firebase' => $this->testFirebase($request),
             };
             $ok = true;
         } catch (ApiException $e) {
@@ -164,6 +177,30 @@ class IntegrationController extends Controller
         return $live ? 'Sent. Check the phone.' : 'Messaging is in "Log only" mode: the message was written to the server log, not sent. Switch to Live to send real messages.';
     }
 
+    /** Signs in to Google with the key, then sends a test notification to the admin's own app devices. */
+    private function testFirebase(Request $request): string
+    {
+        if (! Fcm::configured()) {
+            throw new ApiException('Add the Firebase service-account key first.', 422);
+        }
+        $fcm = app(Fcm::class);
+        $fcm->accessToken(fresh: true);
+        $project = Fcm::summary()['project_id'];
+        $user = $request->user();
+        if (! PushDevice::where('user_id', $user->id)->exists()) {
+            return "The key works (project {$project}), but no app devices are signed in as you. Sign in to the DineDesk app on your phone, then test again.";
+        }
+        $t = StaffText::for($user);
+        $result = (new SendFcm($user->id, ['title' => 'DineDesk', 'body' => $t('push_test'), 'url' => '/platform', 'kind' => 'test', 'tag' => 'test'], 'orders'))->handle($fcm);
+        if (! $result['sent']) {
+            throw new ApiException($result['removed']
+                ? 'Your app devices are no longer registered with Firebase (they were removed). Open the DineDesk app and sign in again.'
+                : 'Firebase did not accept the notification. Check that the key belongs to the same Firebase project as the app.', 422);
+        }
+
+        return "Sent to {$result['sent']} app device(s) signed in as you (project {$project}).";
+    }
+
     private function testMail(string $to): string
     {
         Mail::raw('This is a test email from DineDesk. Email is set up.', fn ($m) => $m->to($to)->subject('DineDesk test email'));
@@ -187,7 +224,10 @@ class IntegrationController extends Controller
                 'sms' => LiveMessenger::smsReady(),
                 'mail' => config('mail.default') === 'smtp',
                 'webpush' => filled(config('dinedesk.webpush.public_key')) && filled(config('dinedesk.webpush.private_key')),
+                'firebase' => Fcm::configured(),
             ],
+            // The key in use: its project and account (never the private key).
+            'firebase' => Fcm::summary(),
             'mailer' => config('mail.default'),
             'webhook_url' => url('/api/v1/webhooks/razorpay-platform'),
             'webhook_events' => SubscriptionManager::WEBHOOK_EVENTS,

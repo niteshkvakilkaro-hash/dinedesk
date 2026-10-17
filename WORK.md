@@ -151,6 +151,7 @@ Har role ko sirf wahi dikhta hai jiski use permission hai.
 - Restaurant ki site app me app jaisi dikhti hai (upar back button aur title).
 - App me photo upload, QR camera, PDF/CSV download, bill print, WhatsApp/call/UPI/Maps links, internet na ho to "Retry" page.
 - Rider ke liye background location service.
+- **App notifications (Firebase):** sign in kiye owner/staff/rider/super admin ko naye order, booking, tiffin request, rider job wagaira ke alert app mein (web push app ke andar nahi chalta). My account → "Alerts on this device" mein "Allow notifications".
 - Owner apna business app ki list se chhupa sakta hai.
 
 ### 4.17 Plans aur subscription (DineDesk ki kamai)
@@ -235,13 +236,14 @@ Har role ko sirf wahi dikhta hai jiski use permission hai.
 | AI key (Anthropic) | Aap (Integrations) |
 | WhatsApp Business (Meta) + SMS (MSG91, DLT) | Aap (Integrations) |
 | Play Store app (domain ke baad) | Developer |
+| Firebase project (app notifications): `google-services.json` + service account key | Aap (Firebase console) + Developer (app build) |
 | Google Search Console me sitemap | Aap/Developer |
 
 ---
 
 ## 9. Abhi kya baaki hai / seemayein
 
-- **App notifications (Firebase):** bana nahi; Firebase project aur do files chahiye. Abhi alerts browser web push aur WhatsApp/email se.
+- **App notifications (Firebase):** code ban gaya (app + server + Integrations card); chalu karne ke liye Firebase project aur do files chahiye — `google-services.json` (`android/webview-app/app/`, phir app dobara build) aur service account key (Super Admin → Integrations → Firebase). Tab tak alerts browser web push aur WhatsApp/email se.
 - **Swiggy/Zomato, ONDC, Google Business Profile, MakeMyTrip:** seedha jodne ke liye unki partner approval chahiye; abhi Swiggy/Zomato orders haath se POS me.
 - **PDF tax invoice** English me (PDF library Indian lipi theek se nahi jodti); browser se print hone wali receipt kisi bhi bhasha me.
 - **Translations** AI ke banaye hue — launch se pehle native speaker se padhwana.

@@ -12,7 +12,7 @@ use Throwable;
 
 /**
  * Platform integrations set in the super admin panel (Integrations): payment, AI, WhatsApp, SMS,
- * email and web push keys. A value saved there wins; otherwise the server .env value (through
+ * email, web push keys and the Firebase key (app notifications). A value saved there wins; otherwise the server .env value (through
  * config/*.php) stays in use, so existing .env setups keep working.
  *
  * Stored as one platform_settings row ("integrations"): {"<integration>.<field>": {v, at, by}},
@@ -76,7 +76,14 @@ class PlatformConfig
             'public_key' => ['dinedesk.webpush.public_key', false, ['max:200']],
             'private_key' => ['dinedesk.webpush.private_key', true, ['max:200']],
         ],
+        // The Firebase service-account key (JSON) for notifications in the DineDesk Android app.
+        'firebase' => [
+            'credentials' => ['dinedesk.firebase.credentials', true, ['max:20000']],
+        ],
     ];
+
+    /** Secrets whose last 4 characters say nothing useful (a JSON key ends in "}"). */
+    private const NO_LAST4 = ['firebase.credentials'];
 
     /** Config values as they were before this class changed them (the .env values). */
     private array $original = [];
@@ -175,7 +182,7 @@ class PlatformConfig
                     'updated_at' => $saved !== null ? ($stored["{$integration}.{$field}"]['at'] ?? null) : null,
                 ];
                 $out[$integration][$field] = $secret
-                    ? $row + ['set' => $value !== null, 'last4' => $value !== null && mb_strlen($value) >= self::LAST4_MIN ? mb_substr($value, -4) : null]
+                    ? $row + ['set' => $value !== null, 'last4' => $value !== null && mb_strlen($value) >= self::LAST4_MIN && ! in_array("{$integration}.{$field}", self::NO_LAST4, true) ? mb_substr($value, -4) : null]
                     : $row + ['value' => $value];
             }
         }

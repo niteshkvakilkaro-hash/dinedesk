@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Modules\Delivery\Services\Riders;
+use App\Modules\Notify\Support\FcmChannel;
 use App\Modules\Notify\Support\WebPushChannel;
 use App\Modules\Plans\Services\FeatureService;
 use App\Modules\Tenancy\Support\TenantContext;
@@ -62,6 +63,7 @@ class AppServiceProvider extends ServiceProvider
             Notification::extend($channel, fn ($app) => new MessengerChannel($app->make(Messenger::class), $channel));
         }
         Notification::extend('webpush', fn () => new WebPushChannel);
+        Notification::extend('fcm', fn () => new FcmChannel);
         $this->rateLimits();
         // A rider's upload token (the app's background location service) works for that one route only.
         Sanctum::authenticateAccessTokensUsing(fn (PersonalAccessToken $token, bool $isValid) => $isValid

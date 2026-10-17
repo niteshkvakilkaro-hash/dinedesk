@@ -2,8 +2,9 @@
 
 **One app, DineDesk, for guests and businesses.** It opens `/app` on the platform host (find a
 place, scan a table or room QR, recently visited, business sign-in) and keeps the platform host and
-every business subdomain inside the app. It is a small WebView app (`webview-app/`, plain Java, no
-AndroidX): nothing of the website is copied into it, so every website update reaches it at once.
+every business subdomain inside the app. It is a small WebView app (`webview-app/`, plain Java; its
+only library is Firebase Cloud Messaging, which brings AndroidX): nothing of the website is copied
+into it, so every website update reaches it at once.
 Pages know they are in the app from the user-agent token `DineDeskApp/1`
 (`frontend/src/lib/dinedeskApp.ts`).
 
@@ -89,8 +90,63 @@ takes the positions and uploads them itself. Web side and contract:
 (or "No restrictions"; on Xiaomi also turn on **Autostart**) for DineDesk in the phone's settings
 (Settings → Apps → DineDesk → Battery), and not to clear DineDesk with a "clean all" booster.
 
-Not in the app: **web push** (WebView has no Push API: alerts need the browser or the installed web
-app), and **pull to refresh** (it reloads by accident on pages with their own scrolling, like the
+## App notifications (Firebase Cloud Messaging)
+
+A WebView has no web push, so signed-in owners, staff, riders and super admins get the same alerts
+(new order, table / room booking, banquet enquiry, tiffin request, rider job, referral reward, test
+alert) as **app notifications** through Firebase. Both halves are needed:
+
+| Half | What | Where |
+| --- | --- | --- |
+| App | `google-services.json` (the Android apps' config) | `android/webview-app/app/google-services.json` (git-ignored), then rebuild |
+| Server | the **service-account key** (JSON with a private key) | Super admin → Integrations → **Firebase (app notifications)** (or `FIREBASE_CREDENTIALS` in `backend/.env`) |
+
+Without them everything builds and runs with notifications off: the build logs nothing special,
+`BuildConfig.FCM_ENABLED` is `false`, `PushService` is disabled in the manifest, the bridge's
+`pushToken()` returns `''` and My account shows "not available in this version of the app yet".
+
+**Create the Firebase project (once):**
+
+1. <https://console.firebase.google.com> → **Add project** (e.g. "DineDesk"; Google Analytics not needed).
+2. Project settings → **Your apps** → **Add app → Android**, twice:
+   `in.dinedesk.app` (Play Store build) and `com.dinedesk.admin.local` (local test build). The
+   SHA-1 field is optional (not needed for messaging).
+3. Download **google-services.json** (one file lists both apps; download it again after adding the
+   second app) and put it at `android/webview-app/app/google-services.json`. Never commit it.
+4. Project settings → **Service accounts** → **Generate new private key** → a `.json` file. Paste it
+   (or choose the file) in Super admin → Integrations → Firebase, enter your password, Save. Keep the
+   file safe; delete it from Downloads afterwards.
+5. Rebuild the app (`build-local.ps1`, or the prod build below) and install it. On the phone: sign
+   in, My account → **Alerts on this device** → **Allow notifications**. Integrations → Firebase →
+   **Test** sends a test notification to the phones where you are signed in as the super admin.
+
+**How it works.** No google-services Gradle plugin: `app/build.gradle` reads `google-services.json`
+at build time and takes the client whose `package_name` matches the flavor's applicationId
+(`BuildConfig.FCM_PROJECT_ID`, `FCM_APP_ID`, `FCM_API_KEY`, `FCM_SENDER_ID`, `FCM_ENABLED`); a file
+without a client for that id leaves the build with notifications off (Gradle prints a warning).
+`DineDeskApp` (the Application class) makes the notification channels and starts Firebase by hand
+(`Push.java`). Channels: **orders** ("New orders and bookings": high importance, default sound) and
+**general** ("Other updates"); the server picks `orders` for new orders, bookings, tiffin requests,
+rider jobs and the test alert.
+
+- **Bridge** (DineDesk pages only): `pushToken()` (the token, or `''` when the build has no Firebase
+  or the token isn't known yet; it is then asked for and arrives as the `dinedesk:push-token` window
+  event), `pushStatus()` → `{ enabled, permission: granted|denied|default, token, version, flavor }`,
+  `requestPushPermission()` (Android 13+ asks while it still may; otherwise the app's notification
+  settings open).
+- **Web side** (`frontend/src/lib/dinedeskApp.ts` → `installAppPush`): after sign-in, on start with a
+  session and on `dinedesk:push-token` it sends `POST /api/v1/devices { token, app_version, flavor }`;
+  never in a support session. Signing out sends `DELETE /api/v1/devices/{token}` first, and the server
+  also removes devices registered with that sign-in.
+- **Server** (`App\Support\Push\Fcm`, channel `fcm` next to `webpush`): FCM HTTP v1 with an OAuth2
+  token from the service account (cached ~55 min); texts in the recipient's dashboard language.
+  Tokens Firebase no longer knows (`UNREGISTERED`, `INVALID_ARGUMENT`) are deleted.
+- **App closed**: Android shows the message itself (channel from the server, icon
+  `ic_stat_notify`). **App open**: `PushService` shows it. **Tap**: opens the app on the page in the
+  message (a path such as `/dashboard/orders`, opened on the host the app is on; full URLs only for
+  DineDesk hosts, the same check as links).
+
+Not in the app: **web push** (WebView has no Push API; the app uses Firebase instead, above), and **pull to refresh** (it reloads by accident on pages with their own scrolling, like the
 POS and kitchen screen; the app has Retry and every page has its own refresh).
 
 On the **dev build** (plain http) the browser treats pages as not secure, so the live **camera QR
@@ -104,9 +160,11 @@ powershell -ExecutionPolicy Bypass -File android\webview-app\build-local.ps1
 #   → android\apk\DineDesk-local.apk   (-DevHost 192.168.1.40 -DevPort 5173 to override)
 ```
 
-Uses the JDK 17 and SDK in `%USERPROFILE%\Android` and Gradle 8.13+ from `~/.gradle` (no download;
-`--no-daemon`, one worker, 768 MB heap, fine on a 4 GB PC). It finds this PC's Wi-Fi IP and bakes
-`http://<ip>:5180/app` into the app: rebuild when the IP changes.
+Uses the JDK 17 and SDK in `%USERPROFILE%\Android` and Gradle 8.13+ from `~/.gradle` (`--no-daemon`,
+one worker, 768 MB heap, fine on a 4 GB PC; the first build after adding Firebase downloads its
+libraries from Google Maven once). It finds this PC's Wi-Fi IP and bakes `http://<ip>:5180/app` into
+the app: rebuild when the IP changes. With `app/google-services.json` in place the build has app
+notifications; without it they are off.
 
 Testing on a phone:
 
@@ -133,11 +191,12 @@ Testing on a phone:
    ```powershell
    cd android\webview-app
    $gradle = (Get-ChildItem "$env:USERPROFILE\.gradle\wrapper\dists" -Recurse -Filter gradle.bat | Where-Object FullName -match 'gradle-8\.1[3-9]')[0].FullName
-   & $gradle --no-daemon bundleProdRelease assembleProdRelease "-PplatformHost=dinedesk.in" "-PversionCode=4" "-PversionName=1.3"
+   & $gradle --no-daemon bundleProdRelease assembleProdRelease "-PplatformHost=dinedesk.in" "-PversionCode=5" "-PversionName=1.4"
    ```
    Without `-PplatformHost` or the upload key the build stops with a message saying what is missing.
    Output: `app/build/outputs/bundle/prodRelease/app-prod-release.aab` (upload to Play) and the APK.
-   Raise `versionCode` for every upload.
+   Raise `versionCode` for every upload (the default in `app/build.gradle` is 4 / 1.3). Put
+   `app/google-services.json` in place first, or the Play build has no notifications.
 4. **assetlinks.json** is not needed for the WebView app itself. Only if the app later claims links
    (Android App Links, so `https://<domain>/…` links open in the app), set `ANDROID_ADMIN_PACKAGE=in.dinedesk.app`
    and `ANDROID_ADMIN_SHA256=<upload sha256>,<Play app-signing sha256>` in the backend `.env`; the platform

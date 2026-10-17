@@ -178,6 +178,12 @@ export interface AndroidBridge {
   saveEnd(id: string, open: boolean): boolean;
   /** A business's own domain (confirmed by the server) may open inside the app from now on. */
   allowHost(host: string): void;
+  /** App notifications (Firebase): this phone's token, '' when the build has no Firebase or it isn't known yet. Newer apps only. */
+  pushToken?(): string;
+  /** JSON of AppPushStatus. */
+  pushStatus?(): string;
+  /** Asks Android for the notification permission (13+), or opens the app's notification settings once refused. */
+  requestPushPermission?(): void;
 }
 
 export function androidBridge(w: unknown = typeof window !== 'undefined' ? window : undefined): AndroidBridge | null {
@@ -239,6 +245,133 @@ export function installAppDownloads(doc: Document = document) {
     },
     true,
   );
+}
+
+/** App notifications on this phone, as the app reports them. */
+export interface AppPushStatus {
+  /** The app was built with Firebase (else notifications can't work in this version). */
+  enabled: boolean;
+  permission: 'granted' | 'denied' | 'default';
+  /** Firebase gave the phone its token. */
+  token: boolean;
+  version?: string;
+  flavor?: 'dev' | 'prod';
+}
+
+/** Event the app fires when Firebase gives the phone a (new) token: detail = the token. */
+export const PUSH_TOKEN_EVENT = 'dinedesk:push-token';
+/** The token registered from this phone, so signing out can remove it. */
+const PUSH_KEY = 'dd_push_device';
+
+/** App notification status, or null outside the app / in an app without notifications. */
+export function appPushStatus(bridge: AndroidBridge | null = androidBridge()): AppPushStatus | null {
+  if (!bridge || typeof bridge.pushStatus !== 'function') return null;
+  try {
+    const s = JSON.parse(bridge.pushStatus() || '{}') as Partial<AppPushStatus>;
+    const permission = s.permission === 'granted' || s.permission === 'denied' ? s.permission : 'default';
+    return { enabled: !!s.enabled, permission, token: !!s.token, version: s.version, flavor: s.flavor === 'dev' || s.flavor === 'prod' ? s.flavor : undefined };
+  } catch {
+    return null;
+  }
+}
+
+function pushTokenFrom(bridge: AndroidBridge | null): string {
+  if (!bridge || typeof bridge.pushToken !== 'function') return '';
+  try {
+    const t = bridge.pushToken();
+    return typeof t === 'string' ? t.trim() : '';
+  } catch {
+    return '';
+  }
+}
+
+function storedPushToken(): string | null {
+  try {
+    return localStorage.getItem(PUSH_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function storePushToken(token: string | null) {
+  try {
+    if (token) localStorage.setItem(PUSH_KEY, token);
+    else localStorage.removeItem(PUSH_KEY);
+  } catch {
+    /* storage blocked: signing out still removes it on the server (with the sign-in) */
+  }
+}
+
+export interface AppPushDeps {
+  /** The API token in use (null = signed out). */
+  authToken: () => string | null;
+  /** Calls back whenever the API token changes; returns the unsubscribe. */
+  onAuthChange: (fn: () => void) => () => void;
+  /** A super admin's support session in this tab: never registers the phone. */
+  isSupport: () => boolean;
+  post: (path: string, body: unknown) => Promise<unknown>;
+  bridge?: () => AndroidBridge | null;
+  win?: Window;
+}
+
+let pushDeps: AppPushDeps | null = null;
+/** "<api token>|<push token>" last sent, so the same pair is sent once. */
+let pushSent = '';
+
+/**
+ * Inside the DineDesk app: keeps this phone's notification token registered with the person signed
+ * in (POST /devices) after sign-in, on start with a session, and when the app reports a new token.
+ * Does nothing in a browser, in an app without notifications, signed out or in a support session.
+ * Returns the uninstall (tests).
+ */
+export function installAppPush(deps: AppPushDeps): () => void {
+  pushDeps = deps;
+  pushSent = '';
+  const win = deps.win ?? window;
+  const bridge = deps.bridge ?? (() => androidBridge(win));
+  const sync = (given?: string) => {
+    const auth = deps.authToken();
+    if (!auth) {
+      pushSent = '';
+      return;
+    }
+    if (deps.isSupport()) return;
+    const b = bridge();
+    const token = (given ?? pushTokenFrom(b)).trim();
+    if (!token || `${auth}|${token}` === pushSent) return;
+    pushSent = `${auth}|${token}`;
+    const status = appPushStatus(b);
+    void deps.post('/devices', { token, app_version: status?.version ?? null, flavor: status?.flavor ?? null }).then(
+      () => storePushToken(token),
+      () => {
+        pushSent = '';
+      },
+    );
+  };
+  const onToken = (e: Event) => {
+    const detail = (e as CustomEvent<unknown>).detail;
+    if (typeof detail === 'string') sync(detail);
+  };
+  win.addEventListener(PUSH_TOKEN_EVENT, onToken);
+  const stop = deps.onAuthChange(() => sync());
+  sync();
+  return () => {
+    win.removeEventListener(PUSH_TOKEN_EVENT, onToken);
+    stop();
+    if (pushDeps === deps) pushDeps = null;
+  };
+}
+
+/**
+ * Signing out: removes this phone from the person's devices first (while the API token still
+ * works). The server also removes it with the sign-in; this covers a phone registered earlier.
+ */
+export async function forgetAppPush(del: (path: string) => Promise<unknown>): Promise<void> {
+  const token = storedPushToken();
+  pushSent = '';
+  if (!token || pushDeps?.isSupport()) return;
+  storePushToken(null);
+  await del(`/devices/${encodeURIComponent(token)}`).catch(() => undefined);
 }
 
 /** Tells the app a place may open inside it (needed for a business's own domain). */

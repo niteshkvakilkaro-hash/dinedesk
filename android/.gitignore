@@ -8,4 +8,6 @@ webview-app/app/build/
 webview-app/local.properties
 webview-app/keystore.properties
 webview-app/upload-keystore.properties
+# Firebase app config (app notifications): per project, never committed.
+google-services.json
 webview-app/build/

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Referrals\Notifications;
 
+use App\Modules\Notify\Support\FcmChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -34,7 +35,7 @@ class ReferralRewardEarned extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return array_values(array_filter([$notifiable->email ? 'mail' : null, 'webpush', $this->alert ? 'database' : null]));
+        return array_values(array_filter([$notifiable->email ? 'mail' : null, 'webpush', ...FcmChannel::for($notifiable), $this->alert ? 'database' : null]));
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -50,6 +51,12 @@ class ReferralRewardEarned extends Notification implements ShouldQueue
     public function toWebPush(object $notifiable): array
     {
         return ['title' => $this->subject, 'body' => $this->lines[1] ?? $this->lines[0], 'url' => '/dashboard/billing?open=refer', 'tag' => 'referral-reward'];
+    }
+
+    /** The same in the DineDesk Android app (a quiet notification, channel "general"). */
+    public function toFcm(object $notifiable): array
+    {
+        return $this->toWebPush($notifiable) + ['kind' => 'referral', 'channel' => 'general'];
     }
 
     /** The dashboard's in-app alert (see Notify\Http\Controllers\InAppAlertController). */

@@ -14,8 +14,54 @@ plugins {
 def devHost = (project.findProperty('devHost') ?: '').toString().trim()
 def devPort = (project.findProperty('devPort') ?: '5180').toString().trim()
 def platformHost = (project.findProperty('platformHost') ?: '').toString().trim().toLowerCase().replaceAll('^https?://', '').replaceAll('/.*$', '')
-def appVersionCode = (project.findProperty('versionCode') ?: '3').toString().toInteger()
-def appVersionName = (project.findProperty('versionName') ?: '1.2').toString()
+def appVersionCode = (project.findProperty('versionCode') ?: '4').toString().toInteger()
+def appVersionName = (project.findProperty('versionName') ?: '1.3').toString()
+
+/*
+ * App notifications (Firebase Cloud Messaging) without the google-services Gradle plugin: when
+ * app/google-services.json exists (git-ignored; Firebase console → Project settings → Your apps),
+ * the client for each flavor's applicationId becomes BuildConfig.FCM_* and Push.java starts Firebase
+ * with it. No file, or no client for that id: FCM_ENABLED = false and the app builds and runs with
+ * notifications off.
+ */
+def fcmConfig = { String appId ->
+    def off = [enabled: false, projectId: '', appId: '', apiKey: '', senderId: '']
+    def f = file('google-services.json')
+    if (!f.exists()) return off
+    try {
+        def json = new groovy.json.JsonSlurper().parse(f)
+        def client = json.client?.find { it?.client_info?.android_client_info?.package_name == appId }
+        if (!client) {
+            logger.warn("google-services.json has no Android app for ${appId}: notifications are off in this build.")
+            return off
+        }
+        def clean = { v -> (v ?: '').toString().replaceAll('[^A-Za-z0-9:._-]', '') }
+        def c = [
+            enabled: true,
+            projectId: clean(json.project_info?.project_id),
+            appId: clean(client.client_info?.mobilesdk_app_id),
+            apiKey: clean(client.api_key?.find { it?.current_key }?.current_key),
+            senderId: clean(json.project_info?.project_number),
+        ]
+        if (!c.projectId || !c.appId || !c.apiKey || !c.senderId) {
+            logger.warn("google-services.json is missing values for ${appId}: notifications are off in this build.")
+            return off
+        }
+        return c
+    } catch (Exception e) {
+        logger.warn("google-services.json could not be read (${e.message}): notifications are off in this build.")
+        return off
+    }
+}
+def fcmFields = { flavor, String appId ->
+    def c = fcmConfig(appId)
+    flavor.buildConfigField 'boolean', 'FCM_ENABLED', c.enabled.toString()
+    flavor.buildConfigField 'String', 'FCM_PROJECT_ID', "\"${c.projectId}\""
+    flavor.buildConfigField 'String', 'FCM_APP_ID', "\"${c.appId}\""
+    flavor.buildConfigField 'String', 'FCM_API_KEY', "\"${c.apiKey}\""
+    flavor.buildConfigField 'String', 'FCM_SENDER_ID', "\"${c.senderId}\""
+    flavor.manifestPlaceholders.put('fcmEnabled', c.enabled.toString())
+}
 
 def props = { String name ->
     def p = new Properties()
@@ -88,6 +134,7 @@ android {
             buildConfigField 'String', 'APP_HOSTS', "\"${devHost},${devHost}.nip.io\""
             buildConfigField 'boolean', 'DEV', 'true'
             manifestPlaceholders = [usesCleartext: 'true']
+            fcmFields(delegate, 'com.dinedesk.admin.local')
             signingConfig localKey['storeFile'] ? signingConfigs.local : signingConfigs.debug
         }
         prod {
@@ -98,6 +145,7 @@ android {
             buildConfigField 'String', 'APP_HOSTS', "\"${platformHost}\""
             buildConfigField 'boolean', 'DEV', 'false'
             manifestPlaceholders = [usesCleartext: 'false']
+            fcmFields(delegate, 'in.dinedesk.app')
             if (uploadKey['storeFile']) signingConfig signingConfigs.upload
         }
     }
@@ -126,6 +174,12 @@ android {
         checkReleaseBuilds false
         abortOnError false
     }
+}
+
+dependencies {
+    // App notifications (Push.java, PushService.java). Firebase is started by hand: no google-services plugin.
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation 'com.google.firebase:firebase-messaging'
 }
 
 // Clear messages instead of an app that opens nothing.

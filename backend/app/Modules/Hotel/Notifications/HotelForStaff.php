@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hotel\Notifications;
 
+use App\Modules\Notify\Support\FcmChannel;
 use App\Modules\Notify\Support\StaffText;
 use Illuminate\Notifications\Notification;
 
@@ -13,7 +14,13 @@ class HotelForStaff extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'webpush'];
+        return ['database', 'webpush', ...FcmChannel::for($notifiable)];
+    }
+
+    /** The same alert in the DineDesk Android app; rings (channel "orders"). */
+    public function toFcm(object $notifiable): array
+    {
+        return $this->toWebPush($notifiable) + ['kind' => ($this->data['kind'] ?? '') === 'banquet' ? 'banquet' : 'stay', 'channel' => 'orders'];
     }
 
     public function toWebPush(object $notifiable): array

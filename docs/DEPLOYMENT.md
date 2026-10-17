@@ -80,7 +80,7 @@ REVERB_SCHEME=https
 REVERB_SERVER_HOST=127.0.0.1
 REVERB_SERVER_PORT=8080
 
-# Integration keys (Razorpay, Anthropic, WhatsApp, MSG91, SMTP mail, web push) can also be set
+# Integration keys (Razorpay, Anthropic, WhatsApp, MSG91, SMTP mail, web push, Firebase) can also be set
 # in the super admin panel → Integrations (stored encrypted with APP_KEY). A value saved there wins;
 # the .env values below stay the fallback, so either way works.
 # The platform's own Razorpay account (business subscriptions)
@@ -338,6 +338,13 @@ The same **Integrations** page holds the AI key and model (Anthropic), WhatsApp 
 - Saved values are applied at the start of every request, command and queued job and cached for 60 seconds; saving clears the cache, so Horizon / `queue:work` pick a change up at their next job without a restart.
 - `php artisan config:cache` and `optimize` never include panel values (they stay out of `bootstrap/cache`).
 
+**Firebase (app notifications).** The DineDesk Android app gets staff alerts (new orders, bookings, rider jobs …) through Firebase Cloud Messaging, because web push doesn't work inside its WebView. Create a Firebase project (free) with two Android apps, `in.dinedesk.app` and `com.dinedesk.admin.local`, then:
+
+1. Project settings → Service accounts → **Generate new private key**. Paste the JSON (or choose the file) in Integrations → **Firebase (app notifications)** and save with your password. It is checked, stored encrypted (only `project_id`, `client_email`, `private_key`) and never shown again: the card shows the project and service account. **Test** signs in to Google and sends a test notification to the phones where you are signed in to the app as the super admin (or says none are). Server fallback instead of the panel: `FIREBASE_CREDENTIALS` in `.env` = the JSON on one line, or a path to the file (relative to `backend/`, e.g. `storage/app/private/firebase.json`, readable by the PHP user only).
+2. The app needs `google-services.json` at build time (see [android/README.md](../android/README.md#app-notifications-firebase-cloud-messaging)); rebuild and publish it.
+
+Without either half nothing breaks: alerts still go by web push, WhatsApp and email. Sending runs on the queue (Horizon); Google's OAuth token is cached ~55 minutes and tokens of uninstalled apps are deleted automatically.
+
 ## 10. Backups
 
 - `php artisan backup:database` runs nightly: a gzip'd `mysqldump --single-transaction` in `storage/app/private/backups`, kept `BACKUP_KEEP_DAYS` days. Set `MYSQLDUMP_PATH` if `mysqldump` is not on the PATH.
@@ -369,6 +376,7 @@ cd ../frontend && npm ci && npm run build
 - [ ] `php artisan schedule:list` shows the jobs; `storage/app/private/backups` has today's file and it is copied off-site
 - [ ] Horizon and Reverb are running (`supervisorctl status`); the dashboard shows **Live**
 - [ ] Firewall: only 22, 80 and 443 open (`ufw allow OpenSSH 80 443`)
+- [ ] Integrations → Firebase → **Test** reaches your phone (app built with `google-services.json`)
 
 ## Android apps
 

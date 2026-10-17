@@ -2,6 +2,7 @@
 
 namespace App\Modules\Delivery\Notifications;
 
+use App\Modules\Notify\Support\FcmChannel;
 use App\Modules\Notify\Support\StaffText;
 use App\Modules\Ordering\Models\Order;
 use Illuminate\Notifications\Notification;
@@ -13,7 +14,13 @@ class RiderAssigned extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['webpush'];
+        return ['webpush', ...FcmChannel::for($notifiable)];
+    }
+
+    /** The same alert in the DineDesk Android app; rings (channel "orders"). */
+    public function toFcm(object $notifiable): array
+    {
+        return $this->toWebPush($notifiable) + ['kind' => 'rider', 'channel' => 'orders'];
     }
 
     public function toWebPush(object $notifiable): array

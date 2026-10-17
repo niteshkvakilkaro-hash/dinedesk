@@ -394,7 +394,7 @@ paths:
     post:
       tags: [Auth]
       security: [{ bearer: [] }]
-      summary: Revoke the current token
+      summary: Revoke the current token (and the app-notification devices registered with it)
       responses:
         '200': { description: Signed out }
   /onboarding/business:
@@ -2392,14 +2392,14 @@ paths:
     get:
       tags: [Platform (super admin)]
       security: [{ bearer: [] }]
-      summary: 'Integration keys (razorpay, ai, whatsapp, sms, messaging, mail, webpush): per field { source: saved|env|unset, updated_at } plus value (plain fields) or { set, last4 } (secrets, never the value); ready flags, mailer, Razorpay webhook URL and events'
+      summary: 'Integration keys (razorpay, ai, whatsapp, sms, messaging, mail, webpush, firebase): per field { source: saved|env|unset, updated_at } plus value (plain fields) or { set, last4 } (secrets, never the value); ready flags, firebase { project_id, client_email } of the key in use (or null), mailer, Razorpay webhook URL and events'
       responses:
         '200': { description: OK }
   /platform/integrations/{integration}:
     put:
       tags: [Platform (super admin)]
       security: [{ bearer: [] }]
-      summary: 'Save one integration (razorpay, ai, whatsapp, sms, messaging, mail). An empty secret keeps the saved one, an empty plain field falls back to .env, remove[] clears saved values. current_password is required when a secret is set or removed. Audited by field name'
+      summary: 'Save one integration (razorpay, ai, whatsapp, sms, messaging, mail, firebase — values.credentials = the service-account key JSON, checked and stored encrypted with only project_id, client_email and private_key). An empty secret keeps the saved one, an empty plain field falls back to .env, remove[] clears saved values. current_password is required when a secret is set or removed. Audited by field name'
       requestBody: { content: { application/json: { schema: { type: object, required: [values], properties: { values: { type: object }, remove: { type: array, items: { type: string } }, current_password: { type: string } } } } } }
       responses:
         '200': { description: Same shape as GET /platform/integrations }
@@ -2408,7 +2408,7 @@ paths:
     post:
       tags: [Platform (super admin)]
       security: [{ bearer: [] }]
-      summary: 'Test with the saved keys (razorpay, ai: no body; whatsapp, sms: { phone }; mail: { email }). 5 a minute, 40 an hour'
+      summary: 'Test with the saved keys (razorpay, ai: no body; whatsapp, sms: { phone }; mail: { email }; firebase: no body — signs in to Google, then sends a test notification to the admin''s own app devices, or says none are signed in). 5 a minute, 40 an hour'
       responses:
         '200': { description: '{ ok, message }' }
         '429': { description: Too many tests }
@@ -2731,6 +2731,29 @@ paths:
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DirectoryPlace' } } } }
         '404': { description: '`not_a_place`' }
+  /devices:
+    post:
+      tags: [Account]
+      security: [{ bearer: [] }]
+      summary: 'Register this phone for app notifications (DineDesk Android app, Firebase Cloud Messaging): anyone signed in, never in a support session'
+      description: 'Sent by the web app inside the app after sign-in, on start with a session and when Firebase gives a new token. Upsert by token: a token already registered moves to the person signed in now. Signing out (POST /auth/logout) removes devices registered with that sign-in.'
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, required: [token], properties: { token: { type: string, pattern: '^[A-Za-z0-9_:.\-]{20,512}$' }, app_version: { type: string, maxLength: 32 }, flavor: { type: string, enum: [dev, prod] } } }
+      responses:
+        '200': { description: '{ devices } (how many phones this person has)' }
+        '403': { description: '`support_session`' }
+        '422': { description: Validation error }
+  /devices/{token}:
+    delete:
+      tags: [Account]
+      security: [{ bearer: [] }]
+      summary: 'Remove this phone from the person''s app notifications (own devices only; sign-out)'
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Removed (or not one of yours) }
   /account:
     patch:
       tags: [Account]

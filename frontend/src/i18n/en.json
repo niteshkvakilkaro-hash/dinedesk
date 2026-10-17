@@ -987,6 +987,18 @@
         "regenerate": "Generate new keys",
         "warning": "New keys stop alerts on every phone and computer that has them switched on. Staff will need to switch alerts on again.",
         "generated": "New keys saved."
+      },
+      "firebase": {
+        "title": "Firebase (app notifications)",
+        "text": "Notifications for new orders, bookings and rider jobs in the DineDesk Android app.",
+        "project": "Project",
+        "account": "Service account",
+        "none": "No key yet: the DineDesk app can’t show notifications.",
+        "credentials": "Service-account key (JSON)",
+        "pasteHint": "Firebase console → Project settings → Service accounts → Generate new private key. Paste the file’s contents here or choose the file.",
+        "chooseFile": "Choose the .json file",
+        "testHint": "Sends a test notification to the DineDesk app on phones where you are signed in with this account.",
+        "appBuild": "The app needs its own Firebase file too (google-services.json, see android/README.md), then a new app build."
       }
     }
   },
@@ -4178,6 +4190,14 @@
       "denied": "Alerts are blocked for this site. Allow notifications in the browser's site settings, then try again.",
       "unsupported": "This browser can't show push alerts. On iPhone, add the dashboard to the Home Screen first (Share → Add to Home Screen).",
       "server-off": "Push alerts aren't set up on this server yet."
+    },
+    "app": {
+      "on": "New orders and bookings ring on this phone through the DineDesk app, even when it is closed.",
+      "default": "Allow notifications so new orders and bookings ring on this phone, even when the app is closed.",
+      "denied": "Notifications are switched off for the DineDesk app. Tap “Allow notifications” and switch them on in the phone’s settings.",
+      "allow": "Allow notifications",
+      "waiting": "Connecting this phone for notifications… This takes a moment.",
+      "unavailable": "App notifications aren’t available in this version of the DineDesk app yet."
     }
   },
   "finance": {

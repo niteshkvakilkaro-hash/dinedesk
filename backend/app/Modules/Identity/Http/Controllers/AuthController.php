@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Modules\Identity\Actions\IssueToken;
 use App\Modules\Identity\Services\OtpService;
 use App\Modules\Identity\Support\SessionPayload;
+use App\Modules\Notify\Models\PushDevice;
 use App\Support\ApiException;
 use App\Support\Locale;
 use App\Support\Phone;
@@ -15,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -108,7 +110,12 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()?->delete();
+        $token = $request->user()->currentAccessToken();
+        // App notifications registered with this sign-in stop with it.
+        if ($token instanceof PersonalAccessToken) {
+            PushDevice::where('access_token_id', $token->id)->delete();
+        }
+        $token?->delete();
 
         return $this->ok(null, 'Signed out.');
     }

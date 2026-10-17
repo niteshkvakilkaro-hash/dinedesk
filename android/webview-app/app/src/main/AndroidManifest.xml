@@ -61,6 +61,7 @@
     </queries>
 
     <application
+        android:name=".DineDeskApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -79,6 +80,11 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- A tapped app notification (FCM click_action): opens its DineDesk page (checked like any link). -->
+            <intent-filter>
+                <action android:name="com.dinedesk.app.OPEN_PUSH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <!-- Camera photos for uploads, and saved files opened in a viewer on Android 7–9. -->
@@ -93,5 +99,26 @@
             android:name=".LocationService"
             android:exported="false"
             android:foregroundServiceType="location" />
+
+        <!-- App notifications (Firebase Cloud Messaging): new orders, bookings, rider jobs. Only on in
+             builds made with app/google-services.json (fcmEnabled, see app/build.gradle). -->
+        <service
+            android:name=".PushService"
+            android:enabled="${fcmEnabled}"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <!-- How Android shows FCM messages while the app is closed. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notify" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/brand" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="general" />
     </application>
 </manifest>

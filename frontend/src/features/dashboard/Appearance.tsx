@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bell, BellOff, Check, Moon, Palette, Sun } from 'lucide-react';
 import { toast } from '@/components/ui';
+import { api } from '@/lib/api';
 import { usePush } from '@/lib/push';
+import { androidBridge, appPushStatus, PUSH_TOKEN_EVENT, type AppPushStatus } from '@/lib/dinedeskApp';
 import { PALETTES, setAdminTheme, useAdminPalette, type AdminPalette, type AdminTheme } from '@/lib/adminTheme';
 
 /** Sidebar, accent and page colours of each palette, for the little previews. */
@@ -16,8 +18,58 @@ const SWATCH: Record<AdminPalette, [string, string, string]> = {
 /**
  * Push alerts (new orders, bookings) on this device. In the header Appearance menu, and on
  * My account (?open=alerts, from Settings and the search) under that card's own heading.
+ * Inside the DineDesk Android app they are the app's own notifications (web push doesn't work there).
  */
 export function PushAlerts({ inMenu = true }: { inMenu?: boolean }) {
+  const [inApp] = useState(() => androidBridge() !== null);
+  return inApp ? <AppPushAlerts inMenu={inMenu} /> : <BrowserPushAlerts inMenu={inMenu} />;
+}
+
+/** The app's notifications: on, waiting for Firebase, permission needed, or not in this app version. */
+function AppPushAlerts({ inMenu }: { inMenu: boolean }) {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState<AppPushStatus | null>(() => appPushStatus());
+  useEffect(() => {
+    const refresh = () => setStatus(appPushStatus());
+    const visible = () => document.visibilityState === 'visible' && refresh();
+    window.addEventListener('focus', refresh);
+    window.addEventListener(PUSH_TOKEN_EVENT, refresh);
+    document.addEventListener('visibilitychange', visible);
+    // Android's permission dialog and settings screen don't always give the page a focus event.
+    const timer = window.setInterval(refresh, 3000);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener(PUSH_TOKEN_EVENT, refresh);
+      document.removeEventListener('visibilitychange', visible);
+      window.clearInterval(timer);
+    };
+  }, []);
+  const test = () => void api.post('/tenant/push/test').then(() => toast.success(t('push.testSent')), (e: Error) => toast.error(e.message));
+  const allow = () => {
+    androidBridge()?.requestPushPermission?.();
+    window.setTimeout(() => setStatus(appPushStatus()), 1500);
+  };
+  const state = !status?.enabled ? 'unavailable' : status.permission !== 'granted' ? status.permission : status.token ? 'on' : 'waiting';
+  return (
+    <div className={inMenu ? 'mt-4 border-t border-line pt-4' : 'max-w-sm'}>
+      {inMenu && <p className="text-xs font-bold uppercase tracking-wider text-muted">{t('push.title')}</p>}
+      {state === 'on' && (
+        <button type="button" className="btn-outline mt-2 w-full !min-h-10 text-sm" onClick={test}>
+          <Bell className="h-4 w-4" aria-hidden="true" /> {t('push.test')}
+        </button>
+      )}
+      {(state === 'default' || state === 'denied') && (
+        <button type="button" className="btn-primary mt-2 w-full !min-h-10 text-sm" onClick={allow}>
+          <Bell className="h-4 w-4" aria-hidden="true" /> {t('push.app.allow')}
+        </button>
+      )}
+      <p className="mt-2 text-xs text-muted" role="status">{t(`push.app.${state}`)}</p>
+    </div>
+  );
+}
+
+/** Web push in a browser (the dashboard's service worker). */
+function BrowserPushAlerts({ inMenu }: { inMenu: boolean }) {
   const { t } = useTranslation();
   const push = usePush();
   const run = (fn: () => Promise<unknown>) => void fn().catch((e: Error) => toast.error(e.message));

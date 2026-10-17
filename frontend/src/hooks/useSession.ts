@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api';
+import { forgetAppPush } from '@/lib/dinedeskApp';
 import { isSupportTab, useAuthStore } from '@/stores/auth';
 import type { AuthResult, Session } from '@/types';
 import { adoptAccountLanguage } from './accountLanguage';
@@ -74,6 +75,8 @@ export function useSignOut() {
   return async () => {
     // In a support session "Sign out" ends the session (audited) and returns to the own sign-in.
     const support = isSupportTab();
+    // The DineDesk app: this phone stops getting this person's notifications (while the token still works).
+    if (!support) await forgetAppPush((path) => api.delete(path));
     try {
       await api.post(support ? '/support/end' : '/auth/logout');
     } catch {

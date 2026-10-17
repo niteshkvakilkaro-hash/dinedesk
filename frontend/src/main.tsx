@@ -3,15 +3,24 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
-import { ApiError, setUnauthorizedHandler } from '@/lib/api';
+import { api, ApiError, setUnauthorizedHandler } from '@/lib/api';
 import { isSupportTab, useAuthStore } from '@/stores/auth';
 import '@/i18n';
 import '@/styles/index.css';
 import { getTheme, isThemeKey } from '@/themes/registry';
-import { installAppDownloads } from '@/lib/dinedeskApp';
+import { androidBridge, installAppDownloads, installAppPush } from '@/lib/dinedeskApp';
 
 // Inside the DineDesk Android app, QR images and other download links are saved through the app.
 installAppDownloads();
+// ... and the phone's notification token follows whoever is signed in (apps with notifications only).
+if (typeof androidBridge()?.pushToken === 'function') {
+  installAppPush({
+    authToken: () => useAuthStore.getState().token,
+    onAuthChange: (fn) => useAuthStore.subscribe((s, prev) => s.token !== prev.token && fn()),
+    isSupport: isSupportTab,
+    post: (path, body) => api.post(path, body),
+  });
+}
 
 // Business website: start downloading its theme as soon as the early /site response names it.
 void window.__ddSite?.then((res) => {

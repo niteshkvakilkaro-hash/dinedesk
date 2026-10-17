@@ -101,6 +101,12 @@ return [
         'subject' => env('WEBPUSH_SUBJECT') ?: 'mailto:support@example.com',
     ],
 
+    // Notifications in the DineDesk Android app (Firebase Cloud Messaging, App\Support\Push\Fcm):
+    // a service-account key JSON, or a path to the file. Super admin → Integrations → Firebase wins.
+    'firebase' => [
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+    ],
+
     'messaging' => [
         // log (development) | live (LiveMessenger: Meta WhatsApp Cloud API + MSG91 for codes)
         'driver' => env('MESSAGING_DRIVER', 'log'),

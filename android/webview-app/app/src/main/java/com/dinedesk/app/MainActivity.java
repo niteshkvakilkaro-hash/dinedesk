@@ -23,6 +23,7 @@ import android.os.Looper;
 import android.print.PrintAttributes;
 import android.print.PrintManager;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -66,8 +67,9 @@ import java.util.regex.Pattern;
  * platform host and its business subdomains inside the app; everything else (other websites, phone,
  * mail, WhatsApp, UPI, maps) opens in the phone's own apps.
  *
- * Pages get window.DineDeskAndroid (Bridge below) for what a WebView can't do by itself: printing
- * and saving blob: downloads. The web side is frontend/src/lib/dinedeskApp.ts and print.ts.
+ * Pages get window.DineDeskAndroid (Bridge below) for what a WebView can't do by itself: printing,
+ * saving blob: downloads, the rider's location and app notifications (Push). The web side is
+ * frontend/src/lib/dinedeskApp.ts and print.ts.
  */
 public class MainActivity extends Activity {
     private static final int REQ_FILE = 41;
@@ -76,6 +78,7 @@ public class MainActivity extends Activity {
     private static final int REQ_PERM_LOCATION = 53;
     private static final int REQ_PERM_RIDER = 54;
     private static final int REQ_PERM_NOTIFY = 55;
+    private static final int REQ_PERM_PUSH = 56;
     /** The on-duty notification: open the rider screen (EXTRA_URL). */
     static final String ACTION_OPEN_RIDER = "com.dinedesk.app.OPEN_RIDER";
     static final String EXTRA_URL = "url";
@@ -169,12 +172,14 @@ public class MainActivity extends Activity {
 
         // Positions or a token left behind by a killed process are not kept (the service isn't running).
         LocationService.clearLeftovers(this);
-        String rider = riderUrl(getIntent());
+        Push.attach(this);
+        String target = riderUrl(getIntent());
+        if (target == null) target = pushUrl(getIntent());
         if (state != null && web.restoreState(state) != null) {
-            if (rider != null) web.loadUrl(rider);
+            if (target != null) web.loadUrl(target);
             return;
         }
-        web.loadUrl(rider != null ? rider : BuildConfig.START_URL);
+        web.loadUrl(target != null ? target : BuildConfig.START_URL);
     }
 
     /** The rider screen from the on-duty notification, when it is a DineDesk page. */
@@ -184,6 +189,23 @@ public class MainActivity extends Activity {
         return url != null && isAppHost(Uri.parse(url)) ? url : null;
     }
 
+    /**
+     * A tapped app notification (Push.ACTION_OPEN, also FCM's click_action): its page, when it is a
+     * DineDesk page. The server sends paths ("/dashboard/orders"): they open on the host the app
+     * is on (the platform host when it just started).
+     */
+    private String pushUrl(Intent intent) {
+        if (intent == null || !Push.ACTION_OPEN.equals(intent.getAction())) return null;
+        String url = intent.getStringExtra(EXTRA_URL);
+        if (url == null || url.isEmpty()) return trustedPage ? null : BuildConfig.START_URL;
+        if (url.startsWith("/") && !url.startsWith("//")) {
+            Uri base = Uri.parse(trustedPage && !pageUrl.isEmpty() ? pageUrl : BuildConfig.START_URL);
+            if (base.getScheme() == null || base.getEncodedAuthority() == null) return null;
+            url = base.getScheme() + "://" + base.getEncodedAuthority() + url;
+        }
+        return isAppHost(Uri.parse(url)) ? url : null;
+    }
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -191,6 +213,38 @@ public class MainActivity extends Activity {
         // Already on the rider screen: just show the app as it is.
         String path = Uri.parse(pageUrl).getPath();
         if (rider != null && web != null && (path == null || !path.startsWith("/rider"))) web.loadUrl(rider);
+        String push = pushUrl(intent);
+        if (push != null && web != null) web.loadUrl(push);
+    }
+
+    /** Firebase gave this phone a (new) token: the page on screen registers it (dinedeskApp.ts installAppPush). */
+    void pushTokenChanged(String token) {
+        main.post(() -> {
+            if (web == null || !trustedPage || token == null || token.isEmpty()) return;
+            web.evaluateJavascript("window.dispatchEvent(new CustomEvent('dinedesk:push-token',{detail:" + JSONObject.quote(token) + "}))", null);
+        });
+    }
+
+    /** "Allow notifications": Android's question (13+) while it may still ask, else the app's notification settings. */
+    private void askPushPermission() {
+        if (Build.VERSION.SDK_INT >= 33 && !granted(Manifest.permission.POST_NOTIFICATIONS)
+                && (!Push.asked(this) || shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS))) {
+            Push.markAsked(this);
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_PERM_PUSH);
+            return;
+        }
+        if ("granted".equals(Push.permission(this))) return;
+        try {
+            Intent i;
+            if (Build.VERSION.SDK_INT >= 26) {
+                i = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+            } else {
+                i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getPackageName(), null));
+            }
+            startActivity(i);
+        } catch (Exception e) {
+            toast("Open Settings → Apps → DineDesk → Notifications to allow them.");
+        }
     }
 
     /** Keeps the splash screen (Android 12+) or launch background up until the first page draws, at most 3 s. */
@@ -472,6 +526,14 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
         boolean any = false;
         for (int r : results) any |= r == PackageManager.PERMISSION_GRANTED;
+        for (String p : permissions) if (Manifest.permission.POST_NOTIFICATIONS.equals(p)) Push.markAsked(this);
+        if (code == REQ_PERM_PUSH) {
+            // The page shows the new state; a token it may not have had yet goes along.
+            String token = Push.token(this);
+            if (token.isEmpty()) Push.refreshToken(this);
+            else pushTokenChanged(token);
+            return;
+        }
         if (code == REQ_PERM_UPLOAD) {
             if (pendingUpload != null) openChooser();
         } else if (code == REQ_PERM_CAMERA && pendingWebPermission != null) {
@@ -814,6 +876,28 @@ public class MainActivity extends Activity {
         public void sendLocationNow() {
             if (trustedPage) LocationService.sendNow();
         }
+
+        /** App notifications: this phone's Firebase token, '' when the build has no Firebase or it isn't known yet. */
+        @JavascriptInterface
+        public String pushToken() {
+            if (!trustedPage) return "";
+            String token = Push.token(MainActivity.this);
+            // Not known yet: it is asked for and arrives as the dinedesk:push-token event.
+            if (token.isEmpty()) Push.refreshToken(MainActivity.this);
+            return token;
+        }
+
+        /** { enabled, permission: granted|denied|default, token, version, flavor } */
+        @JavascriptInterface
+        public String pushStatus() {
+            if (!trustedPage) return "";
+            return Push.status(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void requestPushPermission() {
+            if (trustedPage) main.post(MainActivity.this::askPushPermission);
+        }
     }
 
     private boolean locationOn() {
@@ -885,6 +969,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        Push.detach(this);
         for (WebView pw : printing) pw.destroy();
         printing.clear();
         if (web != null) {
