@@ -42,7 +42,10 @@ while ($true) {
     if (-not (Running 'schedule:work')) { Start-Hidden $php 'artisan schedule:work' $backend 'schedule' }
     if (-not (Listening 5180)) {
         $env:RAYON_NUM_THREADS = '1'
-        Start-Hidden 'npx.cmd' 'vite --port 5180 --host' $frontend 'vite'
+        # Vite straight through node: npx.cmd can resolve to a broken copy inside node_modules.
+        $node = (Get-Command node.exe -ErrorAction SilentlyContinue).Source
+        if (-not $node) { $node = 'C:\Program Files\nodejs\node.exe' }
+        Start-Hidden $node 'node_modules\vite\bin\vite.js --port 5180 --host' $frontend 'vite'
     }
     Start-Sleep -Seconds 15
 }
