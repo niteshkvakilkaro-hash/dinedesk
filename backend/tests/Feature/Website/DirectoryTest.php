@@ -5,7 +5,7 @@ namespace Tests\Feature\Website;
 use App\Modules\Tenancy\Models\Tenant;
 use Tests\TestCase;
 
-/** The DineDesk app's place finder: GET /api/v1/directory on the platform host. */
+/** The NikoBite app's place finder: GET /api/v1/directory on the platform host. */
 class DirectoryTest extends TestCase
 {
     private function live(string $name, array $attrs = []): Tenant

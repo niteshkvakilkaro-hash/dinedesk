@@ -25,7 +25,7 @@ use Throwable;
 
 /**
  * Super admin → Integrations: the platform's own Razorpay, AI, WhatsApp, SMS, email and web push
- * keys, and the Firebase key for notifications in the DineDesk Android app. Secrets are stored encrypted and never sent back (only "set" and the last 4 characters);
+ * keys, and the Firebase key for notifications in the NikoBite Android app. Secrets are stored encrypted and never sent back (only "set" and the last 4 characters);
  * saving or removing one needs the admin's password. Every change is audited by field name,
  * never by value. Anything not saved here comes from the server .env.
  */
@@ -172,7 +172,7 @@ class IntegrationController extends Controller
             throw new ApiException($channel === 'whatsapp' ? 'Enter the access token, phone number ID and template first.' : 'Enter the auth key and OTP template ID first.', 422);
         }
         $code = (string) random_int(100000, 999999);
-        app(Messenger::class)->send($channel, $phone, $channel === 'sms' ? "{$code} is your DineDesk test code." : 'DineDesk test message: WhatsApp updates are set up.', $channel === 'sms' ? $code : null);
+        app(Messenger::class)->send($channel, $phone, $channel === 'sms' ? "{$code} is your NikoBite test code." : 'NikoBite test message: WhatsApp updates are set up.', $channel === 'sms' ? $code : null);
 
         return $live ? 'Sent. Check the phone.' : 'Messaging is in "Log only" mode: the message was written to the server log, not sent. Switch to Live to send real messages.';
     }
@@ -188,13 +188,13 @@ class IntegrationController extends Controller
         $project = Fcm::summary()['project_id'];
         $user = $request->user();
         if (! PushDevice::where('user_id', $user->id)->exists()) {
-            return "The key works (project {$project}), but no app devices are signed in as you. Sign in to the DineDesk app on your phone, then test again.";
+            return "The key works (project {$project}), but no app devices are signed in as you. Sign in to the NikoBite app on your phone, then test again.";
         }
         $t = StaffText::for($user);
-        $result = (new SendFcm($user->id, ['title' => 'DineDesk', 'body' => $t('push_test'), 'url' => '/platform', 'kind' => 'test', 'tag' => 'test'], 'orders'))->handle($fcm);
+        $result = (new SendFcm($user->id, ['title' => 'NikoBite', 'body' => $t('push_test'), 'url' => '/platform', 'kind' => 'test', 'tag' => 'test'], 'orders'))->handle($fcm);
         if (! $result['sent']) {
             throw new ApiException($result['removed']
-                ? 'Your app devices are no longer registered with Firebase (they were removed). Open the DineDesk app and sign in again.'
+                ? 'Your app devices are no longer registered with Firebase (they were removed). Open the NikoBite app and sign in again.'
                 : 'Firebase did not accept the notification. Check that the key belongs to the same Firebase project as the app.', 422);
         }
 
@@ -203,7 +203,7 @@ class IntegrationController extends Controller
 
     private function testMail(string $to): string
     {
-        Mail::raw('This is a test email from DineDesk. Email is set up.', fn ($m) => $m->to($to)->subject('DineDesk test email'));
+        Mail::raw('This is a test email from NikoBite. Email is set up.', fn ($m) => $m->to($to)->subject('NikoBite test email'));
         $mailer = (string) config('mail.default');
 
         return in_array($mailer, ['log', 'array'], true)

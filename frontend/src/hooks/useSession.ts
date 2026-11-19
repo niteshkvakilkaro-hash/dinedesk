@@ -75,7 +75,7 @@ export function useSignOut() {
   return async () => {
     // In a support session "Sign out" ends the session (audited) and returns to the own sign-in.
     const support = isSupportTab();
-    // The DineDesk app: this phone stops getting this person's notifications (while the token still works).
+    // The NikoBite app: this phone stops getting this person's notifications (while the token still works).
     if (!support) await forgetAppPush((path) => api.delete(path));
     try {
       await api.post(support ? '/support/end' : '/auth/logout');

@@ -215,11 +215,19 @@ function Editorial({ site }: { site: SiteData }) {
             {cover && <SiteImg image={cover} alt={t('site.coverAlt', { name: site.name })} sizes="(min-width: 1024px) 720px, 100vw" priority className="s-media aspect-[4/3] w-full" />}
           </div>
           <div className="col-span-4 flex flex-col justify-between gap-8 md:col-span-5">
-            {l(site.content, 'tagline') && (
-              <p className="s-reveal font-display text-2xl leading-snug md:text-3xl" style={delay(3)}>
-                {l(site.content, 'tagline')}
-              </p>
-            )}
+            <div>
+              {l(site.content, 'tagline') && (
+                <p className="s-reveal font-display text-2xl leading-snug md:text-3xl" style={delay(3)}>
+                  {l(site.content, 'tagline')}
+                </p>
+              )}
+              {/* A magazine dek: the opening lines of the owner's own story fill the column next to the photo. */}
+              {l(site.content, 'about') && (
+                <p className="s-reveal s-muted mt-5 line-clamp-4 hidden text-[17px] leading-relaxed md:block" style={delay(3)}>
+                  {l(site.content, 'about')}
+                </p>
+              )}
+            </div>
             <div className="space-y-8">
               <div className="hidden md:block">
                 <Ctas site={site} />

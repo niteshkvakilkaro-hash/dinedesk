@@ -16,6 +16,7 @@ import { scheduleSlots } from './schedule';
 import { useSkin } from './skin';
 import { useActiveTable } from '../table';
 import { Offers, type OfferState } from './Offers';
+import { siteHost } from '@/lib/host';
 
 const CONTACT_KEY = 'dd_checkout_contact';
 
@@ -161,7 +162,7 @@ export default function CheckoutPage({ site }: { site: SiteData }) {
     try {
       const res = await request();
       const { order, token, razorpay } = res;
-      rememberOrder(window.location.host, order.id, token, order.number);
+      rememberOrder(siteHost(), order.id, token, order.number);
       if (me && saveAddr && type === 'delivery' && !me.addresses.some(sameAddress)) {
         saveAddresses.mutate({ name: me.name ?? (contact.name.trim() || null), addresses: [...me.addresses, { label: null, line1: contact.line1.trim(), line2: contact.line2.trim() || null, landmark: contact.landmark.trim() || null, pincode: contact.pincode }].slice(-5) });
       }

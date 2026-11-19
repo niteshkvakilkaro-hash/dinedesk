@@ -3,7 +3,7 @@ plugins {
 }
 
 /*
- * One app, DineDesk, for guests and businesses. It opens <platform host>/app and stays inside the
+ * One app, NikoBite, for guests and businesses. It opens <platform host>/app and stays inside the
  * platform host and its business subdomains.
  *
  *   dev   http://<pc-ip>:<port>/app, the dev server on this PC (phone on the same Wi-Fi; businesses
@@ -100,7 +100,7 @@ android {
         targetSdk 35
         versionCode appVersionCode
         versionName appVersionName
-        resValue 'string', 'app_name', 'DineDesk'
+        resValue 'string', 'app_name', 'NikoBite'
     }
 
     signingConfigs {
@@ -126,7 +126,7 @@ android {
     productFlavors {
         dev {
             dimension 'env'
-            // The id of the earlier local "DineDesk" test app, so it updates in place on test phones.
+            // The id of the earlier local "NikoBite" test app, so it updates in place on test phones.
             applicationId 'com.dinedesk.admin.local'
             versionNameSuffix '-local'
             buildConfigField 'String', 'START_URL', "\"http://${devHost}:${devPort}/app\""

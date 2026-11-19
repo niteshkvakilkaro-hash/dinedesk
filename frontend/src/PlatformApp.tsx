@@ -15,6 +15,7 @@ const FeaturePage = lazy(() => import('@/features/marketing/FeaturePage'));
 const ThemesPage = lazy(() => import('@/features/marketing/ThemesPage'));
 const PricingPage = lazy(() => import('@/features/marketing/PricingPage'));
 const SignupPage = lazy(() => import('@/features/auth/AuthPages').then((m) => ({ default: m.SignupPage })));
+const DemoPage = lazy(() => import('@/features/auth/DemoPage').then((m) => ({ default: m.DemoPage })));
 const LoginPage = lazy(() => import('@/features/auth/AuthPages').then((m) => ({ default: m.LoginPage })));
 const OnboardingWizard = lazy(() => import('@/features/onboarding/OnboardingWizard'));
 const DashboardLayout = lazy(() => import('@/features/dashboard/DashboardLayout'));
@@ -134,17 +135,18 @@ export default function PlatformApp() {
       <RobotsMeta />
       <Suspense fallback={<FullPageSpinner />}>
     <Routes>
-      {/* DineDesk's own marketing pages */}
+      {/* NikoBite's own marketing pages */}
       <Route element={<MarketingLayout />}>
         <Route index element={<Landing />} />
         <Route path="pricing" element={<PricingPage />} />
         <Route path="themes" element={<ThemesPage />} />
         <Route path="features/:slug" element={<FeaturePage />} />
       </Route>
-      {/* The DineDesk app (Android WebView) starts here: find a place, or sign in as a business. */}
+      {/* The NikoBite app (Android WebView) starts here: find a place, or sign in as a business. */}
       <Route path="app" element={<AppHome />} />
       <Route path="signup" element={<Guard need="guest"><SignupPage /></Guard>} />
       <Route path="login" element={<Guard need="guest"><LoginPage /></Guard>} />
+      <Route path="demo" element={<Guard need="guest"><DemoPage /></Guard>} />
       <Route path="onboarding" element={<Guard need="onboarding"><OnboardingWizard /></Guard>} />
       <Route path="dashboard" element={<Guard need="tenant"><DashboardLayout /></Guard>}>
         <Route index element={<Overview />} />

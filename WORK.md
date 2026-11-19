@@ -1,12 +1,12 @@
-# DineDesk — kaise kaam karta hai
+# NikoBite — kaise kaam karta hai
 
-Yeh document batata hai ki DineDesk kya hai, isme kaun kaun se feature hain, har feature kaise kaam karta hai, aur abhi kya baaki hai. Technical setup (server, deploy) ke liye `docs/DEPLOYMENT.md` aur `README.md` dekhiye.
+Yeh document batata hai ki NikoBite kya hai, isme kaun kaun se feature hain, har feature kaise kaam karta hai, aur abhi kya baaki hai. Technical setup (server, deploy) ke liye `docs/DEPLOYMENT.md` aur `README.md` dekhiye.
 
 ---
 
-## 1. DineDesk kya hai
+## 1. NikoBite kya hai
 
-DineDesk ek **online software (SaaS)** hai jo restaurant, café, cloud kitchen aur hotel ke liye bana hai. Ek hi platform par bahut saare business (har ek alag) apna kaam chala sakte hain:
+NikoBite ek **online software (SaaS)** hai jo restaurant, café, cloud kitchen aur hotel ke liye bana hai. Ek hi platform par bahut saare business (har ek alag) apna kaam chala sakte hain:
 
 - har business ki **apni website** (apne naam ke address par),
 - **online order, table booking, room booking**,
@@ -14,7 +14,7 @@ DineDesk ek **online software (SaaS)** hai jo restaurant, café, cloud kitchen a
 - **stock, hisaab, reports, staff, delivery riders**,
 - aur ek **Android app** jo grahak aur owner dono ke kaam aati hai.
 
-DineDesk ka malik (aap) **Super Admin** hai: saare business dekh sakta hai, plan aur keemat set karta hai, aur restaurants se subscription ka paisa leta hai.
+NikoBite ka malik (aap) **Super Admin** hai: saare business dekh sakta hai, plan aur keemat set karta hai, aur restaurants se subscription ka paisa leta hai.
 
 ---
 
@@ -22,7 +22,7 @@ DineDesk ka malik (aap) **Super Admin** hai: saare business dekh sakta hai, plan
 
 | Kaun | Kahan se | Kya karta hai |
 |---|---|---|
-| **Grahak (guest)** | Restaurant ki website ya DineDesk app | Menu dekhna, order, table/room booking, order track karna |
+| **Grahak (guest)** | Restaurant ki website ya NikoBite app | Menu dekhna, order, table/room booking, order track karna |
 | **Owner** | Dashboard (`/dashboard`) | Sab kuch: menu, website, orders, billing, staff, reports, settings |
 | **Manager** | Dashboard | Owner jaisa, par plan/billing aur staff banana nahi |
 | **Cashier** | Dashboard → POS | Billing, payment, orders |
@@ -146,7 +146,7 @@ Har role ko sirf wahi dikhta hai jiski use permission hai.
 - **Settings page:** saari settings ek jagah cards me.
 - Saaf groups: Aaj (orders, bookings, tables, POS, kitchen, riders), Menu aur kamre, Grahak aur offers, Paisa, Website, Settings.
 
-### 4.16 DineDesk app (Android) — ek hi app sab ke liye
+### 4.16 NikoBite app (Android) — ek hi app sab ke liye
 - Kholte hi: **grahak** ke liye restaurant/hotel dhundho (naam/shahar), **QR scan**, haal me dekhe; **business** ke liye Sign in / Free trial.
 - Restaurant ki site app me app jaisi dikhti hai (upar back button aur title).
 - App me photo upload, QR camera, PDF/CSV download, bill print, WhatsApp/call/UPI/Maps links, internet na ho to "Retry" page.
@@ -154,7 +154,7 @@ Har role ko sirf wahi dikhta hai jiski use permission hai.
 - **App notifications (Firebase):** sign in kiye owner/staff/rider/super admin ko naye order, booking, tiffin request, rider job wagaira ke alert app mein (web push app ke andar nahi chalta). My account → "Alerts on this device" mein "Allow notifications".
 - Owner apna business app ki list se chhupa sakta hai.
 
-### 4.17 Plans aur subscription (DineDesk ki kamai)
+### 4.17 Plans aur subscription (NikoBite ki kamai)
 | Feature | Starter | Growth | Pro |
 |---|---|---|---|
 | Website, theme, online order, table booking | ✅ | ✅ | ✅ |
@@ -166,7 +166,7 @@ Har role ko sirf wahi dikhta hai jiski use permission hai.
 - Keemat Super Admin → Plans me **aap tay karenge** (abhi khaali hai).
 - Paisa **Razorpay subscription** se. Trial ke beech pay kare to pehla charge trial khatam hone par.
 - Payment fail → kuch din grace → phir **read-only** (data dikhta hai, badal nahi sakte) jab tak payment na ho.
-- Har payment ka DineDesk ki taraf se GST invoice.
+- Har payment ka NikoBite ki taraf se GST invoice.
 
 ### 4.18 Super Admin panel (`/platform`)
 - **Businesses:** list, search, status/plan badalna (wajah ke saath), feature on/off, activity.
@@ -211,7 +211,7 @@ Har role ko sirf wahi dikhta hai jiski use permission hai.
 
 - **Servers:** `scripts/dev-servers.ps1` (watchdog) — MySQL, backend, website, live updates, queue, scheduler chalu rakhta hai; PC restart par apne aap. Band karne ke liye `scripts/dev-servers-stop.ps1`.
 - **PC par:** http://localhost:5180 — **phone par (same Wi-Fi):** http://192.168.1.42:5180/app (firewall rule zaroori, admin PowerShell me ek baar).
-- **APK:** `android/apk/DineDesk-local.apk`.
+- **APK:** `android/apk/NikoBite-local.apk`.
 - **Demo logins** (sirf local; live par nahi banenge):
 
 | Kaun | Email | Password |

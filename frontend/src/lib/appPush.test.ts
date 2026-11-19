@@ -34,7 +34,7 @@ function auth(initial: string | null) {
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
-describe('app notifications (DineDesk Android app)', () => {
+describe('app notifications (NikoBite Android app)', () => {
   let uninstall: (() => void) | undefined;
   beforeEach(() => localStorage.clear());
   afterEach(() => uninstall?.());

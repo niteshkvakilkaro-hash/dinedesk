@@ -8,6 +8,7 @@ use App\Modules\Tenancy\Support\TenantContext;
 use App\Modules\Website\Services\SitePresenter;
 use App\Support\LocalDate;
 use Illuminate\Notifications\AnonymousNotifiable;
+use App\Support\SiteUrl;
 
 /** Guest messages about bookings, on the channels the business chose (Ordering → notifications). */
 class ReservationNotifier
@@ -55,7 +56,7 @@ class ReservationNotifier
 
     public static function manageUrl(string $host, Reservation $r): string
     {
-        $base = str_replace('{host}', $host, (string) config('dinedesk.site_url_pattern'));
+        $base = SiteUrl::for($host);
 
         return rtrim($base, '/')."/reservation?code={$r->code}";
     }

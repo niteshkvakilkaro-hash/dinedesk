@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { isDineDeskApp } from '@/lib/dinedeskApp';
 
-/** Opened inside the DineDesk Android app (or with ?app=1 once in this tab): app chrome instead of website chrome. */
+/** Opened inside the NikoBite Android app (or with ?app=1 once in this tab): app chrome instead of website chrome. */
 export const IN_APP = typeof window !== 'undefined' && isDineDeskApp();
 
 /**

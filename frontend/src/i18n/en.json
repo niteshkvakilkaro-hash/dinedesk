@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "DineDesk",
+    "appName": "NikoBite",
     "signIn": "Sign in",
     "signUp": "Sign up",
     "signOut": "Sign out",
@@ -112,7 +112,7 @@
     "included": "Included"
   },
   "auth": {
-    "signupTitle": "Create your DineDesk account",
+    "signupTitle": "Create your NikoBite account",
     "signupSubtitle": "Step 1 of 7 · Your account",
     "loginTitle": "Welcome back",
     "loginSubtitle": "Sign in to your business dashboard.",
@@ -132,7 +132,7 @@
     "resend": "Resend code",
     "devCode": "Development only: your code is {{code}}",
     "newHere": "New here? We just need your name.",
-    "noAccount": "New to DineDesk?",
+    "noAccount": "New to NikoBite?",
     "haveAccount": "Already have an account?",
     "createAccount": "Create account",
     "showPassword": "Show password",
@@ -670,7 +670,7 @@
           "keys": "domain website address url www"
         },
         "billing": {
-          "desc": "Your DineDesk plan, invoices and payment",
+          "desc": "Your NikoBite plan, invoices and payment",
           "keys": "plan subscription invoice payment billing upgrade"
         },
         "referral": {
@@ -704,7 +704,7 @@
     },
     "getStarted": {
       "title": "Get started",
-      "subtitle": "A few steps to get your business fully running on DineDesk.",
+      "subtitle": "A few steps to get your business fully running on NikoBite.",
       "progress": "{{done}} of {{total}} done",
       "dismiss": "Hide",
       "dismissLabel": "Hide the get started list",
@@ -922,7 +922,7 @@
       "testHint": "Tests use the saved keys: save your changes first.",
       "razorpay": {
         "title": "Razorpay (subscriptions)",
-        "text": "The platform's own Razorpay account: businesses pay their DineDesk plan through it. (Each business's customer payments use that business's own keys.)",
+        "text": "The platform's own Razorpay account: businesses pay their NikoBite plan through it. (Each business's customer payments use that business's own keys.)",
         "key_id": "Key ID",
         "key_secret": "Key secret",
         "webhook_secret": "Webhook secret",
@@ -990,14 +990,14 @@
       },
       "firebase": {
         "title": "Firebase (app notifications)",
-        "text": "Notifications for new orders, bookings and rider jobs in the DineDesk Android app.",
+        "text": "Notifications for new orders, bookings and rider jobs in the NikoBite Android app.",
         "project": "Project",
         "account": "Service account",
-        "none": "No key yet: the DineDesk app can’t show notifications.",
+        "none": "No key yet: the NikoBite app can’t show notifications.",
         "credentials": "Service-account key (JSON)",
         "pasteHint": "Firebase console → Project settings → Service accounts → Generate new private key. Paste the file’s contents here or choose the file.",
         "chooseFile": "Choose the .json file",
-        "testHint": "Sends a test notification to the DineDesk app on phones where you are signed in with this account.",
+        "testHint": "Sends a test notification to the NikoBite app on phones where you are signed in with this account.",
         "appBuild": "The app needs its own Firebase file too (google-services.json, see android/README.md), then a new app build."
       }
     }
@@ -1013,7 +1013,7 @@
     "demoNotice": "Demo website — the menu, prices and text are sample content, not a real business.",
     "notFoundTitle": "No restaurant here yet",
     "notFoundText": "There is no business at this address.",
-    "poweredBy": "Powered by DineDesk",
+    "poweredBy": "Powered by NikoBite",
     "nav": {
       "home": "Home",
       "menu": "Menu",
@@ -1642,9 +1642,9 @@
       "showGstinHint": "Uses the GSTIN from Business details."
     },
     "directory": {
-      "title": "DineDesk app",
-      "label": "Show my business in the DineDesk app",
-      "hint": "Guests can find you by name or city in the DineDesk app. Your website and QR codes work either way."
+      "title": "NikoBite app",
+      "label": "Show my business in the NikoBite app",
+      "hint": "Guests can find you by name or city in the NikoBite app. Your website and QR codes work either way."
     }
   },
   "gallery": {
@@ -2179,7 +2179,7 @@
       "pickHint": "Up to {{count}} pages · JPG, PNG, WEBP or PDF",
       "read": "Read the menu",
       "reading": "Reading your menu… this takes about a minute.",
-      "off": "AI features are not switched on for this server yet. Ask your DineDesk admin to add the AI key, or use the CSV import for now.",
+      "off": "AI features are not switched on for this server yet. Ask your NikoBite admin to add the AI key, or use the CSV import for now.",
       "check": "The AI can misread a price or a name. Check every row, untick anything that isn't a dish, and fill in missing prices.",
       "keep": "Add",
       "keepDish": "Add {{name}}",
@@ -2324,7 +2324,7 @@
     "notifications": "Customer updates",
     "notificationsHint": "Sent when an order is received, confirmed, ready, out for delivery, completed or cancelled.",
     "email": "Email (when the customer gives one)",
-    "providerHint": "Sent through the messaging provider set up by DineDesk.",
+    "providerHint": "Sent through the messaging provider set up by NikoBite.",
     "saved": "Ordering settings saved.",
     "smsHint": "SMS rules in India (DLT) allow only fixed templates, so SMS is used for one-time codes. Order updates go by WhatsApp and email.",
     "upiHint": "Guests pay your UPI ID from their own UPI app. No gateway fee; you confirm each payment.",
@@ -3705,7 +3705,8 @@
       "dashboard": "Open dashboard",
       "menu": "Menu",
       "close": "Close menu",
-      "main": "Main"
+      "main": "Main",
+      "demo": "Try live demo"
     },
     "hero": {
       "eyebrow": "For restaurants, cafés, cloud kitchens and hotels in India",
@@ -3718,17 +3719,25 @@
         "12 Indian languages",
         "GST-ready bills"
       ],
-      "visualAlt": "A restaurant website made with DineDesk, on a laptop and a phone",
+      "visualAlt": "A restaurant website made with NikoBite, on a laptop and a phone",
       "chipOrders": "Orders arrive live",
       "chipQr": "QR table ordering",
-      "chipGst": "GST bill in one tap"
+      "chipGst": "GST bill in one tap",
+      "live": {
+        "newOrder": "New order",
+        "table": "Table {{n}}",
+        "scan": "Scan to order",
+        "bill": "GST bill",
+        "paid": "Paid",
+        "total": "Total"
+      }
     },
     "why": {
       "title": "Built to bring guests to you, not to a marketplace",
       "items": {
         "own": {
           "title": "Your customers stay yours",
-          "text": "Orders come through your own website. DineDesk takes no commission per order, and online payments go to your own Razorpay account."
+          "text": "Orders come through your own website. NikoBite takes no commission per order, and online payments go to your own Razorpay account."
         },
         "look": {
           "title": "Look like a premium brand",
@@ -3792,7 +3801,8 @@
       "lead": "Every theme is a full website with its own fonts, colours and motion. Open a demo to try it on a phone.",
       "demo": "Open live demo",
       "all": "See all themes",
-      "demoNote": "Demo sites use sample menus and photos, not real businesses."
+      "demoNote": "Demo sites use sample menus and photos, not real businesses.",
+      "previewAlt": "{{name}} theme preview"
     },
     "how": {
       "title": "Live in three steps",
@@ -3831,7 +3841,7 @@
       "title": "Questions owners ask",
       "items": [
         {
-          "q": "Does DineDesk take a commission on my orders?",
+          "q": "Does NikoBite take a commission on my orders?",
           "a": "No. You pay a monthly plan. Online payments go to your own Razorpay account (Razorpay's own fees apply), and cash and counter payments are yours."
         },
         {
@@ -3840,7 +3850,7 @@
         },
         {
           "q": "Can I use my own domain?",
-          "a": "Yes, on Growth and Pro. Your site also keeps a free address on the DineDesk domain."
+          "a": "Yes, on Growth and Pro. Your site also keeps a free address on the NikoBite domain."
         },
         {
           "q": "Will my website show up on Google?",
@@ -3865,25 +3875,25 @@
       "tagline": "Websites, online ordering and restaurant management for India.",
       "product": "Product",
       "account": "Account",
-      "rights": "© {{year}} DineDesk"
+      "rights": "© {{year}} NikoBite"
     },
     "seo": {
-      "homeTitle": "DineDesk: restaurant website, online ordering and POS for India",
+      "homeTitle": "NikoBite: restaurant website, online ordering and POS for India",
       "homeDesc": "Get a professional restaurant website with online ordering, QR table ordering, table bookings, POS with GST bills and a kitchen display. No per-order commission. Free trial.",
-      "pricingTitle": "Pricing: DineDesk restaurant software plans",
-      "pricingDesc": "DineDesk plans for restaurants, cafés and hotels: website, online ordering, QR ordering, POS and more. Start with a free trial, no card needed.",
-      "themesTitle": "Restaurant website themes and live demos | DineDesk",
+      "pricingTitle": "Pricing: NikoBite restaurant software plans",
+      "pricingDesc": "NikoBite plans for restaurants, cafés and hotels: website, online ordering, QR ordering, POS and more. Start with a free trial, no card needed.",
+      "themesTitle": "Restaurant website themes and live demos | NikoBite",
       "themesDesc": "Eight restaurant website themes for fine dining, cafés, South Indian kitchens, QSRs, street food and hotels. Open a live demo on your phone."
     },
     "feature": {
       "whatYouGet": "What you get",
-      "related": "More from DineDesk",
+      "related": "More from NikoBite",
       "faqTitle": "Questions",
       "backHome": "All features"
     },
     "f": {
       "website": {
-        "metaTitle": "Restaurant website builder for India | DineDesk",
+        "metaTitle": "Restaurant website builder for India | NikoBite",
         "metaDesc": "Make a fast, mobile-first restaurant website with your menu, photos, hours, map, table booking and online ordering. 12 Indian languages. Free trial.",
         "eyebrow": "Restaurant website",
         "title": "A restaurant website that looks premium and loads fast",
@@ -3926,7 +3936,7 @@
         ]
       },
       "ordering": {
-        "metaTitle": "Commission-free online ordering for restaurants | DineDesk",
+        "metaTitle": "Commission-free online ordering for restaurants | NikoBite",
         "metaDesc": "Take delivery and takeaway orders on your own website with no per-order commission. Delivery zones, scheduled orders, Razorpay, coupons and live tracking.",
         "eyebrow": "Online ordering",
         "title": "Take orders on your own website, without commission",
@@ -3964,12 +3974,12 @@
           },
           {
             "q": "Do I need my own delivery riders?",
-            "a": "Yes, DineDesk handles ordering and tracking; delivery is done by your team."
+            "a": "Yes, NikoBite handles ordering and tracking; delivery is done by your team."
           }
         ]
       },
       "qr": {
-        "metaTitle": "QR code menu and table ordering for restaurants | DineDesk",
+        "metaTitle": "QR code menu and table ordering for restaurants | NikoBite",
         "metaDesc": "Guests scan a QR code at the table, see your menu, order and call a waiter. One running bill per table, kitchen tickets and live table status.",
         "eyebrow": "QR table ordering",
         "title": "Scan, order, eat. No waiting for the menu.",
@@ -4012,7 +4022,7 @@
         ]
       },
       "pos": {
-        "metaTitle": "Restaurant POS with GST billing and kitchen display | DineDesk",
+        "metaTitle": "Restaurant POS with GST billing and kitchen display | NikoBite",
         "metaDesc": "Fast restaurant POS: GST tax invoices with CGST/SGST, split payments, discounts, kitchen display, day-end cash drawer and reports. Works in the browser.",
         "eyebrow": "POS and GST billing",
         "title": "Bill faster, with GST done right",
@@ -4055,7 +4065,7 @@
         ]
       },
       "hotel": {
-        "metaTitle": "Hotel booking engine and front desk software | DineDesk",
+        "metaTitle": "Hotel booking engine and front desk software | NikoBite",
         "metaDesc": "Room booking engine on your own website, front desk, housekeeping, GST room bills and room-service ordering, together with your restaurant. Pro plan.",
         "eyebrow": "Hotel management",
         "title": "Rooms and restaurant, in one system",
@@ -4097,6 +4107,13 @@
           }
         ]
       }
+    },
+    "facts": {
+      "label": "NikoBite in numbers",
+      "themes": "Website themes",
+      "languages": "Indian languages",
+      "commission": "Commission per order",
+      "always": "Your website, always open"
     }
   },
   "print": {
@@ -4175,7 +4192,7 @@
     },
     "tally": "Tally Prime vouchers (XML)",
     "tallyNote": "Before importing in Tally (Import → Vouchers), create these ledgers once: {{ledgers}}, plus a ledger for each B2B buyer.",
-    "caNote": "Please have your CA check the figures before filing. DineDesk prepares the data; it doesn't file returns."
+    "caNote": "Please have your CA check the figures before filing. NikoBite prepares the data; it doesn't file returns."
   },
   "push": {
     "title": "Alerts on this device",
@@ -4192,12 +4209,12 @@
       "server-off": "Push alerts aren't set up on this server yet."
     },
     "app": {
-      "on": "New orders and bookings ring on this phone through the DineDesk app, even when it is closed.",
+      "on": "New orders and bookings ring on this phone through the NikoBite app, even when it is closed.",
       "default": "Allow notifications so new orders and bookings ring on this phone, even when the app is closed.",
-      "denied": "Notifications are switched off for the DineDesk app. Tap “Allow notifications” and switch them on in the phone’s settings.",
+      "denied": "Notifications are switched off for the NikoBite app. Tap “Allow notifications” and switch them on in the phone’s settings.",
       "allow": "Allow notifications",
       "waiting": "Connecting this phone for notifications… This takes a moment.",
-      "unavailable": "App notifications aren’t available in this version of the DineDesk app yet."
+      "unavailable": "App notifications aren’t available in this version of the NikoBite app yet."
     }
   },
   "finance": {
@@ -4489,7 +4506,7 @@
     "copied": "Link copied.",
     "copyFailed": "Could not copy. Select the link and copy it.",
     "whatsapp": "Share on WhatsApp",
-    "shareText": "I run {{business}} on DineDesk: our own website, online orders, billing and more. Sign up with my link and we both get {{days}} days free: {{link}}",
+    "shareText": "I run {{business}} on NikoBite: our own website, online orders, billing and more. Sign up with my link and we both get {{days}} days free: {{link}}",
     "stats": {
       "signedUp": "Signed up via you",
       "paying": "Became paying",
@@ -4539,14 +4556,14 @@
     "scanUnsupported": "This phone can't scan QR codes here. Type the address instead.",
     "cameraBlocked": "The camera isn't available. Take a photo of the QR code instead.",
     "noQrFound": "No QR code found in that photo. Try again, a little closer.",
-    "notDineDesk": "This QR isn't a DineDesk place.",
+    "notDineDesk": "This QR isn't a NikoBite place.",
     "checking": "Checking…",
     "addressLabel": "Or type the address",
     "addressPlaceholder": "e.g. haveli.dinedesk.in",
     "open": "Open",
     "recent": "Recently visited",
     "clearRecent": "Clear",
-    "places": "Places on DineDesk",
+    "places": "Places on NikoBite",
     "results": "Results",
     "noPlaces": "No places match “{{q}}”. Try another name or city.",
     "noPlacesYet": "No places to show yet.",
@@ -4607,13 +4624,13 @@
     "modeApp": "Sent every {{minutes}} min, also when the app is in the background.",
     "modeWeb": "Sent every {{minutes}} min while this screen is open. Keep it open.",
     "error": {
-      "denied": "Location permission is off. Allow location for DineDesk in the phone settings.",
-      "insecure": "Location needs a secure (https) address. Open DineDesk over https or use the DineDesk app.",
-      "unsupported": "This browser can't share location. Use the DineDesk app.",
+      "denied": "Location permission is off. Allow location for NikoBite in the phone settings.",
+      "insecure": "Location needs a secure (https) address. Open NikoBite over https or use the NikoBite app.",
+      "unsupported": "This browser can't share location. Use the NikoBite app.",
       "position": "Could not get your location. Check that GPS is on.",
       "offline": "No internet. Locations will be sent when you are back online.",
       "off_duty": "You are off duty, so location sharing has stopped.",
-      "start_failed": "The app could not start location sharing. Allow location (all the time) for DineDesk and start duty again.",
+      "start_failed": "The app could not start location sharing. Allow location (all the time) for NikoBite and start duty again.",
       "unauthorized": "Location sharing stopped. Start duty again."
     },
     "myDeliveries": "My deliveries ({{n}})",
@@ -4630,5 +4647,28 @@
     "noAccess": "This screen is for delivery riders.",
     "doneToast": "Delivered. Thank you!",
     "outToast": "Out for delivery. The customer can see where you are."
+  },
+  "demo": {
+    "title": "Try NikoBite live",
+    "subtitle": "Get your own sample restaurant in seconds: menu with photos, website, online orders, POS and kitchen screen. Free, no card.",
+    "mobile": "Mobile number",
+    "mobileHint": "Our team may call to help you set it up.",
+    "kind": "What do you run?",
+    "submit": "Create my demo",
+    "note": "The demo stays open for 7 days. Sample data only.",
+    "realAccount": "Ready for the real thing?",
+    "steps": [
+      "Creating your account",
+      "Adding a menu with photos",
+      "Building your website",
+      "Switching on orders, tables and POS"
+    ],
+    "wait": "This takes about 15 seconds.",
+    "readyTitle": "Your demo is ready",
+    "readySubtitle": "Save these sign-in details. The demo is open until {{date}}.",
+    "keep": "Tip: take a screenshot of these details to come back later.",
+    "copy": "Copy {{what}}",
+    "open": "Open my dashboard",
+    "site": "See my demo website"
   }
 }

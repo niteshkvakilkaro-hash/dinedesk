@@ -18,7 +18,7 @@ const SWATCH: Record<AdminPalette, [string, string, string]> = {
 /**
  * Push alerts (new orders, bookings) on this device. In the header Appearance menu, and on
  * My account (?open=alerts, from Settings and the search) under that card's own heading.
- * Inside the DineDesk Android app they are the app's own notifications (web push doesn't work there).
+ * Inside the NikoBite Android app they are the app's own notifications (web push doesn't work there).
  */
 export function PushAlerts({ inMenu = true }: { inMenu?: boolean }) {
   const [inApp] = useState(() => androidBridge() !== null);

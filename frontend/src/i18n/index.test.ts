@@ -4,7 +4,7 @@ import ta from './ta.json';
 describe('language switching', () => {
   it('settles on a regional English instead of looping', async () => {
     await i18n.changeLanguage('en-US');
-    expect(i18n.t('common.appName')).toBe('DineDesk');
+    expect(i18n.t('common.appName')).toBe('NikoBite');
     expect(document.documentElement.lang).toBe('en-IN');
   });
 

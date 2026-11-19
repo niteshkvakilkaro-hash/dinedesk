@@ -71,10 +71,15 @@ export function useLocalized() {
 }
 
 /** Bestsellers and chef's specials first, for "Today's specials" style sections. */
-export function featuredItems(menu: MenuCategory[] | undefined, limit = 6): MenuItem[] {
+/**
+ * Dishes for the home page: bestsellers and chef's specials first, topped up with other dishes,
+ * in whole rows of `perRow` (no lone card on a second row) once there is more than one row.
+ */
+export function featuredItems(menu: MenuCategory[] | undefined, limit = 6, perRow = 1): MenuItem[] {
   const items = (menu ?? []).flatMap((c) => c.items).filter((i) => i.is_available);
   const featured = items.filter((i) => i.is_bestseller || i.is_chefs_special);
-  return (featured.length ? featured : items).slice(0, limit);
+  const picked = [...featured, ...items.filter((i) => !featured.includes(i))].slice(0, limit);
+  return picked.length > perRow ? picked.slice(0, picked.length - (picked.length % perRow)) : picked;
 }
 
 export function formatPrice(price: string | number, lang = 'en') {

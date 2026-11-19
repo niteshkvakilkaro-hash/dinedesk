@@ -113,7 +113,8 @@ export function Signature({ site, extra: Extra }: { site: SiteData; extra?: Comp
   const { t } = useTranslation();
   const { data: menu } = useSiteMenu();
   const royal = isRoyal(site);
-  const items = featuredItems(menu, royal ? 4 : 6);
+  // Whole rows: two columns in the royal list, three cards on desktop otherwise.
+  const items = featuredItems(menu, royal ? 4 : 6, royal ? 2 : 3);
   if (!items.length) return null;
   return (
     <>

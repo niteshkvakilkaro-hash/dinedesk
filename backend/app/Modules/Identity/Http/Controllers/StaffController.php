@@ -65,8 +65,8 @@ class StaffController extends Controller
             'password' => ['nullable', 'required_with:email', Password::min(8)->letters()->numbers()],
         ], [
             'phone.regex' => Phone::MESSAGE,
-            'email.unique' => 'This email already has a DineDesk account.',
-            'phone.unique' => 'This mobile number already has a DineDesk account.',
+            'email.unique' => 'This email already has a NikoBite account.',
+            'phone.unique' => 'This mobile number already has a NikoBite account.',
         ]);
 
         $this->features->assertWithinLimit($tenant, 'staff_accounts', $this->staffCount());

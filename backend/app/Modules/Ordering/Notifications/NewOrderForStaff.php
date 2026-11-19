@@ -17,7 +17,7 @@ class NewOrderForStaff extends Notification
         return ['database', 'webpush', ...FcmChannel::for($notifiable)];
     }
 
-    /** The same alert in the DineDesk Android app; rings (channel "orders"). */
+    /** The same alert in the NikoBite Android app; rings (channel "orders"). */
     public function toFcm(object $notifiable): array
     {
         return $this->toWebPush($notifiable) + ['kind' => 'order', 'channel' => 'orders'];

@@ -74,7 +74,7 @@ class CalendarSync
         }
 
         $stamp = now()->utc()->format('Ymd\THis\Z');
-        $lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//DineDesk//Room calendar//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:'.self::text("{$tenant->name} – {$type->name}")];
+        $lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//NikoBite//Room calendar//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:'.self::text("{$tenant->name} – {$type->name}")];
         foreach ($runs as [$a, $b]) {
             $lines[] = 'BEGIN:VEVENT';
             $lines[] = 'UID:'.$type->id.'-'.$a->format('Ymd').'@dinedesk';

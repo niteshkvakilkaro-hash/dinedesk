@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { PLATFORM_DOMAIN } from '@/lib/host';
-import ogImage from './assets/site-desktop.webp';
+import ogImage from './assets/hero/coastal-desktop.webp';
 import { featureBySlug } from './content';
 
 /** The marketing site's public address (https on the real domain, the dev server locally). */
@@ -23,11 +23,11 @@ export interface PageHead {
 /**
  * Title, description and JSON-LD for each marketing page. Used by the pages in the browser
  * and by the build-time pre-render (scripts/prerender.mjs), so both always agree.
- * Everything describes only what DineDesk really does: no ratings, reviews or customer counts.
+ * Everything describes only what NikoBite really does: no ratings, reviews or customer counts.
  */
 export function marketingHead(path: string, t: TFunction): PageHead {
   const faq = t('mk.faq.items', { returnObjects: true }) as { q: string; a: string }[];
-  const crumbs = (name: string) => breadcrumbJsonLd([{ name: 'DineDesk', path: '/' }, { name, path }]);
+  const crumbs = (name: string) => breadcrumbJsonLd([{ name: 'NikoBite', path: '/' }, { name, path }]);
   // The pricing page repeats the home page's FAQ: it is marked up once, on the home page.
   if (path === '/pricing') return { title: t('mk.seo.pricingTitle'), description: t('mk.seo.pricingDesc'), path, jsonLd: [orgJsonLd()[0], crumbs(t('mk.nav.pricing'))] };
   if (path === '/themes') return { title: t('mk.seo.themesTitle'), description: t('mk.seo.themesDesc'), path, jsonLd: [orgJsonLd()[0], crumbs(t('mk.nav.themes'))] };
@@ -51,7 +51,7 @@ export function headTags(head: PageHead, lang: string): { meta: [string, string,
       ['name', 'description', head.description],
       ['name', 'robots', 'index, follow'],
       ['property', 'og:type', 'website'],
-      ['property', 'og:site_name', 'DineDesk'],
+      ['property', 'og:site_name', 'NikoBite'],
       ['property', 'og:title', head.title],
       ['property', 'og:description', head.description],
       ['property', 'og:url', url],
@@ -107,15 +107,15 @@ export function usePageMeta(head: PageHead) {
   }, [head.title, head.description, head.path, ld, i18n.language]);
 }
 
-/** DineDesk as an organisation and as a web application (no ratings or offers invented). */
+/** NikoBite as an organisation and as a web application (no ratings or offers invented). */
 export function orgJsonLd() {
   const origin = siteOrigin();
   return [
-    { '@context': 'https://schema.org', '@type': 'Organization', name: 'DineDesk', url: origin, logo: `${origin}/favicon.svg` },
+    { '@context': 'https://schema.org', '@type': 'Organization', name: 'NikoBite', url: origin, logo: `${origin}/favicon.svg` },
     {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
-      name: 'DineDesk',
+      name: 'NikoBite',
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Web browser',
       url: origin,

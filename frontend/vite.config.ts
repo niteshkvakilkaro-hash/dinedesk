@@ -3,12 +3,26 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath, URL } from 'node:url';
 
+// The loading splash lives in src/boot/splash.html (src/lib/startup.ts guards it); it goes into
+// index.html at <!--app-splash--> so it paints before any JavaScript. 'pre': %VITE_*% still applies.
+const splash = {
+  name: 'app-splash',
+  transformIndexHtml: {
+    order: 'pre' as const,
+    // node:fs loaded here, not at the top: a top-level import of it breaks Vitest's runner.
+    handler: async (html: string) => {
+      const { readFile } = await import('node:fs/promises');
+      return html.replace('<!--app-splash-->', await readFile(fileURLToPath(new URL('./src/boot/splash.html', import.meta.url)), 'utf8'));
+    },
+  },
+};
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const backend = env.VITE_DEV_BACKEND || 'http://127.0.0.1:8000';
 
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [splash, react(), tailwindcss()],
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },

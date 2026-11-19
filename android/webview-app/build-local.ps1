@@ -1,5 +1,5 @@
-# Builds the DineDesk app (one app for guests and businesses) for testing on a phone on the same
-# Wi-Fi as this PC: it opens http://<pc-ip>:<port>/app, the dev server. Output: ..\apk\DineDesk-local.apk
+# Builds the NikoBite app (one app for guests and businesses) for testing on a phone on the same
+# Wi-Fi as this PC: it opens http://<pc-ip>:<port>/app, the dev server. Output: ..\apk\NikoBite-local.apk
 #
 #   .\build-local.ps1                      # uses this PC's Wi-Fi IP
 #   .\build-local.ps1 -DevHost 192.168.1.40 -DevPort 5173
@@ -30,7 +30,7 @@ if (-not (Test-Path 'keystore.properties')) {
     New-Item -ItemType Directory -Force (Split-Path $keystore) | Out-Null
     $pass = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 24 | ForEach-Object { [char]$_ })
     Native { & "$Jdk\bin\keytool.exe" -genkeypair -keystore $keystore -alias local -keyalg RSA -keysize 2048 -validity 10000 `
-        -storepass $pass -keypass $pass -dname 'CN=DineDesk Local, O=DineDesk, C=IN' }
+        -storepass $pass -keypass $pass -dname 'CN=NikoBite Local, O=NikoBite, C=IN' }
     @("storeFile=$((Resolve-Path $keystore).Path -replace '\\', '/')", "storePassword=$pass", 'keyAlias=local', "keyPassword=$pass") | Set-Content -Encoding ascii keystore.properties
 }
 
@@ -43,7 +43,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
 
 $out = Join-Path $PSScriptRoot '..\apk'
 New-Item -ItemType Directory -Force $out | Out-Null
-# The separate Haveli Demo app is gone: business sites open inside DineDesk.
+# The separate Haveli Demo app is gone: business sites open inside NikoBite.
 Remove-Item (Join-Path $out 'HaveliDemo-local.apk') -ErrorAction SilentlyContinue
-Copy-Item 'app\build\outputs\apk\dev\release\app-dev-release.apk' (Join-Path $out 'DineDesk-local.apk') -Force
+Copy-Item 'app\build\outputs\apk\dev\release\app-dev-release.apk' (Join-Path $out 'NikoBite-local.apk') -Force
 Get-ChildItem $out -Filter *.apk | Select-Object Name, @{ n = 'KB'; e = { [math]::Round($_.Length / 1KB) } }

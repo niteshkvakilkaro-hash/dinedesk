@@ -5,4 +5,4 @@ Get-CimInstance Win32_Process -Filter "Name = 'php.exe'" | Where-Object { $_.Com
 foreach ($port in 8010, 8080, 5180) {
     Get-NetTCPConnection -LocalPort $port -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
 }
-Write-Host 'DineDesk dev servers stopped.'
+Write-Host 'NikoBite dev servers stopped.'

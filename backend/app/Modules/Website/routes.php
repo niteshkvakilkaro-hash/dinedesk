@@ -13,10 +13,10 @@ Route::middleware(['tenant.host', 'throttle:api'])->prefix('site')->group(functi
     Route::get('gallery', [PublicSiteController::class, 'gallery']);
 });
 
-// The DineDesk app's place finder (platform host only)
+// The NikoBite app's place finder (platform host only)
 Route::middleware('throttle:directory')->group(function () {
     Route::get('directory', [DirectoryController::class, 'index']);
-    // Is this host (a scanned QR / typed address) a DineDesk place?
+    // Is this host (a scanned QR / typed address) a NikoBite place?
     Route::get('directory/place', [DirectoryController::class, 'place']);
 });
 

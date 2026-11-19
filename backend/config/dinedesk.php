@@ -101,7 +101,7 @@ return [
         'subject' => env('WEBPUSH_SUBJECT') ?: 'mailto:support@example.com',
     ],
 
-    // Notifications in the DineDesk Android app (Firebase Cloud Messaging, App\Support\Push\Fcm):
+    // Notifications in the NikoBite Android app (Firebase Cloud Messaging, App\Support\Push\Fcm):
     // a service-account key JSON, or a path to the file. Super admin → Integrations → Firebase wins.
     'firebase' => [
         'credentials' => env('FIREBASE_CREDENTIALS'),
@@ -144,7 +144,7 @@ return [
     ],
     /*
     | Delivery riders (role "delivery"): while on duty their phone sends its location every
-    | location_interval seconds (the DineDesk app in the background, the browser while /rider/ is
+    | location_interval seconds (the NikoBite app in the background, the browser while /rider/ is
     | open). Points are kept retention_days (riders:purge-locations, daily), a duty ends by itself
     | after max_duty_hours, and guests see the rider on the tracking page only while the order is
     | out for delivery and the last point is at most guest_max_age_minutes old.

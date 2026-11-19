@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notification;
 
 /**
  * Notification channel "fcm": the same staff alerts as "webpush" (new order, booking ...), on
- * phones with the DineDesk Android app (web push doesn't work inside the app's WebView). Texts
+ * phones with the NikoBite Android app (web push doesn't work inside the app's WebView). Texts
  * come from the notification's toFcm() (or toWebPush()), already in the recipient's language;
  * sending happens in a queued job.
  */

@@ -9,8 +9,13 @@ import '@/i18n';
 import '@/styles/index.css';
 import { getTheme, isThemeKey } from '@/themes/registry';
 import { androidBridge, installAppDownloads, installAppPush } from '@/lib/dinedeskApp';
+import { startup } from '@/lib/startup';
+import { siteBasename } from '@/lib/host';
 
-// Inside the DineDesk Android app, QR images and other download links are saved through the app.
+// Loading splash (src/boot/splash.html): shown and guarded on every start, see startup.ts.
+startup();
+
+// Inside the NikoBite Android app, QR images and other download links are saved through the app.
 installAppDownloads();
 // ... and the phone's notification token follows whoever is signed in (apps with notifications only).
 if (typeof androidBridge()?.pushToken === 'function') {
@@ -59,7 +64,8 @@ if (document.getElementById('prerender')) {
 createRoot(rootEl).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      {/* A business website at /s/<slug> (VITE_SITE_PATHS) runs under that basename. */}
+      <BrowserRouter basename={siteBasename()}>
         <App />
       </BrowserRouter>
     </QueryClientProvider>

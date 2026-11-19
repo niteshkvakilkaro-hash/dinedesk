@@ -128,6 +128,20 @@ Artisan::command('subscriptions:enforce', function () {
 
 Schedule::command('subscriptions:enforce')->hourly()->withoutOverlapping();
 
+// "Try live demo" businesses close when their days are up: the website goes offline and the
+// account is signed out and blocked (the super admin still sees them, with the lead).
+Artisan::command('demos:expire', function () {
+    $tenants = \App\Modules\Tenancy\Models\Tenant::query()
+        ->whereNotNull('demo_expires_at')->where('demo_expires_at', '<', now())->where('status', '!=', 'suspended')->get();
+    foreach ($tenants as $tenant) {
+        $tenant->update(['status' => 'suspended']);
+        \App\Models\User::where('tenant_id', $tenant->id)->each(fn ($u) => $u->tokens()->delete());
+    }
+    $this->info("Expired demos: {$tenants->count()}.");
+})->purpose('Close live demos whose time is up');
+
+Schedule::command('demos:expire')->hourly()->withoutOverlapping();
+
 // Data exports are kept for 7 days.
 Artisan::command('exports:purge', function () {
     $count = 0;

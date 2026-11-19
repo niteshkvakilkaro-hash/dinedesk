@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Phones with the DineDesk Android app where someone is signed in (Firebase Cloud Messaging).
+     * Phones with the NikoBite Android app where someone is signed in (Firebase Cloud Messaging).
      * User-level: owners, staff, riders and super admins. access_token_id = the sign-in that
      * registered it, so signing out removes the device.
      */

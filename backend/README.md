@@ -1,4 +1,4 @@
-# DineDesk backend (Laravel 12)
+# NikoBite backend (Laravel 12)
 
 See the [root README](../README.md) for setup, tests and architecture, and [docs/openapi.yaml](../docs/openapi.yaml) for the API.
 

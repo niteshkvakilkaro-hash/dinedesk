@@ -17,7 +17,7 @@ class TiffinRequestForStaff extends Notification
         return ['webpush', ...FcmChannel::for($notifiable)];
     }
 
-    /** The same alert in the DineDesk Android app; rings like a new order (channel "orders"). */
+    /** The same alert in the NikoBite Android app; rings like a new order (channel "orders"). */
     public function toFcm(object $notifiable): array
     {
         return $this->toWebPush($notifiable) + ['kind' => 'tiffin', 'channel' => 'orders'];

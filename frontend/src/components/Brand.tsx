@@ -19,7 +19,7 @@ export function Logo({ to = '/', light = false, compact = false }: { to?: string
   return (
     <Link to={to} className="flex items-center gap-2.5 rounded-lg">
       <LogoMark />
-      <span className={`text-lg font-extrabold tracking-tight ${light ? 'text-paper' : 'text-ink'} ${compact ? 'max-[420px]:sr-only' : ''}`}>DineDesk</span>
+      <span className={`text-lg font-extrabold tracking-tight ${light ? 'text-paper' : 'text-ink'} ${compact ? 'max-[420px]:sr-only' : ''}`}>NikoBite</span>
     </Link>
   );
 }

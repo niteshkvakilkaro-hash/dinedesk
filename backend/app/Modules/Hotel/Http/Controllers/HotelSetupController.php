@@ -18,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Support\SiteUrl;
 
 /** Dashboard → Hotel → Set up: room types (photos, prices), seasonal rates, rooms and their QR codes, settings. */
 class HotelSetupController extends Controller
@@ -232,7 +233,7 @@ class HotelSetupController extends Controller
 
     private function siteBase(): string
     {
-        return rtrim(str_replace('{host}', app(SitePresenter::class)->primaryHost($this->context->require()), (string) config('dinedesk.site_url_pattern')), '/');
+        return SiteUrl::for(app(SitePresenter::class)->primaryHost($this->context->require()));
     }
 
     private function typeRules(): array

@@ -32,7 +32,7 @@ import java.util.Arrays;
 final class Push {
     static final String CHANNEL_ORDERS = "orders";
     static final String CHANNEL_GENERAL = "general";
-    /** A tapped notification: open EXTRA_URL (a DineDesk page) in the app. FCM's click_action too. */
+    /** A tapped notification: open EXTRA_URL (a NikoBite page) in the app. FCM's click_action too. */
     static final String ACTION_OPEN = "com.dinedesk.app.OPEN_PUSH";
     private static final String TAG = "DineDeskPush";
     private static final String PREFS = "dinedesk_push";
@@ -190,7 +190,7 @@ final class Push {
         String text = body == null ? "" : body;
         b.setSmallIcon(R.drawable.ic_stat_notify)
                 .setColor(c.getColor(R.color.brand))
-                .setContentTitle(title == null || title.isEmpty() ? "DineDesk" : title)
+                .setContentTitle(title == null || title.isEmpty() ? "NikoBite" : title)
                 .setContentText(text)
                 .setStyle(new Notification.BigTextStyle().bigText(text))
                 .setAutoCancel(true)

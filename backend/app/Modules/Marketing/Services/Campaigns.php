@@ -13,6 +13,7 @@ use App\Support\ApiException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Str;
+use App\Support\SiteUrl;
 
 /**
  * Messages to customers who said yes to offers (and only them). Every message carries
@@ -57,7 +58,7 @@ class Campaigns
             'created_by' => $by->id,
             'sent_at' => now(),
         ]);
-        $base = rtrim(str_replace('{host}', $this->site->primaryHost($tenant), (string) config('dinedesk.site_url_pattern')), '/');
+        $base = SiteUrl::for($this->site->primaryHost($tenant));
 
         $query->chunkById(200, function ($customers) use ($campaign, $tenant, $base) {
             foreach ($customers as $c) {

@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 /**
- * Notifications in the DineDesk Android app (Firebase Cloud Messaging): phones registered after
+ * Notifications in the NikoBite Android app (Firebase Cloud Messaging): phones registered after
  * sign-in, the HTTP v1 sender, and the "fcm" channel next to web push.
  */
 class AppPushTest extends OrderingTestCase

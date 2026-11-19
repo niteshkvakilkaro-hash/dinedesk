@@ -17,9 +17,10 @@ use App\Support\Images\ImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use App\Support\SiteUrl;
 
 /**
- * The DineDesk app's "Find a restaurant or hotel": live, published businesses (branches too: each
+ * The NikoBite app's "Find a restaurant or hotel": live, published businesses (branches too: each
  * has its own website), real ones first and demos last, labelled. Only what each business's public
  * website already shows (name, type, city, logo, cover, open now) is listed. Owners can opt out.
  */
@@ -72,7 +73,7 @@ class DirectoryController extends Controller
     }
 
     /**
-     * A scanned QR code or typed address on a business's own domain: is it a live DineDesk place?
+     * A scanned QR code or typed address on a business's own domain: is it a live NikoBite place?
      * (Opted-out businesses still open from their own QR codes.)
      */
     public function place(Request $request): JsonResponse
@@ -80,7 +81,7 @@ class DirectoryController extends Controller
         $data = $request->validate(['host' => ['required', 'string', 'max:253']]);
         $tenant = $this->resolver->resolve($data['host']);
         if (! $tenant || $tenant->status !== 'live') {
-            throw new ApiException('This is not a DineDesk place.', 404, 'not_a_place');
+            throw new ApiException('This is not a NikoBite place.', 404, 'not_a_place');
         }
 
         return $this->ok($this->rows(collect([$tenant]))[0]);
@@ -104,7 +105,7 @@ class DirectoryController extends Controller
                 'name' => $t->name,
                 'slug' => $t->slug,
                 'host' => $host,
-                'url' => rtrim(str_replace('{host}', $host, (string) config('dinedesk.site_url_pattern')), '/'),
+                'url' => SiteUrl::for($host),
                 'business_type' => $t->business_type,
                 'city' => $t->city,
                 'logo' => $this->image($theme?->logo),
@@ -115,7 +116,7 @@ class DirectoryController extends Controller
         })->values()->all();
     }
 
-    /** Dashboard → Website: show this business in the DineDesk app directory (on by default). */
+    /** Dashboard → Website: show this business in the NikoBite app directory (on by default). */
     public function update(Request $request, TenantContext $context, TenantSettings $settings): JsonResponse
     {
         $data = $request->validate(['listed' => ['required', 'boolean']]);

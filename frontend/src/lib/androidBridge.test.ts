@@ -34,8 +34,10 @@ describe('Android app bridge', () => {
     await saveViaBridge(b, new Blob([bytes], { type: 'application/zip' }), 'export.zip', true);
     expect(b.saveBegin).toHaveBeenCalledWith('export.zip', 'application/zip');
     expect(parts).toHaveLength(3);
-    const back = parts.flatMap((p) => Array.from(atob(p), (c) => c.charCodeAt(0)));
-    expect(back).toEqual(Array.from(bytes));
+    // Byte-for-byte, without a deep toEqual over 1.2 million entries (slow enough to time out on a busy machine).
+    const back = Uint8Array.from(parts.flatMap((p) => Array.from(atob(p), (c) => c.charCodeAt(0))));
+    expect(back.length).toBe(bytes.length);
+    expect(back.every((v, i) => v === bytes[i])).toBe(true);
     expect(b.saveEnd).toHaveBeenCalledWith('f1', true);
   });
 
@@ -76,6 +78,6 @@ describe('Android app bridge', () => {
 
   it('reads the slip title', () => {
     expect(slipTitle('<html><title>Bill &lt;7&gt;</title>')).toBe('Bill <7>');
-    expect(slipTitle('<p>no title</p>')).toBe('DineDesk');
+    expect(slipTitle('<p>no title</p>')).toBe('NikoBite');
   });
 });

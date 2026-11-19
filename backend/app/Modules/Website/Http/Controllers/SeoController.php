@@ -36,13 +36,13 @@ class SeoController extends Controller
         '/stay', '/r/', '/unsubscribe', '/style-guide', '/api/',
     ];
 
-    /** DineDesk's own marketing pages on the platform domain (same list as the frontend's MARKETING_PAGES). */
+    /** NikoBite's own marketing pages on the platform domain (same list as the frontend's MARKETING_PAGES). */
     public const PLATFORM_PAGES = [
         '/', '/pricing', '/themes', '/features/restaurant-website', '/features/online-ordering',
         '/features/qr-menu-ordering', '/features/pos-billing', '/features/hotel-management',
     ];
 
-    /** The DineDesk app itself on the platform domain: sign-in, dashboards, staff apps. */
+    /** The NikoBite app itself on the platform domain: sign-in, dashboards, staff apps. */
     public const PLATFORM_PRIVATE = ['/app', '/signup', '/login', '/onboarding', '/dashboard', '/platform', '/kitchen', '/waiter', '/rider', '/api/'];
 
     public function __construct(

@@ -76,7 +76,7 @@ class PlatformConfig
             'public_key' => ['dinedesk.webpush.public_key', false, ['max:200']],
             'private_key' => ['dinedesk.webpush.private_key', true, ['max:200']],
         ],
-        // The Firebase service-account key (JSON) for notifications in the DineDesk Android app.
+        // The Firebase service-account key (JSON) for notifications in the NikoBite Android app.
         'firebase' => [
             'credentials' => ['dinedesk.firebase.credentials', true, ['max:20000']],
         ],

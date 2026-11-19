@@ -80,7 +80,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- A tapped app notification (FCM click_action): opens its DineDesk page (checked like any link). -->
+            <!-- A tapped app notification (FCM click_action): opens its NikoBite page (checked like any link). -->
             <intent-filter>
                 <action android:name="com.dinedesk.app.OPEN_PUSH" />
                 <category android:name="android.intent.category.DEFAULT" />

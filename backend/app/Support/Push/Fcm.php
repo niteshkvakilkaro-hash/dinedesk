@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Firebase Cloud Messaging (HTTP v1): notifications on phones with the DineDesk Android app.
+ * Firebase Cloud Messaging (HTTP v1): notifications on phones with the NikoBite Android app.
  *
  * The credentials are a Firebase service-account key (JSON with project_id, client_email,
  * private_key): saved in Super admin → Integrations (encrypted), else FIREBASE_CREDENTIALS in the
@@ -195,7 +195,7 @@ class Fcm
     public static function message(string $deviceToken, array $payload, string $channel = 'general'): array
     {
         $channel = in_array($channel, self::CHANNELS, true) ? $channel : 'general';
-        $title = mb_substr((string) ($payload['title'] ?? 'DineDesk'), 0, 200);
+        $title = mb_substr((string) ($payload['title'] ?? 'NikoBite'), 0, 200);
         $body = mb_substr((string) ($payload['body'] ?? ''), 0, 1000);
         $data = array_filter([
             'url' => (string) ($payload['url'] ?? ''),

@@ -1,7 +1,7 @@
 # Builds an Android app (Trusted Web Activity) for a live HTTPS website with Bubblewrap.
 #
 #   .\build-apk.ps1 -Kind site  -Domain hungryhaveli.in -Package in.hungryhaveli.app -Name "Hungry Haveli"
-#   .\build-apk.ps1 -Kind admin -Domain dinedesk.in     -Package in.dinedesk.admin   -Name "DineDesk"
+#   .\build-apk.ps1 -Kind admin -Domain dinedesk.in     -Package in.dinedesk.admin   -Name "NikoBite"
 #
 # Needs: Node 18+, and (first run only) Bubblewrap downloads a JDK 17 and the Android SDK
 # (~2 GB) into %USERPROFILE%\.bubblewrap. Output: app-release-signed.apk (install / share) and

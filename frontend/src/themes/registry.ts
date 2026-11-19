@@ -2,28 +2,28 @@ import { contrastRatio, HEX_RE, readableOn } from '@/lib/contrast';
 import type { ThemeDefinition, ThemeKey, ThemeMotion, ThemeStyle, ThemeTokens } from './types';
 import * as haveli from './haveli/tokens';
 import { motion as haveliMotion } from './haveli/motion';
-import haveliPreview from './haveli/preview.png';
+import haveliPreview from './haveli/preview.webp';
 import * as ember from './ember/tokens';
 import { motion as emberMotion } from './ember/motion';
-import emberPreview from './ember/preview.png';
+import emberPreview from './ember/preview.webp';
 import * as bistro from './bistro/tokens';
 import { motion as bistroMotion } from './bistro/motion';
-import bistroPreview from './bistro/preview.png';
+import bistroPreview from './bistro/preview.webp';
 import * as kulhad from './kulhad/tokens';
 import { motion as kulhadMotion } from './kulhad/motion';
-import kulhadPreview from './kulhad/preview.png';
+import kulhadPreview from './kulhad/preview.webp';
 import * as qsr from './qsr/tokens';
 import { motion as qsrMotion } from './qsr/motion';
-import qsrPreview from './qsr/preview.png';
+import qsrPreview from './qsr/preview.webp';
 import * as street from './street/tokens';
 import { motion as streetMotion } from './street/motion';
-import streetPreview from './street/preview.png';
+import streetPreview from './street/preview.webp';
 import * as rajwada from './rajwada/tokens';
 import { motion as rajwadaMotion } from './rajwada/motion';
-import rajwadaPreview from './rajwada/preview.png';
+import rajwadaPreview from './rajwada/preview.webp';
 import * as coastal from './coastal/tokens';
 import { motion as coastalMotion } from './coastal/motion';
-import coastalPreview from './coastal/preview.png';
+import coastalPreview from './coastal/preview.webp';
 
 const def = (
   key: ThemeKey,
@@ -36,7 +36,7 @@ const def = (
 
 /**
  * Every website theme. Adding one = a folder (tokens.ts, motion.ts, fonts.ts,
- * layouts/, preview.png) + one entry here + one entry in the backend's
+ * layouts/, preview.webp) + one entry here + one entry in the backend's
  * Themes::CATALOGUE. All themes share the page structure in src/site/ui;
  * layouts load lazily, so a visitor only downloads their theme's fonts.
  */

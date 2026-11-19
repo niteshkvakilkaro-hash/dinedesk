@@ -1,6 +1,6 @@
 # Android app
 
-**One app, DineDesk, for guests and businesses.** It opens `/app` on the platform host (find a
+**One app, NikoBite, for guests and businesses.** It opens `/app` on the platform host (find a
 place, scan a table or room QR, recently visited, business sign-in) and keeps the platform host and
 every business subdomain inside the app. It is a small WebView app (`webview-app/`, plain Java; its
 only library is Firebase Cloud Messaging, which brings AndroidX): nothing of the website is copied
@@ -10,7 +10,7 @@ Pages know they are in the app from the user-agent token `DineDeskApp/1`
 
 | Build | App id | Opens | Signed with |
 | --- | --- | --- | --- |
-| `dev` (local testing) | `com.dinedesk.admin.local` (the id of the earlier local DineDesk app, so it updates in place) | `http://<pc-ip>:5180/app`; businesses at `http://<slug>.<pc-ip>.nip.io:5180` | `keys/dinedesk-local.keystore` (made by `build-local.ps1`) |
+| `dev` (local testing) | `com.dinedesk.admin.local` (the id of the earlier local NikoBite app, so it updates in place) | `http://<pc-ip>:5180/app`; businesses at `http://<slug>.<pc-ip>.nip.io:5180` | `keys/dinedesk-local.keystore` (made by `build-local.ps1`) |
 | `prod` (Play Store) | `in.dinedesk.app` (permanent once published) | `https://<platformHost>/app`; businesses at `https://<slug>.<platformHost>` | the Play upload key (`upload-keystore.properties`) |
 
 ## What the app does
@@ -26,8 +26,8 @@ Pages know they are in the app from the user-agent token `DineDeskApp/1`
   `intent:` links (made browsable-only, with `browser_fallback_url`). A toast says so when no app can open it.
 - **Uploads**: `<input type=file>` with `accept` (several types, extensions), `multiple` and
   `capture` (straight to the camera). Photos are offered next to files when images are accepted.
-- **Camera** for Scan QR (`getUserMedia`), after the Android camera permission; DineDesk pages only.
-- **Location** for "Use my location" (checkout delivery, ordering settings), DineDesk pages only.
+- **Camera** for Scan QR (`getUserMedia`), after the Android camera permission; NikoBite pages only.
+- **Location** for "Use my location" (checkout delivery, ordering settings), NikoBite pages only.
 - **Downloads**: the dashboard fetches files with its Bearer token and saves them with `saveBlob()`;
   in the app that goes through `DineDeskAndroid.saveBegin/saveChunk/saveEnd` (512 KB base64 parts) into
   **Downloads** (Android 10+; on 7–9 into the app's own Downloads folder). Bills / documents opened
@@ -50,11 +50,11 @@ takes the positions and uploads them itself. Web side and contract:
 `frontend/src/features/rider/locationSharing.ts`; API: `POST /api/v1/tenant/rider/locations`
 (`RiderController::locations`).
 
-- **Bridge** (`window.DineDeskAndroid`, DineDesk pages only):
+- **Bridge** (`window.DineDeskAndroid`, NikoBite pages only):
   `startLocationSharing(json)` (`{ uploadUrl, token, intervalSec, tenantHost, locale, expiresAt }`),
   `stopLocationSharing()` (sends what is queued once, then stops), `locationSharingStatus()`
   (`{ running, lastSentAt, lastError, queued }`) and `sendLocationNow()`. The upload token goes only
-  to a DineDesk host (the same check as pages that open inside the app).
+  to a NikoBite host (the same check as pages that open inside the app).
 - **Permissions**, asked when the rider goes on duty: Location (precise or approximate) and, on
   Android 13+, Notifications (for the "sharing your location" notification; the service also runs
   without it). Permission dialogs are asynchronous, so `startLocationSharing` returns `true` once the
@@ -76,7 +76,7 @@ takes the positions and uploads them itself. Web side and contract:
 - **Answers**: 200 → sent points dropped, follows `interval_sec`, stops when `on_duty` is false;
   401/403 → stops (token ended); 409 `not_on_duty` → queue cleared, stops; 422 → that batch dropped;
   429 / 5xx / no internet → kept for the next try. It also stops a minute before `expiresAt`.
-- **Notification**: "DineDesk — sharing your location while on duty". Tapping it opens the app on the
+- **Notification**: "NikoBite — sharing your location while on duty". Tapping it opens the app on the
   rider screen. Duty is ended on that screen (so the server knows), not from the notification.
 - **App closed or swiped away**: the service keeps going. **Phone restarted or app killed by the
   system**: it does not come back by itself (`START_NOT_STICKY`: Android doesn't let a location
@@ -87,8 +87,8 @@ takes the positions and uploads them itself. Web side and contract:
 
 **Battery savers.** Some phones (Xiaomi / Redmi / POCO, Oppo, Realme, Vivo, OnePlus, Samsung with
 "Put unused apps to sleep") still stop background apps. Tell riders to set **Battery → Unrestricted**
-(or "No restrictions"; on Xiaomi also turn on **Autostart**) for DineDesk in the phone's settings
-(Settings → Apps → DineDesk → Battery), and not to clear DineDesk with a "clean all" booster.
+(or "No restrictions"; on Xiaomi also turn on **Autostart**) for NikoBite in the phone's settings
+(Settings → Apps → NikoBite → Battery), and not to clear NikoBite with a "clean all" booster.
 
 ## App notifications (Firebase Cloud Messaging)
 
@@ -107,7 +107,7 @@ Without them everything builds and runs with notifications off: the build logs n
 
 **Create the Firebase project (once):**
 
-1. <https://console.firebase.google.com> → **Add project** (e.g. "DineDesk"; Google Analytics not needed).
+1. <https://console.firebase.google.com> → **Add project** (e.g. "NikoBite"; Google Analytics not needed).
 2. Project settings → **Your apps** → **Add app → Android**, twice:
    `in.dinedesk.app` (Play Store build) and `com.dinedesk.admin.local` (local test build). The
    SHA-1 field is optional (not needed for messaging).
@@ -129,7 +129,7 @@ without a client for that id leaves the build with notifications off (Gradle pri
 **general** ("Other updates"); the server picks `orders` for new orders, bookings, tiffin requests,
 rider jobs and the test alert.
 
-- **Bridge** (DineDesk pages only): `pushToken()` (the token, or `''` when the build has no Firebase
+- **Bridge** (NikoBite pages only): `pushToken()` (the token, or `''` when the build has no Firebase
   or the token isn't known yet; it is then asked for and arrives as the `dinedesk:push-token` window
   event), `pushStatus()` → `{ enabled, permission: granted|denied|default, token, version, flavor }`,
   `requestPushPermission()` (Android 13+ asks while it still may; otherwise the app's notification
@@ -144,7 +144,7 @@ rider jobs and the test alert.
 - **App closed**: Android shows the message itself (channel from the server, icon
   `ic_stat_notify`). **App open**: `PushService` shows it. **Tap**: opens the app on the page in the
   message (a path such as `/dashboard/orders`, opened on the host the app is on; full URLs only for
-  DineDesk hosts, the same check as links).
+  NikoBite hosts, the same check as links).
 
 Not in the app: **web push** (WebView has no Push API; the app uses Firebase instead, above), and **pull to refresh** (it reloads by accident on pages with their own scrolling, like the
 POS and kitchen screen; the app has Retry and every page has its own refresh).
@@ -157,7 +157,7 @@ production (https) both work.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File android\webview-app\build-local.ps1
-#   → android\apk\DineDesk-local.apk   (-DevHost 192.168.1.40 -DevPort 5173 to override)
+#   → android\apk\NikoBite-local.apk   (-DevHost 192.168.1.40 -DevPort 5173 to override)
 ```
 
 Uses the JDK 17 and SDK in `%USERPROFILE%\Android` and Gradle 8.13+ from `~/.gradle` (`--no-daemon`,
@@ -171,9 +171,9 @@ Testing on a phone:
 1. Run the dev servers (frontend on port 5180, `APP_ENV=local` in the backend so `<slug>.<ip>.nip.io` maps to the business).
 2. Phone and PC on the **same Wi-Fi**.
 3. Once, in an **admin** PowerShell, let the phone in:
-   `New-NetFirewallRule -DisplayName "DineDesk dev 5180" -Direction Inbound -Protocol TCP -LocalPort 5180 -Action Allow -Profile Any`
-4. Copy `DineDesk-local.apk` to the phone and install it (allow "install unknown apps"). It replaces
-   the earlier local DineDesk app; uninstall the old **Haveli Demo** app, business sites now open inside DineDesk.
+   `New-NetFirewallRule -DisplayName "NikoBite dev 5180" -Direction Inbound -Protocol TCP -LocalPort 5180 -Action Allow -Profile Any`
+4. Copy `NikoBite-local.apk` to the phone and install it (allow "install unknown apps"). It replaces
+   the earlier local NikoBite app; uninstall the old **Haveli Demo** app, business sites now open inside NikoBite.
 5. Debug pages from the PC: Chrome → `chrome://inspect` (the dev build allows WebView debugging).
 
 ## Production (Play Store) — later, once the domain is decided
@@ -216,6 +216,6 @@ $env:BUBBLEWRAP_KEYSTORE_PASSWORD = '<a strong password>'
 
 Then on the server `php artisan android:app hungryhaveli.in in.hungryhaveli.app <sha256> [<play sha256>]`,
 so `https://hungryhaveli.in/.well-known/assetlinks.json` lists the app (otherwise it shows a browser bar).
-`-Kind admin` (a TWA of the dashboard) is superseded by the DineDesk app above.
+`-Kind admin` (a TWA of the dashboard) is superseded by the NikoBite app above.
 
 `keys/` holds the signing keystores. **Back them up and never commit them** (they are git-ignored).

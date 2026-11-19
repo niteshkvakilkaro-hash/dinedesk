@@ -689,7 +689,7 @@
     }
   }
 
-  /* ---------- Inside the DineDesk app: top bar on inner pages, "All places" on the home page ---------- */
+  /* ---------- Inside the NikoBite app: top bar on inner pages, "All places" on the home page ---------- */
   .s-appbar {
     position: sticky;
     top: 0;
@@ -1717,4 +1717,24 @@
   .theme-coastal .s-tabbar > .is-active {
     color: var(--t-link);
   }
+}
+
+/*
+ * Cinematic hero: the cover photo drifts in very slowly (Ken Burns). Off with the OS reduce-motion
+ * setting and with the site's own "Reduce motion" switch ([data-reduce-motion]).
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .s-hero-full .s-hero-img img,
+  .s-hero-photo .s-media img {
+    animation: s-kenburns 28s ease-in-out infinite alternate;
+    transform-origin: 60% 40%;
+  }
+}
+[data-reduce-motion] .s-hero-full .s-hero-img img,
+[data-reduce-motion] .s-hero-photo .s-media img {
+  animation: none;
+}
+@keyframes s-kenburns {
+  from { transform: scale(1); }
+  to { transform: scale(1.09); }
 }

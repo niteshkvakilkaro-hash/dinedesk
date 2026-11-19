@@ -1,5 +1,5 @@
 /*
- * DineDesk dashboard service worker: push alerts, and just enough to open the POS with no internet.
+ * NikoBite dashboard service worker: push alerts, and just enough to open the POS with no internet.
  * Data is never cached (orders and money always come from the server). Pages always come from the
  * network; the last copy of the dashboard is used only when there is no connection. Built files
  * carry their version in the name, so a kept copy is never out of date.
@@ -61,10 +61,10 @@ self.addEventListener('push', (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: 'DineDesk', body: event.data ? event.data.text() : '' };
+    data = { title: 'NikoBite', body: event.data ? event.data.text() : '' };
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || 'DineDesk', {
+    self.registration.showNotification(data.title || 'NikoBite', {
       body: data.body || '',
       tag: data.tag,
       renotify: !!data.tag,
