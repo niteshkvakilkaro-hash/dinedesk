@@ -9,6 +9,7 @@ import { Alert, ErrorState, Field, SkeletonRows, Spinner, toast } from '@/compon
 interface PlatformSettings {
   seller: { legal_name: string | null; gstin: string | null; state_code: string | null; address: string | null; email: string | null; phone: string | null; invoice_prefix: string };
   billing: { grace_days: number; gst_rate: number; sac: string };
+  support: { whatsapp: string | null; email: string | null; chatbot: boolean };
   razorpay_configured: boolean;
   webhook_url: string;
   domain_target: string;
@@ -23,7 +24,7 @@ export default function PlatformSettingsPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   useEffect(() => { if (q.data) setF(q.data); }, [q.data]);
   const save = useMutation<PlatformSettings, ApiError>({
-    mutationFn: async () => (await api.put<PlatformSettings>('/platform/settings', { seller: f!.seller, billing: f!.billing })).data,
+    mutationFn: async () => (await api.put<PlatformSettings>('/platform/settings', { seller: f!.seller, billing: f!.billing, support: f!.support })).data,
     onSuccess: (d) => { qc.setQueryData(['platform', 'settings'], d); setErrors({}); toast.success(t('common.saved')); },
     onError: (e) => setErrors(e.errors ? Object.fromEntries(Object.entries(e.errors).map(([k, v]) => [k, v[0]])) : { form: e.message }),
   });
@@ -63,6 +64,16 @@ export default function PlatformSettingsPage() {
           <Field label={t('platform.settings.gstRate')} hint={t('platform.settings.gstHint')}>{(a) => <select {...a} className="field-input" value={f.billing.gst_rate} onChange={(e) => setF({ ...f, billing: { ...f.billing, gst_rate: Number(e.target.value) } })}><option value={18}>18%</option><option value={0}>0%</option></select>}</Field>
           <Field label="SAC" hint={t('platform.settings.sacHint')} error={errors['billing.sac']}>{(a) => <input {...a} className="field-input" maxLength={6} inputMode="numeric" value={f.billing.sac} onChange={(e) => setF({ ...f, billing: { ...f.billing, sac: e.target.value } })} />}</Field>
         </div>
+        <h2 className="pt-2 text-lg font-bold">{t('platform.settings.support')}</h2>
+        <p className="text-sm text-muted">{t('platform.settings.supportHint')}</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label={t('platform.settings.supportWhatsapp')} optional error={errors['support.whatsapp']}>{(a) => <input {...a} type="tel" className="field-input" placeholder="91 98765 43210" value={f.support.whatsapp ?? ''} onChange={(e) => setF({ ...f, support: { ...f.support, whatsapp: e.target.value } })} />}</Field>
+          <Field label={t('platform.settings.supportEmail')} optional error={errors['support.email']}>{(a) => <input {...a} type="email" className="field-input" value={f.support.email ?? ''} onChange={(e) => setF({ ...f, support: { ...f.support, email: e.target.value } })} />}</Field>
+        </div>
+        <label className="flex items-center gap-3 text-sm font-semibold">
+          <input type="checkbox" className="h-5 w-5 accent-[var(--dd-brand)]" checked={f.support.chatbot} onChange={(e) => setF({ ...f, support: { ...f.support, chatbot: e.target.checked } })} />
+          {t('platform.settings.supportChatbot')}
+        </label>
         <div className="flex justify-end"><button type="submit" className="btn-primary" disabled={save.isPending}>{save.isPending ? <Spinner /> : t('common.save')}</button></div>
       </form>
     </div>

@@ -151,7 +151,13 @@ export default function Tenants() {
                     </td>
                     <td className="px-4 py-3">
                       {r.owner_name}
-                      <span className="block text-xs text-muted">{r.owner_contact?.startsWith('+91') ? formatPhone(r.owner_contact) : r.owner_contact}</span>
+                      {r.owner_contact?.startsWith('+91') ? (
+                        <a className="block text-xs font-semibold text-[#0f6b3a] hover:underline" href={`https://wa.me/${r.owner_contact.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" title={t('platform.chats.reply')}>
+                          {formatPhone(r.owner_contact)}
+                        </a>
+                      ) : (
+                        <span className="block text-xs text-muted">{r.owner_contact}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold tabular-nums">{formatINR(r.mrr)}</td>
                     <td className="px-4 py-3 text-muted">{formatDateTime(r.last_active_at)}</td>

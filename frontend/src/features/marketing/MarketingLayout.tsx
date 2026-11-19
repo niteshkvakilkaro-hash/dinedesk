@@ -5,6 +5,7 @@ import { ChevronDown, Menu, X, PlayCircle } from 'lucide-react';
 import { LanguageToggle, Logo } from '@/components/Brand';
 import { useAuthStore } from '@/stores/auth';
 import { FEATURE_PAGES } from './content';
+import { HelpChat } from '@/components/HelpChat';
 
 /** Header, footer and page frame for NikoBite's own marketing pages. */
 export default function MarketingLayout() {
@@ -134,6 +135,7 @@ export default function MarketingLayout() {
 
       <main id="main" className="flex-1">
         <Outlet />
+        <HelpChat />
       </main>
 
       <footer className="border-t border-line bg-surface">

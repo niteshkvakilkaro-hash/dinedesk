@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Building2, IndianRupee, LogOut, Plug, Settings, Tags, X } from 'lucide-react';
+import { Building2, IndianRupee, LogOut, MessageCircle, Plug, Settings, Tags, X } from 'lucide-react';
 import { useSignOut } from '@/hooks/useSession';
 import { useAuthStore, type SupportNotice } from '@/stores/auth';
 import { LanguageToggle, Logo } from '@/components/Brand';
@@ -42,6 +42,7 @@ export default function PlatformLayout() {
   const signOut = useSignOut();
   const nav = [
     { to: '/platform', label: t('platform.nav.tenants'), icon: Building2, end: true },
+    { to: '/platform/chats', label: t('platform.nav.chats'), icon: MessageCircle },
     { to: '/platform/revenue', label: t('platform.nav.revenue'), icon: IndianRupee },
     { to: '/platform/plans', label: t('platform.nav.plans'), icon: Tags },
     { to: '/platform/integrations', label: t('platform.nav.integrations'), icon: Plug },

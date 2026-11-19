@@ -18,6 +18,7 @@ import { InAppAlerts } from './InAppAlerts';
 import { accessFrom, navGroups, SETTINGS_PAGES, type BadgeKey } from './navigation';
 import { CommandPalette, rememberPage, shortcutLabel } from './CommandPalette';
 import { SettingsBackLink } from './SettingsHub';
+import { HelpChat } from '@/components/HelpChat';
 
 export default function DashboardLayout() {
   const { t } = useTranslation();
@@ -245,6 +246,8 @@ export default function DashboardLayout() {
             )}
             {SETTINGS_PAGES.some((p) => pathname === p || pathname === `${p}/`) && <SettingsBackLink />}
             <Outlet />
+            {/* Help for the owner; not over full-screen work pages (POS, kitchen). */}
+            {!/\/(pos|kitchen|kds|display)(\/|$)/.test(pathname) && <HelpChat compact />}
           </div>
         </main>
       </div>

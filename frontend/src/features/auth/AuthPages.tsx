@@ -15,6 +15,8 @@ import { PasswordInput } from '@/components/PasswordInput';
 import { LanguageToggle, Logo } from '@/components/Brand';
 import { homePath } from '@/lib/home';
 import type { AuthResult } from '@/types';
+import { HelpChat } from '@/components/HelpChat';
+import { usePublicConfig } from '@/lib/publicConfig';
 
 export function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle?: string; children: ReactNode; footer: ReactNode }) {
   return (
@@ -34,6 +36,7 @@ export function AuthShell({ title, subtitle, children, footer }: { title: string
         </main>
       </div>
       <AuthShowcase />
+      <HelpChat compact />
     </div>
   );
 }
@@ -74,6 +77,11 @@ function AuthShowcase() {
       </div>
     </aside>
   );
+}
+
+/** Mobile sign-in only where SMS codes really reach a phone (public config); email otherwise. */
+function useMobileSignIn(): boolean {
+  return usePublicConfig().data?.sign_in.mobile ?? true;
 }
 
 function MethodTabs({ value, onChange }: { value: 'email' | 'mobile'; onChange: (v: 'email' | 'mobile') => void }) {
@@ -342,7 +350,9 @@ function InvitedBy() {
 
 export function SignupPage() {
   const { t } = useTranslation();
-  const [method, setMethod] = useState<'email' | 'mobile'>('mobile');
+  const mobileOk = useMobileSignIn();
+  const [picked, setMethod] = useState<'email' | 'mobile'>('mobile');
+  const method = mobileOk ? picked : 'email';
   return (
     <AuthShell
       title={t('auth.signupTitle')}
@@ -357,7 +367,7 @@ export function SignupPage() {
       }
     >
       <InvitedBy />
-      <MethodTabs value={method} onChange={setMethod} />
+      {mobileOk && <MethodTabs value={method} onChange={setMethod} />}
       {method === 'mobile' ? <OtpFlow /> : <EmailSignup />}
     </AuthShell>
   );
@@ -365,7 +375,9 @@ export function SignupPage() {
 
 export function LoginPage() {
   const { t } = useTranslation();
-  const [method, setMethod] = useState<'email' | 'mobile'>('email');
+  const mobileOk = useMobileSignIn();
+  const [picked, setMethod] = useState<'email' | 'mobile'>('email');
+  const method = mobileOk ? picked : 'email';
   return (
     <AuthShell
       title={t('auth.loginTitle')}
@@ -379,7 +391,7 @@ export function LoginPage() {
         </>
       }
     >
-      <MethodTabs value={method} onChange={setMethod} />
+      {mobileOk && <MethodTabs value={method} onChange={setMethod} />}
       {method === 'mobile' ? <OtpFlow /> : <EmailLogin />}
     </AuthShell>
   );

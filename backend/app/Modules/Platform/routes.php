@@ -5,11 +5,19 @@ use App\Modules\Platform\Http\Controllers\IntegrationController;
 use App\Modules\Platform\Http\Controllers\PlatformPlanController;
 use App\Modules\Platform\Http\Controllers\PlatformSettingsController;
 use App\Modules\Platform\Http\Controllers\RevenueController;
+use App\Modules\Platform\Http\Controllers\SupportChatController;
 use App\Modules\Platform\Http\Controllers\SupportController;
 use App\Modules\Platform\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
 
+// Public: settings the app needs before sign-in, and the NikoBite assistant.
+Route::get('public/config', [SupportChatController::class, 'config'])->middleware('throttle:api');
+Route::post('support/chat', [SupportChatController::class, 'send'])->middleware('throttle:support-chat');
+
 Route::middleware(['auth:sanctum', 'platform.admin', 'throttle:api'])->prefix('platform')->group(function () {
+    Route::get('chats', [SupportChatController::class, 'index']);
+    Route::get('chats/{id}', [SupportChatController::class, 'show']);
+    Route::patch('chats/{id}', [SupportChatController::class, 'update']);
     Route::get('tenants', [TenantController::class, 'index']);
     Route::get('tenants/{publicId}', [TenantController::class, 'show']);
     Route::patch('tenants/{publicId}', [TenantController::class, 'update']);

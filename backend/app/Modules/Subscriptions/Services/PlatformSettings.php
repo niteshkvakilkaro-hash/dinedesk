@@ -31,6 +31,13 @@ class PlatformSettings
                 // SAC for the subscription (check with your CA).
                 'sac' => '998315',
             ],
+            // How businesses and visitors reach the platform owner (WhatsApp button, chatbot hand-off,
+            // "payments not set up yet" screens). WhatsApp in international form without "+".
+            'support' => [
+                'whatsapp' => '918502837831',
+                'email' => null,
+                'chatbot' => true,
+            ],
         ];
     }
 
@@ -47,6 +54,9 @@ class PlatformSettings
             'billing.grace_days' => ['required', 'integer', 'min:0', 'max:60'],
             'billing.gst_rate' => ['required', 'numeric', 'in:0,18'],
             'billing.sac' => ['required', 'regex:/^\d{6}$/'],
+            'support.whatsapp' => ['nullable', 'string', 'max:20'],
+            'support.email' => ['nullable', 'email:rfc', 'max:160'],
+            'support.chatbot' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -59,12 +69,12 @@ class PlatformSettings
 
     public function all(): array
     {
-        return ['seller' => $this->get('seller'), 'billing' => $this->get('billing')];
+        return ['seller' => $this->get('seller'), 'billing' => $this->get('billing'), 'support' => $this->get('support')];
     }
 
     public function save(array $data): array
     {
-        foreach (['seller', 'billing'] as $section) {
+        foreach (['seller', 'billing', 'support'] as $section) {
             if (! isset($data[$section])) {
                 continue;
             }
@@ -74,6 +84,12 @@ class PlatformSettings
                 $clean['gstin'] = $clean['gstin'] ? strtoupper($clean['gstin']) : null;
                 $clean['state_code'] = $clean['gstin'] ? substr($clean['gstin'], 0, 2) : $clean['state_code'];
                 $clean['invoice_prefix'] ??= 'DD';
+            } elseif ($section === 'support') {
+                $digits = preg_replace('/\D/', '', (string) $clean['whatsapp']);
+                // A 10-digit Indian mobile gets the country code.
+                $clean['whatsapp'] = $digits === '' ? null : (strlen($digits) === 10 ? '91'.$digits : $digits);
+                $clean['email'] = is_string($clean['email']) ? (trim($clean['email']) ?: null) : null;
+                $clean['chatbot'] = (bool) $clean['chatbot'];
             } else {
                 $clean['grace_days'] = (int) $clean['grace_days'];
                 $clean['gst_rate'] = (float) $clean['gst_rate'];
