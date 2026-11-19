@@ -2750,7 +2750,10 @@
       "save": "Save {{app}} order",
       "hint": "Sent to the kitchen, billed and marked paid through the app.",
       "saved": "{{app}} order #{{number}} saved · bill {{bill}}"
-    }
+    },
+    "viewLabel": "Menu view",
+    "viewPhotos": "Photos",
+    "viewNames": "Names"
   },
   "dayEnd": {
     "title": "Day-end",

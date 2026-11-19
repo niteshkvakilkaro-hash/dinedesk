@@ -269,3 +269,11 @@ Artisan::command('android:app {host : The website host, e.g. hungryhaveli.in} {p
 
     return 0;
 })->purpose('Link a business website to its Android app');
+
+// Heartbeat: shows the background jobs really run (super admin → Settings). The scheduler stamps
+// the time every minute and sends a tiny queued job that stamps it too, so a missing cron job
+// (schedule:run or queue:work) shows up as a stale time.
+Schedule::call(function () {
+    \Illuminate\Support\Facades\Cache::put('heartbeat.scheduler', now()->toIso8601String(), now()->addDay());
+    dispatch(fn () => \Illuminate\Support\Facades\Cache::put('heartbeat.queue', now()->toIso8601String(), now()->addDay()));
+})->everyMinute()->name('heartbeat')->withoutOverlapping();
