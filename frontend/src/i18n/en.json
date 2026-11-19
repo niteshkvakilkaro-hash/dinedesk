@@ -144,7 +144,8 @@
       "passwordRequired": "Please enter your password.",
       "mobile": "Enter a valid 10-digit Indian mobile number.",
       "code": "Enter the 6-digit code."
-    }
+    },
+    "digits": "{{count}}/10 digits"
   },
   "onboarding": {
     "title": "Set up your business",
@@ -3737,7 +3738,7 @@
       "demo": "Try live demo"
     },
     "hero": {
-      "eyebrow": "For restaurants, cafés, cloud kitchens and hotels in India",
+      "eyebrow": "Restaurant billing software, POS & website for India",
       "title": "Your restaurant's website, orders and billing. All in one place.",
       "lead": "A fast, good-looking website with your menu, online ordering, table bookings and QR ordering, plus a POS with GST bills and a kitchen screen. Set up in an afternoon, no developer needed.",
       "primary": "Start free trial",
@@ -3906,12 +3907,12 @@
       "rights": "© {{year}} NikoBite"
     },
     "seo": {
-      "homeTitle": "NikoBite: restaurant website, online ordering and POS for India",
-      "homeDesc": "Get a professional restaurant website with online ordering, QR table ordering, table bookings, POS with GST bills and a kitchen display. No per-order commission. Free trial.",
-      "pricingTitle": "Pricing: NikoBite restaurant software plans",
-      "pricingDesc": "NikoBite plans for restaurants, cafés and hotels: website, online ordering, QR ordering, POS and more. Start with a free trial, no card needed.",
-      "themesTitle": "Restaurant website themes and live demos | NikoBite",
-      "themesDesc": "Eight restaurant website themes for fine dining, cafés, South Indian kitchens, QSRs, street food and hotels. Open a live demo on your phone."
+      "homeTitle": "Restaurant Billing Software, POS & Website | NikoBite",
+      "homeDesc": "Restaurant billing software for India: GST POS & KOT billing, QR code menu, online ordering website, table booking & kitchen display. 0% commission.",
+      "pricingTitle": "Restaurant POS & Billing Software Price in India | NikoBite",
+      "pricingDesc": "Simple monthly plans for restaurant billing software, POS, QR code menu and online ordering. Free trial, no card needed, no per-order commission.",
+      "themesTitle": "Restaurant Website Templates & Live Demos | NikoBite",
+      "themesDesc": "Restaurant website templates for fine dining, cafés, South Indian, QSR, street food and hotels, with online ordering built in. Open a live demo on your phone."
     },
     "feature": {
       "whatYouGet": "What you get",
@@ -3921,8 +3922,8 @@
     },
     "f": {
       "website": {
-        "metaTitle": "Restaurant website builder for India | NikoBite",
-        "metaDesc": "Make a fast, mobile-first restaurant website with your menu, photos, hours, map, table booking and online ordering. 12 Indian languages. Free trial.",
+        "metaTitle": "Restaurant Website Builder with Online Ordering | NikoBite",
+        "metaDesc": "Create a restaurant website in minutes: menu with photos, online ordering, table booking, Google Maps and 12 Indian languages. No coding needed. Free trial.",
         "eyebrow": "Restaurant website",
         "title": "A restaurant website that looks premium and loads fast",
         "lead": "Pick a theme, add your logo, photos and menu, and you are live on your own address. Guests see your menu, today's hours and how to reach you in a tap.",
@@ -3964,8 +3965,8 @@
         ]
       },
       "ordering": {
-        "metaTitle": "Commission-free online ordering for restaurants | NikoBite",
-        "metaDesc": "Take delivery and takeaway orders on your own website with no per-order commission. Delivery zones, scheduled orders, Razorpay, coupons and live tracking.",
+        "metaTitle": "Online Ordering System for Restaurants | NikoBite",
+        "metaDesc": "Take delivery and takeaway orders on your own restaurant website with 0% commission: delivery zones, scheduled orders, UPI, coupons and live tracking.",
         "eyebrow": "Online ordering",
         "title": "Take orders on your own website, without commission",
         "lead": "Guests order delivery or takeaway from your site and pay online or on delivery. Orders ring in your dashboard and kitchen, and guests follow them live.",
@@ -4007,8 +4008,8 @@
         ]
       },
       "qr": {
-        "metaTitle": "QR code menu and table ordering for restaurants | NikoBite",
-        "metaDesc": "Guests scan a QR code at the table, see your menu, order and call a waiter. One running bill per table, kitchen tickets and live table status.",
+        "metaTitle": "QR Code Menu & Table Ordering for Restaurants | NikoBite",
+        "metaDesc": "Contactless QR code menu: guests scan at the table, order and call a waiter. One running bill per table, KOT to the kitchen and live table status.",
         "eyebrow": "QR table ordering",
         "title": "Scan, order, eat. No waiting for the menu.",
         "lead": "Every table gets its own QR code. Guests browse your menu on their phone, order, call a waiter or ask for the bill, and everything lands on one running bill.",
@@ -4050,8 +4051,8 @@
         ]
       },
       "pos": {
-        "metaTitle": "Restaurant POS with GST billing and kitchen display | NikoBite",
-        "metaDesc": "Fast restaurant POS: GST tax invoices with CGST/SGST, split payments, discounts, kitchen display, day-end cash drawer and reports. Works in the browser.",
+        "metaTitle": "Restaurant POS & GST Billing Software with KOT | NikoBite",
+        "metaDesc": "Restaurant billing software with GST invoices, KOT to the kitchen display, split payments (UPI, card, cash), discounts and day-end reports, in any browser.",
         "eyebrow": "POS and GST billing",
         "title": "Bill faster, with GST done right",
         "lead": "Take counter and table orders, send them to the kitchen, and print proper GST invoices. Close the day with a cash drawer that adds up.",
@@ -4093,8 +4094,8 @@
         ]
       },
       "hotel": {
-        "metaTitle": "Hotel booking engine and front desk software | NikoBite",
-        "metaDesc": "Room booking engine on your own website, front desk, housekeeping, GST room bills and room-service ordering, together with your restaurant. Pro plan.",
+        "metaTitle": "Hotel Management Software with Restaurant POS | NikoBite",
+        "metaDesc": "Hotel booking engine, front desk, housekeeping and GST room bills, together with restaurant POS and room-service QR ordering. One software for hotels in India.",
         "eyebrow": "Hotel management",
         "title": "Rooms and restaurant, in one system",
         "lead": "Guests book rooms on your website and order room service from a QR code in the room. The front desk sees arrivals, the calendar and one bill for the whole stay.",

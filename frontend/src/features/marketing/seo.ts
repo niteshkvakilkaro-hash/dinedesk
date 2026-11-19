@@ -18,7 +18,24 @@ export interface PageHead {
   description: string;
   path: string;
   jsonLd: object[];
+  keywords?: string;
 }
+
+/**
+ * What restaurant owners in India type into Google, one group per page so the pages don't compete
+ * with each other. Used for the keywords meta tag (Bing reads it; Google ranks on titles, headings
+ * and text, which use the same words) and the SoftwareApplication data.
+ */
+export const SEO_KEYWORDS: Record<string, string[]> = {
+  '/': ['restaurant billing software', 'restaurant POS software', 'restaurant management software', 'billing software for restaurant', 'restaurant software India', 'cafe billing software', 'cloud kitchen software', 'restaurant website with online ordering', 'QR code menu', 'KOT billing software', 'GST billing software for restaurant'],
+  '/pricing': ['restaurant billing software price', 'restaurant POS software price India', 'restaurant software pricing', 'POS software cost India', 'restaurant billing software free trial', 'cheap restaurant billing software'],
+  '/themes': ['restaurant website templates', 'restaurant website design', 'restaurant website builder', 'cafe website template', 'hotel website template', 'restaurant website demo'],
+  '/features/restaurant-website': ['restaurant website builder', 'restaurant website with online ordering', 'make restaurant website', 'restaurant website India', 'restaurant menu website', 'website for restaurant'],
+  '/features/online-ordering': ['online food ordering system for restaurant', 'zero commission online ordering', 'restaurant online ordering website', 'own food delivery website', 'online ordering system India', 'Swiggy Zomato alternative'],
+  '/features/qr-menu-ordering': ['QR code menu for restaurant', 'QR code ordering system', 'digital menu QR code', 'contactless menu', 'table ordering system', 'QR menu India'],
+  '/features/pos-billing': ['restaurant POS', 'GST billing software for restaurant', 'KOT billing software', 'restaurant billing software', 'POS billing software India', 'kitchen display system', 'cloud POS for restaurant'],
+  '/features/hotel-management': ['hotel management software', 'hotel booking engine', 'hotel front desk software', 'hotel software with restaurant POS', 'hotel billing software India', 'PMS for hotels India'],
+};
 
 /**
  * Title, description and JSON-LD for each marketing page. Used by the pages in the browser
@@ -26,6 +43,11 @@ export interface PageHead {
  * Everything describes only what NikoBite really does: no ratings, reviews or customer counts.
  */
 export function marketingHead(path: string, t: TFunction): PageHead {
+  const head = baseHead(path, t);
+  return { ...head, keywords: (SEO_KEYWORDS[head.path] ?? SEO_KEYWORDS['/']).join(', ') };
+}
+
+function baseHead(path: string, t: TFunction): PageHead {
   const faq = t('mk.faq.items', { returnObjects: true }) as { q: string; a: string }[];
   const crumbs = (name: string) => breadcrumbJsonLd([{ name: 'NikoBite', path: '/' }, { name, path }]);
   // The pricing page repeats the home page's FAQ: it is marked up once, on the home page.
@@ -49,7 +71,8 @@ export function headTags(head: PageHead, lang: string): { meta: [string, string,
     image,
     meta: [
       ['name', 'description', head.description],
-      ['name', 'robots', 'index, follow'],
+      ...(head.keywords ? [['name', 'keywords', head.keywords] as [string, string, string]] : []),
+      ['name', 'robots', 'index, follow, max-image-preview:large'],
       ['property', 'og:type', 'website'],
       ['property', 'og:site_name', 'NikoBite'],
       ['property', 'og:title', head.title],
@@ -107,7 +130,7 @@ export function usePageMeta(head: PageHead) {
   }, [head.title, head.description, head.path, ld, i18n.language]);
 }
 
-/** NikoBite as an organisation and as a web application (no ratings or offers invented). */
+/** NikoBite as an organisation and as a web application (no ratings, reviews or offers invented). */
 export function orgJsonLd() {
   const origin = siteOrigin();
   return [
@@ -116,11 +139,15 @@ export function orgJsonLd() {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
       name: 'NikoBite',
+      alternateName: 'NikoBite restaurant billing software',
       applicationCategory: 'BusinessApplication',
-      operatingSystem: 'Web browser',
+      applicationSubCategory: 'Restaurant POS and billing software',
+      operatingSystem: 'Web browser, Android',
       url: origin,
-      inLanguage: ['en-IN', 'hi-IN'],
-      description: 'Restaurant website, online ordering, QR table ordering, table bookings, POS with GST billing, kitchen display and hotel management for India.',
+      inLanguage: ['en-IN', 'hi-IN', 'bn-IN', 'gu-IN', 'kn-IN', 'ml-IN', 'mr-IN', 'or-IN', 'pa-IN', 'ta-IN', 'te-IN', 'ur-IN'],
+      description: 'Restaurant billing software for India: POS with GST and KOT billing, QR code menu and table ordering, online ordering website, table bookings, kitchen display and hotel management.',
+      featureList: ['Restaurant POS with GST billing', 'KOT to kitchen display', 'QR code menu and table ordering', 'Online ordering website with no commission', 'Table reservations', 'Inventory and reports', 'Hotel booking engine and front desk', '12 Indian languages'],
+      keywords: SEO_KEYWORDS['/'].join(', '),
     },
   ];
 }

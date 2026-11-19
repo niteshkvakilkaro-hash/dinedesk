@@ -36,6 +36,15 @@ export function formatPhone(phone: string | null | undefined): string {
 
 export const isIndianMobile = (v: string) => /^(\+?91|0)?[6-9]\d{9}$/.test(v.replace(/[\s-]/g, ''));
 
+/** What a phone field keeps while typing: digits, +, spaces and dashes (pasted or autofilled text included). */
+export const cleanPhoneInput = (v: string) => v.replace(/[^\d+\s-]/g, '').slice(0, 16);
+
+/** Digits of an Indian mobile without the +91 / 0 prefix (for a "7/10" counter). */
+export const mobileDigits = (v: string) => {
+  const d = v.replace(/\D/g, '');
+  return d.length > 10 && /^(91|0)/.test(d) ? d.replace(/^(91|0)/, '') : d;
+};
+
 export const GSTIN_REGEX = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
 const inrWhole = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { BedDouble, Check, ChefHat, Coffee, Copy, ExternalLink, LayoutDashboard, Sparkles, UtensilsCrossed } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
-import { isIndianMobile } from '@/lib/format';
+import { cleanPhoneInput, isIndianMobile, mobileDigits } from '@/lib/format';
 import { subdomainUrl } from '@/lib/dinedeskApp';
 import { useSignIn } from '@/hooks/useSession';
 import { homePath } from '@/lib/home';
@@ -36,6 +36,7 @@ export function DemoPage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<DemoResult | null>(null);
+  const digits = mobileDigits(phone).length;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,8 +81,8 @@ export function DemoPage() {
           <Field label={t('auth.name')} error={errors.name}>
             {(a) => <input {...a} className="field-input" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />}
           </Field>
-          <Field label={t('demo.mobile')} hint={t('demo.mobileHint')} error={errors.phone}>
-            {(a) => <input {...a} className="field-input" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} />}
+          <Field label={t('demo.mobile')} hint={digits > 0 && digits < 10 ? t('auth.digits', { count: digits }) : t('demo.mobileHint')} error={errors.phone}>
+            {(a) => <input {...a} className="field-input" type="tel" inputMode="tel" autoComplete="tel" maxLength={16} placeholder="98765 43210" value={phone} onChange={(e) => setPhone(cleanPhoneInput(e.target.value))} />}
           </Field>
           <fieldset>
             <legend className="field-label">{t('demo.kind')}</legend>

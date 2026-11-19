@@ -26,33 +26,39 @@ class SiteAppController extends Controller
         $tenant = $this->tenant($request);
         [$theme, $colors] = $this->colors($tenant);
         $name = $tenant->name;
+        // A /s/<slug> website: the installed app and its icons live under that path.
+        $slug = $this->pathSite($request);
+        $base = $slug ? '/s/'.$slug : '';
+        $icon = fn (int $size) => "{$base}/site-icon-{$size}.png";
         $manifest = [
             'name' => $name,
             'short_name' => mb_strimwidth($name, 0, 14, '…'),
             'description' => $tenant->city ? "{$name}, {$tenant->city}" : $name,
-            'id' => '/',
-            'start_url' => '/?source=app',
-            'scope' => '/',
+            'id' => $base.'/',
+            'start_url' => $base.'/?source=app',
+            'scope' => $base.'/',
             'display' => 'standalone',
             'background_color' => $colors['background'],
             'theme_color' => $colors['primary'],
             'icons' => [
-                ['src' => '/site-icon-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
-                ['src' => '/site-icon-512.png', 'sizes' => '512x512', 'type' => 'image/png'],
-                ['src' => '/site-icon-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+                ['src' => $icon(192), 'sizes' => '192x192', 'type' => 'image/png'],
+                ['src' => $icon(512), 'sizes' => '512x512', 'type' => 'image/png'],
+                ['src' => $icon(512), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
             ],
             // Long-press the app icon for these.
             'shortcuts' => [
-                ['name' => 'Menu', 'url' => '/menu'],
-                ['name' => 'My orders', 'url' => '/orders'],
+                ['name' => 'Menu', 'url' => $base.'/menu'],
+                ['name' => 'My orders', 'url' => $base.'/orders'],
             ],
         ];
 
         return response(json_encode($manifest, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), 200, ['Content-Type' => 'application/manifest+json', 'Cache-Control' => 'public, max-age=3600']);
     }
 
-    public function icon(Request $request, int $size): Response
+    public function icon(Request $request): Response
     {
+        // Read by name: /site-icon-{size}.png and /s/{site}/site-icon-{size}.png share this action.
+        $size = (int) $request->route('size');
         abort_unless(in_array($size, [192, 512], true), 404);
         $tenant = $this->tenant($request);
         [$theme, $colors] = $this->colors($tenant);
@@ -95,10 +101,24 @@ class SiteAppController extends Controller
 
     private function tenant(Request $request): Tenant
     {
-        $tenant = $this->resolver->resolve($this->resolver->hostFrom($request));
+        $host = $this->resolver->hostFrom($request);
+        // Websites at <platform domain>/s/<slug> (hosting without wildcard subdomains) name their business in the path.
+        if ($slug = $this->pathSite($request)) {
+            $host = $slug.'.'.config('dinedesk.platform_domain');
+        }
+        $tenant = $this->resolver->resolve($host);
         abort_unless($tenant, 404);
 
         return $tenant;
+    }
+
+    /** The business slug of a /s/<slug> website (from the path, or ?site=), only on the platform domain itself. */
+    private function pathSite(Request $request): ?string
+    {
+        $slug = strtolower((string) ($request->route('site') ?? $request->query('site', '')));
+        $onPlatform = in_array($this->resolver->hostFrom($request), [config('dinedesk.platform_domain'), 'www.'.config('dinedesk.platform_domain')], true);
+
+        return $onPlatform && preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/', $slug) ? $slug : null;
     }
 
     /** @return array{0: ?ThemeSetting, 1: array{primary: string, background: string}} */

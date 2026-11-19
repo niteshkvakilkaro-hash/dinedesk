@@ -16,6 +16,9 @@ Route::get('sitemap.xml', [SeoController::class, 'sitemap']);
 // Each business website installs as its own app (manifest + icons from its logo and colours).
 Route::get('site.webmanifest', [SiteAppController::class, 'manifest']);
 Route::get('site-icon-{size}.png', [SiteAppController::class, 'icon'])->whereNumber('size');
+// The same for websites at <platform domain>/s/<slug> (the slug is in the path: CDNs drop query strings on .png).
+Route::get('s/{site}/site.webmanifest', [SiteAppController::class, 'manifest'])->where('site', '[a-z0-9-]+');
+Route::get('s/{site}/site-icon-{size}.png', [SiteAppController::class, 'icon'])->where('site', '[a-z0-9-]+')->whereNumber('size');
 
 // Android app (Trusted Web Activity) verification for this host.
 Route::get('.well-known/assetlinks.json', [AndroidAppController::class, 'assetLinks']);

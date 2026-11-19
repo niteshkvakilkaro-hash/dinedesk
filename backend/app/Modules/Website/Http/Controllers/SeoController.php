@@ -80,7 +80,16 @@ class SeoController extends Controller
     {
         if ($this->onPlatform($request)) {
             $host = $this->platformHost();
-            $urls = collect(self::PLATFORM_PAGES)->map(fn ($p) => "  <url><loc>https://{$host}{$p}</loc></url>")->implode("\n");
+            // Pages change with each release: the cached config is rebuilt on every deploy, so its date is the last update.
+            $cached = base_path('bootstrap/cache/config.php');
+            $lastmod = date('Y-m-d', is_file($cached) ? filemtime($cached) : time());
+            $priority = fn (string $p) => match (true) {
+                $p === '/' => '1.0',
+                $p === '/pricing' => '0.9',
+                str_starts_with($p, '/features/') => '0.8',
+                default => '0.7',
+            };
+            $urls = collect(self::PLATFORM_PAGES)->map(fn ($p) => "  <url><loc>https://{$host}{$p}</loc><lastmod>{$lastmod}</lastmod><changefreq>weekly</changefreq><priority>{$priority($p)}</priority></url>")->implode("\n");
 
             return $this->xml("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n{$urls}\n</urlset>\n");
         }
