@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BadgeCheck, Bell, KeyRound, Languages, Smartphone, UserRound } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
-import { formatPhone, isIndianMobile } from '@/lib/format';
+import { cleanPhoneInput, formatPhone, isIndianMobile } from '@/lib/format';
 import { scrollToSection, useOpenParam } from '@/lib/urlParams';
 import { LANGUAGES } from '@/i18n';
 import { languageCode } from '@/i18n/locale';
@@ -202,7 +202,7 @@ function Mobile({ session }: { session: Session }) {
             {(a) => (
               <div className="relative">
                 <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 font-semibold text-muted">+91</span>
-                <input {...a} type="tel" inputMode="tel" autoComplete="tel-national" className="field-input pl-12" placeholder="98290 12345" value={phone} onChange={(e) => setPhone(e.target.value)} autoFocus />
+                <input {...a} type="tel" inputMode="tel" autoComplete="tel" maxLength={16} className="field-input pl-12" placeholder="98290 12345" value={phone} onChange={(e) => setPhone(cleanPhoneInput(e.target.value))} autoFocus />
               </div>
             )}
           </Field>

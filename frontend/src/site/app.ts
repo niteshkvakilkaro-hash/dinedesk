@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { isDineDeskApp } from '@/lib/dinedeskApp';
+import { siteBasename } from '@/lib/host';
 
 /** Opened inside the NikoBite Android app (or with ?app=1 once in this tab): app chrome instead of website chrome. */
 export const IN_APP = typeof window !== 'undefined' && isDineDeskApp();
@@ -16,8 +17,10 @@ export function setUpSiteApp() {
     link.href = href;
     document.head.appendChild(link);
   };
-  add('manifest', '/site.webmanifest');
-  add('apple-touch-icon', '/site-icon-192.png');
+  // A website at /s/<slug> has its app files under that path (see SiteAppController).
+  const base = siteBasename() ?? '';
+  add('manifest', `${base}/site.webmanifest`);
+  add('apple-touch-icon', `${base}/site-icon-192.png`);
   if ('serviceWorker' in navigator) void navigator.serviceWorker.register('/app-sw.js', { scope: '/' }).catch(() => null);
 }
 

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import { Check, Gift, Mail, Smartphone } from 'lucide-react';
 import { api, ApiError, applyServerErrors } from '@/lib/api';
-import { formatPhone, isIndianMobile } from '@/lib/format';
+import { cleanPhoneInput, formatPhone, isIndianMobile } from '@/lib/format';
 import { clearReferral, normalizeReferral, storedReferral } from '@/lib/referral';
 import { useSignIn } from '@/hooks/useSession';
 import { Alert, Field, Spinner } from '@/components/ui';
@@ -196,7 +196,7 @@ function OtpFlow() {
           {(a) => (
             <div className="relative">
               <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 font-semibold text-muted">+91</span>
-              <input {...a} type="tel" inputMode="tel" autoComplete="tel-national" className="field-input pl-12" placeholder="98290 12345" value={phone} onChange={(e) => setPhone(e.target.value)} data-autofocus />
+              <input {...a} type="tel" inputMode="tel" autoComplete="tel" maxLength={16} className="field-input pl-12" placeholder="98290 12345" value={phone} onChange={(e) => setPhone(cleanPhoneInput(e.target.value))} data-autofocus />
             </div>
           )}
         </Field>

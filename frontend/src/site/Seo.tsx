@@ -4,6 +4,7 @@ import type { SiteData } from './types';
 import { useSiteGallery, useSiteMenu } from './data';
 import { useHotel } from './hotel';
 import { siteHead } from './seoHead';
+import { siteBasename } from '@/lib/host';
 
 // JSON inside <script>: stop "</script>" in owner text from closing the tag early.
 const ldJson = (o: object) => JSON.stringify(o).replace(/</g, '\\u003c');
@@ -20,6 +21,8 @@ export function Seo({ site, path, themeColor, title = null, isPrivate = false }:
   const { data: hotel } = useHotel(!!site.hotel?.has_rooms && path === '/rooms');
   const head = siteHead({ site, path, title, isPrivate, lang: i18n.language, t, menu, gallery, hotel });
 
+  // A website at /s/<slug> asks for its app files under that path (the host is the platform's own).
+  const appBase = (typeof window === 'undefined' ? undefined : siteBasename()) ?? '';
   return (
     <Helmet>
       <html lang={head.htmlLang} dir={head.dir} />
@@ -43,9 +46,9 @@ export function Seo({ site, path, themeColor, title = null, isPrivate = false }:
       <meta name="twitter:title" content={head.title} />
       <meta name="twitter:description" content={head.description} />
       {head.image && <meta name="twitter:image" content={head.image} />}
-      {site.theme.logo ? <link rel="icon" href={site.theme.logo.src} /> : <link rel="icon" type="image/png" href="/site-icon-192.png" />}
-      <link rel="apple-touch-icon" href="/site-icon-192.png" />
-      <link rel="manifest" href="/site.webmanifest" />
+      {site.theme.logo ? <link rel="icon" href={site.theme.logo.src} /> : <link rel="icon" type="image/png" href={`${appBase}/site-icon-192.png`} />}
+      <link rel="apple-touch-icon" href={`${appBase}/site-icon-192.png`} />
+      <link rel="manifest" href={`${appBase}/site.webmanifest`} />
       {head.jsonLd.map((ld, i) => <script key={i} type="application/ld+json">{ldJson(ld)}</script>)}
     </Helmet>
   );
