@@ -8,6 +8,8 @@ import { loadRazorpay } from '@/site/ordering';
 import { Alert, Badge, EmptyState, ErrorState, SkeletonRows, Spinner, toast } from '@/components/ui';
 import { ReferralCard } from './ReferralCard';
 import { scrollToSection, useOpenParam } from '@/lib/urlParams';
+import { usePublicConfig, whatsappUrl } from '@/lib/publicConfig';
+import { useSession } from '@/hooks/useSession';
 
 type Cycle = 'monthly' | 'yearly';
 
@@ -122,6 +124,8 @@ export default function BillingPage() {
   const q = useBilling();
   const [cycle, setCycle] = useState<Cycle | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const config = usePublicConfig().data;
+  const businessName = useSession().data?.tenant?.name ?? '';
   // From the dashboard search: ?open=refer or ?open=export scrolls to that card.
   useOpenParam(scrollToSection, !!q.data);
 
@@ -139,6 +143,13 @@ export default function BillingPage() {
   const shownCycle: Cycle = cycle ?? (s?.paid ? s.billing_cycle : 'monthly');
 
   const choose = async (plan: PlanRow) => {
+    // Online payments not set up yet: the plan is activated by the NikoBite team over WhatsApp.
+    const wa = !activePaid && !b.payments_ready ? whatsappUrl(config?.support.whatsapp, t('help.buyText', { plan: plan.name, cycle: t(`billing.cycle.${shownCycle}`), business: businessName })) : null;
+    if (wa) {
+      window.open(wa, '_blank', 'noopener');
+      toast.success(t('help.buyToast'));
+      return;
+    }
     setBusy(plan.code);
     try {
       if (activePaid) {

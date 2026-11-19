@@ -101,6 +101,11 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip())
             ->response($tooMany('Too many sign-ups from this network. Please try again later.')));
+        // The NikoBite assistant (each message may call the AI).
+        RateLimiter::for('support-chat', fn (Request $request) => [
+            Limit::perMinute(12)->by('chat|'.$request->ip())->response($tooMany('You are sending messages very fast. Please wait a moment.')),
+            Limit::perDay(300)->by('chat-day|'.$request->ip())->response($tooMany('Please continue with us on WhatsApp.')),
+        ]);
         // Live demos: each one copies a whole sample business (photos included).
         RateLimiter::for('demo', fn (Request $request) => [
             Limit::perHour(3)->by('demo|'.$request->ip())->response($tooMany('You have made several demos already. Please try again in an hour.')),

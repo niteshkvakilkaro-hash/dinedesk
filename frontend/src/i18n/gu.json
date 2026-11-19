@@ -749,7 +749,8 @@
       "plans": "પ્લાન",
       "revenue": "આવક",
       "settings": "સેટિંગ",
-      "integrations": "ઇન્ટિગ્રેશન"
+      "integrations": "ઇન્ટિગ્રેશન",
+      "chats": "ચેટ"
     },
     "tenants": {
       "title": "બિઝનેસ",
@@ -850,7 +851,12 @@
       "sacHint": "તમારા CA સાથે તપાસો.",
       "razorpayReady": "Razorpay કી સેટ છે: બિઝનેસ ઓનલાઇન ચુકવણી કરી શકે છે.",
       "razorpayMissing": "Razorpay કી હજી સેટ નથી: બિઝનેસ ઓનલાઇન ચુકવણી કરી શકતા નથી.",
-      "openIntegrations": "પેમેન્ટ કી અને બીજા ઇન્ટિગ્રેશન"
+      "openIntegrations": "પેમેન્ટ કી અને બીજા ઇન્ટિગ્રેશન",
+      "support": "સપોર્ટ સંપર્ક",
+      "supportHint": "વેબસાઇટ અને ડેશબોર્ડ પર WhatsApp બટન અને ચેટ આસિસ્ટન્ટમાં દેખાય છે.",
+      "supportWhatsapp": "WhatsApp નંબર",
+      "supportEmail": "સપોર્ટ ઈમેલ",
+      "supportChatbot": "ચેટ આસિસ્ટન્ટ ચાલુ કરો"
     },
     "support": {
       "title": "સપોર્ટ એક્સેસ",
@@ -999,6 +1005,25 @@
         "chooseFile": ".json ફાઇલ પસંદ કરો",
         "testHint": "જે ફોન પર તમે આ એકાઉન્ટથી NikoBite ઍપમાં સાઇન ઇન છો, ત્યાં ટેસ્ટ નોટિફિકેશન મોકલે છે.",
         "appBuild": "ઍપને પોતાની Firebase ફાઇલ પણ જોઈએ (google-services.json, android/README.md જુઓ), પછી ઍપનું નવું બિલ્ડ."
+      }
+    },
+    "chats": {
+      "title": "ચેટ",
+      "lead": "NikoBite આસિસ્ટન્ટ સાથેની વાતચીત. WhatsApp પર ફોલો-અપ કરો.",
+      "newCount": "{{count}} નવી",
+      "empty": "હજી કોઈ ચેટ નથી.",
+      "pick": "વાંચવા માટે કોઈ ચેટ પસંદ કરો.",
+      "visitor": "મુલાકાતી",
+      "bot": "આસિસ્ટન્ટ",
+      "messages": "{{count}} મેસેજ",
+      "reply": "WhatsApp પર જવાબ આપો",
+      "close": "બંધ કરો",
+      "reopen": "ફરી ખોલો",
+      "waText": "નમસ્તે {{name}}, હું NikoBite તરફથી છું. અમારી વેબસાઇટ પર મેસેજ કરવા બદલ આભાર!",
+      "filter": {
+        "all": "બધી",
+        "new": "નવી",
+        "closed": "બંધ"
       }
     }
   },
@@ -4670,5 +4695,27 @@
     "copy": "{{what}} કૉપિ કરો",
     "open": "મારું ડેશબોર્ડ ખોલો",
     "site": "મારી ડેમો વેબસાઇટ જુઓ"
+  },
+  "help": {
+    "title": "NikoBite સાથે ચેટ કરો",
+    "subtitle": "તરત જવાબ",
+    "greeting": "નમસ્તે! પ્લાન, ફીચર અથવા મફત લાઇવ ડેમો વિશે પૂછો.",
+    "placeholder": "તમારો પ્રશ્ન લખો…",
+    "send": "મોકલો",
+    "open": "મદદ જોઈએ?",
+    "close": "ચેટ બંધ કરો",
+    "whatsapp": "WhatsApp પર ચેટ કરો",
+    "handoff": "WhatsApp પર ચાલુ રાખો",
+    "typing": "લખી રહ્યા છે…",
+    "error": "મોકલી શકાયું નહીં. ફરી પ્રયાસ કરો અથવા WhatsApp પર મેસેજ કરો.",
+    "waText": "નમસ્તે NikoBite, મારો એક પ્રશ્ન છે.",
+    "buyText": "નમસ્તે NikoBite, મારે {{business}} માટે {{plan}} પ્લાન ({{cycle}}) જોઈએ છે.",
+    "buyToast": "WhatsApp ખૂલ્યું: મેસેજ મોકલો, અમે તમારો પ્લાન ચાલુ કરી દઈશું.",
+    "quick": [
+      "કિંમત કેટલી છે?",
+      "ડેમો બતાવો",
+      "શું શું કરી શકે?",
+      "કોઈ સાથે વાત કરો"
+    ]
   }
 }

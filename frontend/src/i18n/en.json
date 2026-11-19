@@ -749,7 +749,8 @@
       "plans": "Plans",
       "revenue": "Revenue",
       "settings": "Settings",
-      "integrations": "Integrations"
+      "integrations": "Integrations",
+      "chats": "Chats"
     },
     "tenants": {
       "title": "Businesses",
@@ -850,7 +851,12 @@
       "sacHint": "Check with your CA.",
       "razorpayReady": "Razorpay keys are set: businesses can pay online.",
       "razorpayMissing": "Razorpay keys are not set yet: businesses can't pay online.",
-      "openIntegrations": "Payment keys and other integrations"
+      "openIntegrations": "Payment keys and other integrations",
+      "support": "Support contact",
+      "supportHint": "Shown as the WhatsApp button and chat assistant on the website and dashboard.",
+      "supportWhatsapp": "WhatsApp number",
+      "supportEmail": "Support email",
+      "supportChatbot": "Turn on the chat assistant"
     },
     "support": {
       "title": "Support access",
@@ -999,6 +1005,25 @@
         "chooseFile": "Choose the .json file",
         "testHint": "Sends a test notification to the NikoBite app on phones where you are signed in with this account.",
         "appBuild": "The app needs its own Firebase file too (google-services.json, see android/README.md), then a new app build."
+      }
+    },
+    "chats": {
+      "title": "Chats",
+      "lead": "Conversations with the NikoBite assistant. Follow up on WhatsApp.",
+      "newCount": "{{count}} new",
+      "empty": "No chats yet.",
+      "pick": "Pick a chat to read it.",
+      "visitor": "Visitor",
+      "bot": "Assistant",
+      "messages": "{{count}} messages",
+      "reply": "Reply on WhatsApp",
+      "close": "Close",
+      "reopen": "Reopen",
+      "waText": "Hi {{name}}, this is NikoBite. Thanks for your message on our website!",
+      "filter": {
+        "all": "All",
+        "new": "New",
+        "closed": "Closed"
       }
     }
   },
@@ -4670,5 +4695,27 @@
     "copy": "Copy {{what}}",
     "open": "Open my dashboard",
     "site": "See my demo website"
+  },
+  "help": {
+    "title": "Chat with NikoBite",
+    "subtitle": "Replies instantly",
+    "greeting": "Namaste! Ask me about plans, features or the free live demo.",
+    "placeholder": "Type your question…",
+    "send": "Send",
+    "open": "Need help?",
+    "close": "Close chat",
+    "whatsapp": "Chat on WhatsApp",
+    "handoff": "Continue on WhatsApp",
+    "typing": "Typing…",
+    "error": "Could not send. Try again or message us on WhatsApp.",
+    "waText": "Hi NikoBite, I have a question.",
+    "buyText": "Hi NikoBite, I want the {{plan}} plan ({{cycle}}) for {{business}}.",
+    "buyToast": "WhatsApp opened: send the message and we will activate your plan.",
+    "quick": [
+      "What does it cost?",
+      "Show me a demo",
+      "What can it do?",
+      "Talk to a person"
+    ]
   }
 }

@@ -749,7 +749,8 @@
       "plans": "پلانز",
       "revenue": "آمدنی",
       "settings": "سیٹنگز",
-      "integrations": "انٹیگریشنز"
+      "integrations": "انٹیگریشنز",
+      "chats": "چیٹس"
     },
     "tenants": {
       "title": "کاروبار",
@@ -850,7 +851,12 @@
       "sacHint": "اپنے CA سے تصدیق کریں۔",
       "razorpayReady": "Razorpay کیز سیٹ ہیں: کاروبار آن لائن ادائیگی کر سکتے ہیں۔",
       "razorpayMissing": "Razorpay کیز ابھی سیٹ نہیں ہیں: کاروبار آن لائن ادائیگی نہیں کر سکتے۔",
-      "openIntegrations": "پیمنٹ کیز اور دوسرے انٹیگریشنز"
+      "openIntegrations": "پیمنٹ کیز اور دوسرے انٹیگریشنز",
+      "support": "سپورٹ رابطہ",
+      "supportHint": "ویب سائٹ اور ڈیش بورڈ پر WhatsApp بٹن اور چیٹ اسسٹنٹ میں دکھتا ہے۔",
+      "supportWhatsapp": "WhatsApp نمبر",
+      "supportEmail": "سپورٹ ای میل",
+      "supportChatbot": "چیٹ اسسٹنٹ چالو کریں"
     },
     "support": {
       "title": "سپورٹ رسائی",
@@ -999,6 +1005,25 @@
         "chooseFile": ".json فائل منتخب کریں",
         "testHint": "جن فونز پر آپ اس اکاؤنٹ سے NikoBite ایپ میں سائن اِن ہیں، وہاں ایک ٹیسٹ نوٹیفکیشن بھیجتا ہے۔",
         "appBuild": "ایپ کو بھی اپنی Firebase فائل چاہیے (google-services.json، android/README.md دیکھیں)، پھر ایپ کا نیا بلڈ۔"
+      }
+    },
+    "chats": {
+      "title": "چیٹس",
+      "lead": "NikoBite اسسٹنٹ سے ہونے والی گفتگو۔ WhatsApp پر فالو اپ کریں۔",
+      "newCount": "{{count}} نئی",
+      "empty": "ابھی کوئی چیٹ نہیں۔",
+      "pick": "پڑھنے کے لیے کوئی چیٹ منتخب کریں۔",
+      "visitor": "وزیٹر",
+      "bot": "اسسٹنٹ",
+      "messages": "{{count}} میسجز",
+      "reply": "WhatsApp پر جواب دیں",
+      "close": "بند کریں",
+      "reopen": "دوبارہ کھولیں",
+      "waText": "ہیلو {{name}}، میں NikoBite سے ہوں۔ ہماری ویب سائٹ پر میسج کرنے کا شکریہ!",
+      "filter": {
+        "all": "سب",
+        "new": "نئی",
+        "closed": "بند"
       }
     }
   },
@@ -4670,5 +4695,27 @@
     "copy": "{{what}} کاپی کریں",
     "open": "میرا ڈیش بورڈ کھولیں",
     "site": "میری ڈیمو ویب سائٹ دیکھیں"
+  },
+  "help": {
+    "title": "NikoBite سے چیٹ کریں",
+    "subtitle": "فوری جواب",
+    "greeting": "آداب! پلان، فیچرز یا مفت لائیو ڈیمو کے بارے میں پوچھیں۔",
+    "placeholder": "اپنا سوال لکھیں…",
+    "send": "بھیجیں",
+    "open": "مدد چاہیے؟",
+    "close": "چیٹ بند کریں",
+    "whatsapp": "WhatsApp پر چیٹ کریں",
+    "handoff": "WhatsApp پر جاری رکھیں",
+    "typing": "لکھ رہے ہیں…",
+    "error": "بھیجا نہیں جا سکا۔ دوبارہ کوشش کریں یا WhatsApp پر میسج کریں۔",
+    "waText": "ہیلو NikoBite، میرا ایک سوال ہے۔",
+    "buyText": "ہیلو NikoBite، مجھے {{business}} کے لیے {{plan}} پلان ({{cycle}}) چاہیے۔",
+    "buyToast": "WhatsApp کھل گیا: میسج بھیجیں، ہم آپ کا پلان چالو کر دیں گے۔",
+    "quick": [
+      "قیمت کتنی ہے؟",
+      "ڈیمو دکھائیں",
+      "اس میں کیا کیا ہے؟",
+      "کسی سے بات کریں"
+    ]
   }
 }
