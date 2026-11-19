@@ -14,6 +14,7 @@
 import i18n from 'i18next';
 import { languageCode } from '@/i18n/locale';
 import { androidBridge, saveBlob } from './dinedeskApp';
+import { siteHost } from '@/lib/host';
 
 const ROOT = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 export const API_BASE = `${ROOT}/api/v1`;
@@ -84,7 +85,7 @@ function buildUrl(path: string, params?: Params) {
 export async function request<T>(path: string, { method = 'GET', body, params, signal, headers: extra }: RequestOptions = {}): Promise<Envelope<T>> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
-    'X-Tenant-Host': window.location.host,
+    'X-Tenant-Host': siteHost(),
     'X-Locale': languageCode(i18n.language),
     ...extra,
   };
@@ -152,7 +153,7 @@ export async function openFile(path: string) {
   // The Android app has no tabs or PDF viewer: it saves the file and opens it in a viewer app.
   const inApp = !!androidBridge();
   const win = inApp ? null : window.open('', '_blank');
-  const headers: Record<string, string> = { 'X-Tenant-Host': window.location.host };
+  const headers: Record<string, string> = { 'X-Tenant-Host': siteHost() };
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(buildUrl(path), { headers, cache: 'no-store' });
   if (!res.ok) {
@@ -175,7 +176,7 @@ export async function openFile(path: string) {
 
 /** Downloads a file (PDF…) from an authenticated endpoint and saves it. */
 export async function downloadFile(path: string, filename: string, params?: Params) {
-  const headers: Record<string, string> = { 'X-Tenant-Host': window.location.host };
+  const headers: Record<string, string> = { 'X-Tenant-Host': siteHost() };
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(buildUrl(path, params), { headers });
   if (!res.ok) throw new ApiError('Could not download the file.', res.status);

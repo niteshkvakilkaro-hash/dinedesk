@@ -12,6 +12,7 @@ import type { CustomerOrder, SiteData } from '../types';
 import { GuestSignIn } from './GuestSignIn';
 import { OrderAgain } from './OrderAgain';
 import { useSkin } from './skin';
+import { siteHost } from '@/lib/host';
 
 /**
  * Orders placed from this phone or browser, plus (once signed in with the phone number)
@@ -26,7 +27,7 @@ export default function MyOrdersPage({ site }: { site: SiteData }) {
   const update = useGuestUpdate();
   const me = account.data;
   // This device's orders and the account's, newest first, each once.
-  const local = recentOrders(window.location.host);
+  const local = recentOrders(siteHost());
   const saved = [...(me?.orders ?? []).map((o) => ({ id: o.id, token: o.token, number: o.number })), ...local]
     .filter((o, i, all) => all.findIndex((x) => x.id === o.id) === i)
     .sort((a, b) => b.number - a.number)

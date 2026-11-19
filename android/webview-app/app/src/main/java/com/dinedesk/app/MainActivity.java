@@ -63,7 +63,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * DineDesk: one app for guests and businesses. Opens <platform host>/app full-screen and keeps the
+ * NikoBite: one app for guests and businesses. Opens <platform host>/app full-screen and keeps the
  * platform host and its business subdomains inside the app; everything else (other websites, phone,
  * mail, WhatsApp, UPI, maps) opens in the phone's own apps.
  *
@@ -91,7 +91,7 @@ public class MainActivity extends Activity {
     private String[] appHosts;
     /** Businesses' own domains confirmed by the web app (allowHost), kept across launches. */
     private final Set<String> allowedHosts = new HashSet<>();
-    /** Host of the page on screen: the bridge only serves DineDesk pages. */
+    /** Host of the page on screen: the bridge only serves NikoBite pages. */
     private volatile boolean trustedPage;
     private volatile String pageUrl = "";
     private boolean ready;
@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
         web.loadUrl(target != null ? target : BuildConfig.START_URL);
     }
 
-    /** The rider screen from the on-duty notification, when it is a DineDesk page. */
+    /** The rider screen from the on-duty notification, when it is a NikoBite page. */
     private String riderUrl(Intent intent) {
         if (intent == null || !ACTION_OPEN_RIDER.equals(intent.getAction())) return null;
         String url = intent.getStringExtra(EXTRA_URL);
@@ -191,7 +191,7 @@ public class MainActivity extends Activity {
 
     /**
      * A tapped app notification (Push.ACTION_OPEN, also FCM's click_action): its page, when it is a
-     * DineDesk page. The server sends paths ("/dashboard/orders"): they open on the host the app
+     * NikoBite page. The server sends paths ("/dashboard/orders"): they open on the host the app
      * is on (the platform host when it just started).
      */
     private String pushUrl(Intent intent) {
@@ -243,7 +243,7 @@ public class MainActivity extends Activity {
             }
             startActivity(i);
         } catch (Exception e) {
-            toast("Open Settings → Apps → DineDesk → Notifications to allow them.");
+            toast("Open Settings → Apps → NikoBite → Notifications to allow them.");
         }
     }
 
@@ -368,7 +368,7 @@ public class MainActivity extends Activity {
                 + "<div style='font-size:44px'>&#128246;</div>"
                 + "<h2 style='margin:16px 0 8px'>No internet</h2>"
                 + "<p style='opacity:.7;margin:0'>Check your connection and try again.</p>"
-                + (BuildConfig.DEV ? "<p style='opacity:.5;font-size:13px'>Dev build: keep the PC running DineDesk on and this phone on the same Wi-Fi.<br>" + BuildConfig.START_URL + "</p>" : "")
+                + (BuildConfig.DEV ? "<p style='opacity:.5;font-size:13px'>Dev build: keep the PC running NikoBite on and this phone on the same Wi-Fi.<br>" + BuildConfig.START_URL + "</p>" : "")
                 + "<button style='margin-top:24px;padding:14px 32px;border:0;border-radius:28px;background:#f2b544;color:#14110f;font-weight:700;font-size:16px'"
                 + " onclick='location.replace(" + retry.replace("'", "&#39;") + ")'>Retry</button>"
                 + "</body></html>";
@@ -480,7 +480,7 @@ public class MainActivity extends Activity {
             return true;
         }
 
-        /** getUserMedia (Scan QR): the camera only, only for DineDesk pages. */
+        /** getUserMedia (Scan QR): the camera only, only for NikoBite pages. */
         @Override
         public void onPermissionRequest(PermissionRequest request) {
             main.post(() -> {
@@ -505,7 +505,7 @@ public class MainActivity extends Activity {
             if (pendingWebPermission == request) pendingWebPermission = null;
         }
 
-        /** navigator.geolocation ("Use my location"), only for DineDesk pages. */
+        /** navigator.geolocation ("Use my location"), only for NikoBite pages. */
         @Override
         public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
             if (!isAppHost(Uri.parse(origin))) {
@@ -548,7 +548,7 @@ public class MainActivity extends Activity {
                 startRiderService(config);
             } else {
                 LocationService.noteError(this, "denied");
-                toast("Allow Location for DineDesk (Settings → Apps → DineDesk → Permissions) to share it while on duty.");
+                toast("Allow Location for NikoBite (Settings → Apps → NikoBite → Permissions) to share it while on duty.");
             }
         } else if (code == REQ_PERM_LOCATION && pendingGeoCallback != null) {
             pendingGeoCallback.invoke(pendingGeoOrigin, any, false);
@@ -695,7 +695,7 @@ public class MainActivity extends Activity {
 
     private void printFrom(WebView view, String title) {
         PrintManager pm = (PrintManager) getSystemService(Context.PRINT_SERVICE);
-        String job = (title == null || title.trim().isEmpty() ? "DineDesk" : title.trim());
+        String job = (title == null || title.trim().isEmpty() ? "NikoBite" : title.trim());
         pm.print(job, view.createPrintDocumentAdapter(job), new PrintAttributes.Builder().build());
     }
 
@@ -732,7 +732,7 @@ public class MainActivity extends Activity {
 
     /**
      * window.DineDeskAndroid. Calls arrive on a background thread; each one checks that the page on
-     * screen is a DineDesk page (platform host, its subdomains, or a confirmed business domain).
+     * screen is a NikoBite page (platform host, its subdomains, or a confirmed business domain).
      */
     private class Bridge {
         @JavascriptInterface
@@ -821,7 +821,7 @@ public class MainActivity extends Activity {
                 return false;
             }
             String upload = o.optString("uploadUrl", "");
-            // The token goes only to DineDesk itself (https in production; the dev PC over http).
+            // The token goes only to NikoBite itself (https in production; the dev PC over http).
             if (o.optString("token", "").isEmpty() || upload.isEmpty() || !isAppHost(Uri.parse(upload))) {
                 LocationService.noteError(MainActivity.this, "start_failed");
                 return false;

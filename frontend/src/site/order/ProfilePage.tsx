@@ -35,7 +35,7 @@ export default function ProfilePage({ site }: { site: SiteData }) {
 
   return (
     <div className={`mx-auto max-w-2xl space-y-5 px-4 pb-24 sm:px-6 ${IN_APP ? 'pt-4' : 'pt-8'}`}>
-      {/* In the DineDesk app the top bar already names the page. */}
+      {/* In the NikoBite app the top bar already names the page. */}
       <h1 className={IN_APP ? 'sr-only' : `text-4xl ${skin.heading}`}>{t('site.profile.title')}</h1>
 
       <section className={`p-5 ${skin.card}`} aria-label={t('site.profile.account')}>
@@ -61,7 +61,7 @@ export default function ProfilePage({ site }: { site: SiteData }) {
         )}
       </section>
 
-      {/* Already an app inside DineDesk: no "install" offer there. */}
+      {/* Already an app inside NikoBite: no "install" offer there. */}
       {!IN_APP && !app.installed && (app.canPrompt || app.ios) && (
         <section className={`flex items-center gap-4 p-5 ${skin.card}`} aria-labelledby="install-h">
           <img src="/site-icon-192.png" alt="" width={48} height={48} className="h-12 w-12 shrink-0 rounded-xl" />

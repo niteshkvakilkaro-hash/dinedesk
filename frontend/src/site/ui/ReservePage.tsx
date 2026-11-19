@@ -8,6 +8,7 @@ import type { SiteData } from '../types';
 import { formatDay, nextDates, rememberBooking, rememberedBookings, useAvailability, type GuestReservation } from '../reservations';
 import { PageHeader } from './pages';
 import { Reserve } from './sections';
+import { siteHost } from '@/lib/host';
 
 const CONTACT_KEY = 'dd_checkout_contact';
 
@@ -139,7 +140,7 @@ export function ReservePage({ site }: { site: SiteData }) {
       } catch {
         /* ignore */
       }
-      rememberBooking(window.location.host, res.data.code, contact.phone);
+      rememberBooking(siteHost(), res.data.code, contact.phone);
       setBooked(res.data);
       window.scrollTo({ top: 0 });
     } catch (err) {
@@ -304,7 +305,7 @@ export function ReservePage({ site }: { site: SiteData }) {
 export function ReservationLookupPage({ site }: { site: SiteData }) {
   const { t } = useTranslation();
   const [params] = useSearchParams();
-  const remembered = rememberedBookings(window.location.host);
+  const remembered = rememberedBookings(siteHost());
   const initialCode = (params.get('code') ?? '').toUpperCase();
   const [code, setCode] = useState(initialCode);
   const [phone, setPhone] = useState(params.get('phone') ?? remembered.find((b) => b.code === initialCode)?.phone ?? '');

@@ -82,14 +82,15 @@ export function DishRow({ item, index = 0, compact = false }: { item: MenuItem; 
   if (compact) {
     // Home page: one short row per dish, price and add button side by side.
     return (
-      <li className={`s-reveal flex gap-3 py-4 ${item.is_available ? '' : 'opacity-60'}`} style={{ ['--i' as string]: Math.min(index, 4) }}>
-        <DishImage item={item} sizes="88px" className="h-20 w-20 shrink-0 sm:h-[88px] sm:w-[88px]" />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h3 className="flex min-w-0 items-baseline gap-2 font-bold leading-snug">
+      <li className={`s-reveal flex gap-3 py-4 md:gap-5 md:py-5 ${item.is_available ? '' : 'opacity-60'}`} style={{ ['--i' as string]: Math.min(index, 4) }}>
+        {/* Bigger photo on wider screens: the dish sells itself. */}
+        <DishImage item={item} sizes="(min-width: 768px) 128px, 88px" className="h-20 w-20 shrink-0 sm:h-[88px] sm:w-[88px] md:h-32 md:w-32" />
+        <div className="flex min-w-0 flex-1 flex-col gap-1 md:gap-1.5 md:py-1">
+          <h3 className="flex min-w-0 items-baseline gap-2 font-bold leading-snug md:text-lg">
             <FoodTypeMark type={item.food_type} className="translate-y-0.5" />
             <span className="truncate">{name}</span>
           </h3>
-          {l(item, 'description') && <p className="s-small s-muted line-clamp-1">{l(item, 'description')}</p>}
+          {l(item, 'description') && <p className="s-small s-muted line-clamp-1 md:line-clamp-2">{l(item, 'description')}</p>}
           <div className="mt-auto flex items-center justify-between gap-2">
             <span className="s-price">{price(item)}</span>
             {item.is_available ? <AddButton item={item} className="!px-3.5" /> : <span className="s-small font-semibold">{t('site.unavailable')}</span>}

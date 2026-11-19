@@ -39,7 +39,7 @@ export function PageHeader({ site, eyebrow, title, lead, banner = false, image }
       </header>
     );
   }
-  // Inside the DineDesk app the top bar names the page: just the lead, no big heading.
+  // Inside the NikoBite app the top bar names the page: just the lead, no big heading.
   if (IN_APP) {
     return (
       <header className="s-wrap pb-2 pt-5">

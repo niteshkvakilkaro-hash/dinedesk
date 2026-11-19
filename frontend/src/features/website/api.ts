@@ -20,7 +20,7 @@ export interface WebsiteData {
   warnings: ServerWarning[];
   themes: { key: ThemeKey; primary: string; accent: string; background: string; text: string; accent_role: 'fill' | 'ink' }[];
   site_url: string;
-  /** Shown in the DineDesk app's place finder. */
+  /** Shown in the NikoBite app's place finder. */
   directory_listed: boolean;
 }
 
@@ -73,7 +73,7 @@ export function useGallery() {
   });
 }
 
-/** Show (or hide) this business in the DineDesk app's place finder. */
+/** Show (or hide) this business in the NikoBite app's place finder. */
 export function useSaveDirectory() {
   const qc = useQueryClient();
   return useMutation<{ listed: boolean }, ApiError, boolean>({

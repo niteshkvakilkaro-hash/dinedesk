@@ -44,7 +44,7 @@ function Splash({ reduce }: { reduce: boolean }) {
       <div className={reduce ? '' : 'dd-splash-in'}>
         <LogoMark className="h-24 w-24 !rounded-3xl shadow-[0_0_0_1px_rgb(242_181_68/0.35),0_24px_60px_-20px_rgb(242_181_68/0.45)]" />
       </div>
-      <p className={`mt-6 text-3xl font-extrabold tracking-tight ${reduce ? '' : 'dd-splash-in [animation-delay:120ms]'}`}>DineDesk</p>
+      <p className={`mt-6 text-3xl font-extrabold tracking-tight ${reduce ? '' : 'dd-splash-in [animation-delay:120ms]'}`}>NikoBite</p>
       <p className={`mt-2 text-sm text-[#fbf8f3]/65 ${reduce ? '' : 'dd-splash-in [animation-delay:240ms]'}`}>{t('app.tagline')}</p>
       <span className="absolute bottom-[calc(2.5rem+env(safe-area-inset-bottom))] h-0.5 w-16 rounded-full bg-[#f2b544]" aria-hidden="true" />
     </div>
@@ -205,7 +205,7 @@ function ForBusiness() {
   );
 }
 
-/** /app on the platform host: the DineDesk app's start screen, for guests and for businesses. */
+/** /app on the platform host: the NikoBite app's start screen, for guests and for businesses. */
 export default function AppHome() {
   const { t } = useTranslation();
   const splash = useSplash();
@@ -217,7 +217,7 @@ export default function AppHome() {
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    document.title = `DineDesk — ${t('app.findTitle')}`;
+    document.title = `NikoBite — ${t('app.findTitle')}`;
   }, [t]);
   // Coming back (browser back from a place) shows the latest list.
   useEffect(() => {
@@ -251,7 +251,7 @@ export default function AppHome() {
           <div className="flex h-14 items-center justify-between gap-3">
             <span className="flex items-center gap-2.5">
               <LogoMark className="h-8 w-8 ring-1 ring-paper/15" />
-              <span className="text-lg font-extrabold tracking-tight">DineDesk</span>
+              <span className="text-lg font-extrabold tracking-tight">NikoBite</span>
             </span>
             <LanguageToggle light />
           </div>

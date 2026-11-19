@@ -1,4 +1,4 @@
-# Deploying DineDesk (one VPS)
+# Deploying NikoBite (one VPS)
 
 This guide puts the whole platform on one Ubuntu 24.04 server: **Caddy** at the edge (automatic HTTPS for the platform, every business subdomain and every custom domain), **Nginx + PHP-FPM** for the Laravel API and the built React app, **MySQL 8** (or MariaDB 10.6+), **Redis** for cache, sessions and queues, **Horizon** for queue workers, **Reverb** for live updates, and cron for the scheduler. A 4 GB / 2 vCPU server is comfortable for a few hundred businesses; scale out later by moving MySQL and Redis to managed services.
 
@@ -129,7 +129,7 @@ EOF
 npm ci && PRERENDER_API_URL=https://dinedesk.in/api/v1 npm run build      # → frontend/dist
 ```
 
-The build also pre-renders DineDesk's own marketing pages (home, pricing, themes, feature
+The build also pre-renders NikoBite's own marketing pages (home, pricing, themes, feature
 pages) into `dist/_marketing/…/index.html`, so search engines get real HTML. With
 `PRERENDER_API_URL` the plan cards are filled in too (run it once the API is up; without it
 they load in the browser). Nginx below serves those files on the platform domain only.
@@ -236,7 +236,7 @@ Don't send `X-Frame-Options: DENY` for business sites: the dashboard previews th
 
 ## 6. Caddy: automatic HTTPS for every host (on-demand TLS)
 
-Caddy asks DineDesk before issuing a certificate, so certificates are issued only for the platform, real business subdomains and **verified** custom domains (`GET /api/v1/tls/ask?domain=…` answers 200 or 404).
+Caddy asks NikoBite before issuing a certificate, so certificates are issued only for the platform, real business subdomains and **verified** custom domains (`GET /api/v1/tls/ask?domain=…` answers 200 or 404).
 
 `/etc/caddy/Caddyfile`:
 
@@ -322,7 +322,7 @@ Protect the Horizon dashboard (`/horizon`): in `app/Providers/HorizonServiceProv
 
 It runs: unpaid online orders and room holds released, booking reminders, **billing enforcement** (grace periods, read-only, hourly), the owners' **morning summary** (`reports:daily-summary`, hourly on the hour IST; each business at its chosen hour, once a day), automatic customer messages (10:00 IST), guest-ID clean-up, export clean-up and the **nightly database backup** (02:30). Set `DASHBOARD_URL` if the dashboard is not served at `APP_URL` (the summary links to it).
 
-**Delivery riders:** `riders:purge-locations` runs daily at 03:45 and deletes rider location points older than `RIDER_RETENTION_DAYS` (default 7); it also ends duties left on longer than `RIDER_MAX_DUTY_HOURS` (default 14). Riders send their location every `RIDER_LOCATION_INTERVAL` seconds (default 300). In a phone browser, location (`navigator.geolocation`) works **only over https** (or on localhost): serve the dashboard over https in production (Caddy does), otherwise the rider screen says location is unavailable. Inside the DineDesk Android app the app's own background service sends the location (see `frontend/src/features/rider/locationSharing.ts` for the contract).
+**Delivery riders:** `riders:purge-locations` runs daily at 03:45 and deletes rider location points older than `RIDER_RETENTION_DAYS` (default 7); it also ends duties left on longer than `RIDER_MAX_DUTY_HOURS` (default 14). Riders send their location every `RIDER_LOCATION_INTERVAL` seconds (default 300). In a phone browser, location (`navigator.geolocation`) works **only over https** (or on localhost): serve the dashboard over https in production (Caddy does), otherwise the rider screen says location is unavailable. Inside the NikoBite Android app the app's own background service sends the location (see `frontend/src/features/rider/locationSharing.ts` for the contract).
 
 ## 9. Razorpay (platform account) and other integrations
 
@@ -338,7 +338,7 @@ The same **Integrations** page holds the AI key and model (Anthropic), WhatsApp 
 - Saved values are applied at the start of every request, command and queued job and cached for 60 seconds; saving clears the cache, so Horizon / `queue:work` pick a change up at their next job without a restart.
 - `php artisan config:cache` and `optimize` never include panel values (they stay out of `bootstrap/cache`).
 
-**Firebase (app notifications).** The DineDesk Android app gets staff alerts (new orders, bookings, rider jobs …) through Firebase Cloud Messaging, because web push doesn't work inside its WebView. Create a Firebase project (free) with two Android apps, `in.dinedesk.app` and `com.dinedesk.admin.local`, then:
+**Firebase (app notifications).** The NikoBite Android app gets staff alerts (new orders, bookings, rider jobs …) through Firebase Cloud Messaging, because web push doesn't work inside its WebView. Create a Firebase project (free) with two Android apps, `in.dinedesk.app` and `com.dinedesk.admin.local`, then:
 
 1. Project settings → Service accounts → **Generate new private key**. Paste the JSON (or choose the file) in Integrations → **Firebase (app notifications)** and save with your password. It is checked, stored encrypted (only `project_id`, `client_email`, `private_key`) and never shown again: the card shows the project and service account. **Test** signs in to Google and sends a test notification to the phones where you are signed in to the app as the super admin (or says none are). Server fallback instead of the panel: `FIREBASE_CREDENTIALS` in `.env` = the JSON on one line, or a path to the file (relative to `backend/`, e.g. `storage/app/private/firebase.json`, readable by the PHP user only).
 2. The app needs `google-services.json` at build time (see [android/README.md](../android/README.md#app-notifications-firebase-cloud-messaging)); rebuild and publish it.

@@ -1,5 +1,5 @@
 /**
- * Build-time renderer for DineDesk's own marketing pages (see scripts/prerender.mjs).
+ * Build-time renderer for NikoBite's own marketing pages (see scripts/prerender.mjs).
  * Built with `vite build --ssr`, it turns each page into HTML so search engines and slow
  * phones get the content without running the app first. Business websites are not touched.
  */

@@ -7,6 +7,7 @@ use App\Modules\Ordering\Services\OrderingSettings;
 use App\Modules\Tenancy\Support\TenantContext;
 use App\Modules\Website\Services\SitePresenter;
 use Illuminate\Notifications\AnonymousNotifiable;
+use App\Support\SiteUrl;
 
 /**
  * Decides which customer updates go out and on which channels (the business
@@ -42,7 +43,7 @@ class CustomerNotifier
 
     public static function trackUrl(string $host, Order $order): string
     {
-        $base = str_replace('{host}', $host, (string) config('dinedesk.site_url_pattern'));
+        $base = SiteUrl::for($host);
 
         return rtrim($base, '/')."/order/{$order->public_id}?t={$order->tracking_token}";
     }

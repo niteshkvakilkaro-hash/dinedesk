@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  * A month's outward supplies in the shape of GSTR-1 (B2B, B2CS, HSN/SAC summary, documents
  * issued) from the GST bills, plus the orders paid without a bill (website, online), which
  * carry GST too. Everything restaurants and hotels sell here is intra-state (CGST + SGST).
- * For the CA to check and file; DineDesk doesn't file returns.
+ * For the CA to check and file; NikoBite doesn't file returns.
  */
 class GstReport
 {

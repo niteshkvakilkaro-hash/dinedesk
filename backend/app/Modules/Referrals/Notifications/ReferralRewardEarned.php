@@ -53,7 +53,7 @@ class ReferralRewardEarned extends Notification implements ShouldQueue
         return ['title' => $this->subject, 'body' => $this->lines[1] ?? $this->lines[0], 'url' => '/dashboard/billing?open=refer', 'tag' => 'referral-reward'];
     }
 
-    /** The same in the DineDesk Android app (a quiet notification, channel "general"). */
+    /** The same in the NikoBite Android app (a quiet notification, channel "general"). */
     public function toFcm(object $notifiable): array
     {
         return $this->toWebPush($notifiable) + ['kind' => 'referral', 'channel' => 'general'];

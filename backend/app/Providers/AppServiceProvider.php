@@ -101,6 +101,11 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip())
             ->response($tooMany('Too many sign-ups from this network. Please try again later.')));
+        // Live demos: each one copies a whole sample business (photos included).
+        RateLimiter::for('demo', fn (Request $request) => [
+            Limit::perHour(3)->by('demo|'.$request->ip())->response($tooMany('You have made several demos already. Please try again in an hour.')),
+            Limit::perDay(200)->by('demo|all')->response($tooMany('Live demos are busy right now. Please try again later.')),
+        ]);
 
         RateLimiter::for('otp-send', fn (Request $request) => [
             Limit::perHour(5)->by('otp-phone|'.preg_replace('/\D+/', '', (string) $request->input('phone')))

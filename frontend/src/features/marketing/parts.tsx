@@ -1,12 +1,14 @@
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, Check, ChevronDown, ExternalLink } from 'lucide-react';
 import { api } from '@/lib/api';
 import { formatINR } from '@/lib/format';
 import { tenantSiteUrl } from '@/lib/host';
 import { SkeletonRows } from '@/components/ui';
-import { THEME_KEYS, THEMES } from '@/themes/registry';
+import { THEMES } from '@/themes/registry';
 import type { ThemeKey } from '@/themes/types';
 import { DEMO_SLUG } from './content';
 
@@ -38,6 +40,21 @@ export function useTrialNote() {
 }
 
 /** Section heading used across the marketing pages. */
+/** The dark stage at the top of the marketing pages (same light, grid and grain as the home hero). */
+export function PageStage({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return (
+    <section className="px-2 pt-2 sm:px-4 sm:pt-4">
+      <div className={`mk-stage relative overflow-hidden rounded-[1.75rem] text-white sm:rounded-[2.25rem] ${className}`}>
+        <div className="mk-aurora -left-24 -top-32 h-[24rem] w-[24rem] bg-[#c2410c]" aria-hidden="true" />
+        <div className="mk-aurora right-[-8rem] top-0 h-[20rem] w-[20rem] bg-[#f2b544] [animation-delay:-6s]" aria-hidden="true" />
+        <div className="mk-grid" aria-hidden="true" />
+        <div className="mk-grain" aria-hidden="true" />
+        <div className="relative">{children}</div>
+      </div>
+    </section>
+  );
+}
+
 export function Heading({ id, eyebrow, title, lead, center = false }: { id?: string; eyebrow?: string; title: string; lead?: string; center?: boolean }) {
   return (
     <div className={center ? 'mx-auto max-w-2xl text-center' : 'max-w-2xl'}>
@@ -120,7 +137,7 @@ export function ThemeCard({ themeKey }: { themeKey: ThemeKey }) {
   return (
     <article className="group overflow-hidden rounded-3xl border border-line bg-surface transition-shadow hover:shadow-xl">
       <div className="overflow-hidden border-b border-line">
-        <img src={theme.preview} alt="" loading="lazy" width={640} height={480} className="aspect-[4/3] w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]" />
+        <img src={theme.preview} alt="" loading="lazy" width={960} height={720} className="aspect-[4/3] w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]" />
       </div>
       <div className="p-5">
         <div className="flex items-center justify-between gap-3">
@@ -142,13 +159,116 @@ export function ThemeCard({ themeKey }: { themeKey: ThemeKey }) {
   );
 }
 
+/**
+ * Themes shown on the NikoBite marketing pages, strongest first. Haveli Royal is left out here
+ * (businesses using it keep it; it is still in the dashboard's theme picker).
+ */
+export const SHOWCASE_THEMES: ThemeKey[] = ['coastal', 'ember', 'rajwada', 'bistro', 'street', 'qsr', 'kulhad'];
+
 export function ThemeGrid({ limit }: { limit?: number }) {
-  const keys = limit ? THEME_KEYS.slice(0, limit) : THEME_KEYS;
+  const keys = limit ? SHOWCASE_THEMES.slice(0, limit) : SHOWCASE_THEMES;
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {keys.map((k) => (
         <ThemeCard key={k} themeKey={k} />
       ))}
+    </div>
+  );
+}
+
+const SHOWCASE_MS = 4800;
+
+/**
+ * Home page: pick a theme on the left and the big browser frame switches to it. Moves on by itself
+ * every few seconds until the visitor points at it or picks one (never with reduced motion).
+ */
+export function ThemeShowcase() {
+  const { t } = useTranslation();
+  const reduce = useReducedMotion();
+  const [active, setActive] = useState(0);
+  const [held, setHeld] = useState(false);
+  const [picked, setPicked] = useState(false);
+  const running = !reduce && !held && !picked;
+
+  useEffect(() => {
+    if (!running) return undefined;
+    const id = setTimeout(() => setActive((a) => (a + 1) % SHOWCASE_THEMES.length), SHOWCASE_MS);
+    return () => clearTimeout(id);
+  }, [running, active]);
+
+  const key = SHOWCASE_THEMES[active];
+  const theme = THEMES[key];
+  const url = tenantSiteUrl(DEMO_SLUG[key]);
+
+  return (
+    <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.6fr)] lg:gap-12" onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)}>
+      <div role="tablist" aria-label={t('mk.themes.title')} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0">
+        {SHOWCASE_THEMES.map((k, i) => {
+          const on = i === active;
+          const c = THEMES[k].tokens.colors;
+          return (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              id={`theme-tab-${k}`}
+              aria-selected={on}
+              aria-controls="theme-panel"
+              onClick={() => {
+                setActive(i);
+                setPicked(true);
+              }}
+              className={`relative flex shrink-0 items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-start transition-all duration-300 lg:w-full ${on ? 'border-ink/15 bg-surface shadow-lg shadow-ink/5' : 'border-transparent hover:bg-surface/70'}`}
+            >
+              <span className="flex shrink-0 -space-x-1.5" aria-hidden="true">
+                {[c.primary, c.accent, c.bg].map((col) => (
+                  <span key={col} className="h-5 w-5 rounded-full ring-2 ring-surface" style={{ background: col }} />
+                ))}
+              </span>
+              <span className="min-w-0">
+                <span className={`block whitespace-nowrap font-extrabold ${on ? 'text-ink' : 'text-muted'}`}>{THEMES[k].name}</span>
+                <span className={on ? 'hidden text-sm text-muted lg:block' : 'hidden'}>{t(`website.themeHints.${k}`)}</span>
+              </span>
+              {on && running && <span key={active} className="mk-progress absolute inset-x-0 bottom-0 h-0.5 origin-left bg-brand" style={{ animationDuration: `${SHOWCASE_MS}ms` }} aria-hidden="true" />}
+            </button>
+          );
+        })}
+      </div>
+
+      <div id="theme-panel" role="tabpanel" aria-labelledby={`theme-tab-${key}`} className="relative">
+        {/* A soft glow in the theme's own colour behind the frame. */}
+        <div className="pointer-events-none absolute -inset-6 rounded-[3rem] opacity-60 blur-3xl transition-colors duration-700" style={{ background: `radial-gradient(60% 60% at 50% 50%, ${theme.tokens.colors.primary}55, transparent 70%)` }} aria-hidden="true" />
+        <div className="relative overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl shadow-ink/15">
+          <div className="flex h-9 items-center gap-2 border-b border-line bg-paper px-3" aria-hidden="true">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+            <span className="ml-3 hidden max-w-xs flex-1 truncate rounded-md bg-surface px-3 py-0.5 text-center text-[11px] text-muted sm:block">{url.replace(/^https?:\/\//, '')}</span>
+          </div>
+          <div className="relative aspect-[4/3] bg-paper">
+            <AnimatePresence initial={false}>
+              <motion.img
+                key={key}
+                src={theme.preview}
+                alt={t('mk.themes.previewAlt', { name: theme.name })}
+                width={960}
+                height={720}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover object-top"
+                initial={reduce ? false : { opacity: 0, scale: 1.04 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </AnimatePresence>
+          </div>
+        </div>
+        <a href={url} target="_blank" rel="noopener noreferrer" className="btn-brand mk-glow absolute -bottom-5 right-5 !min-h-11 !px-5 text-sm shadow-xl">
+          {t('mk.themes.demo')}: {theme.name}
+          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">({t('common.opensInNewTab')})</span>
+        </a>
+      </div>
     </div>
   );
 }

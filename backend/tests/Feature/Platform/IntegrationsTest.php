@@ -125,12 +125,12 @@ class IntegrationsTest extends TestCase
         $this->save('messaging', ['driver' => 'carrier-pigeon'])->assertUnprocessable();
         $this->actingAsUser($this->admin)->putJson(self::URL.'/webpush', ['values' => ['public_key' => 'x']])->assertNotFound();
 
-        $this->save('mail', ['host' => 'smtp.example.com', 'port' => '465', 'encryption' => 'ssl', 'from_address' => 'billing@example.com', 'from_name' => '<b>DineDesk</b>'])->assertOk()
+        $this->save('mail', ['host' => 'smtp.example.com', 'port' => '465', 'encryption' => 'ssl', 'from_address' => 'billing@example.com', 'from_name' => '<b>NikoBite</b>'])->assertOk()
             ->assertJsonPath('data.ready.mail', true)->assertJsonPath('data.integrations.mail.encryption.value', 'ssl');
         $this->assertSame('smtp', config('mail.default'));
         $this->assertSame(465, config('mail.mailers.smtp.port'));
         $this->assertSame('smtps', config('mail.mailers.smtp.scheme'));
-        $this->assertSame('DineDesk', config('mail.from.name'));
+        $this->assertSame('NikoBite', config('mail.from.name'));
 
         // Clearing the host: back to the server's mailer.
         $this->save('mail', ['host' => ''])->assertOk();

@@ -1,6 +1,6 @@
-# DineDesk ko live karna — poori process
+# NikoBite ko live karna — poori process
 
-Yeh document batata hai ki DineDesk ko internet par live karne ke liye **kya kharidna hai**, **server par kya install karna hai**, aur **step-by-step kya karna hai**. Har config file ka poora text `docs/DEPLOYMENT.md` mein hai; yahan process aur list hai.
+Yeh document batata hai ki NikoBite ko internet par live karne ke liye **kya kharidna hai**, **server par kya install karna hai**, aur **step-by-step kya karna hai**. Har config file ka poora text `docs/DEPLOYMENT.md` mein hai; yahan process aur list hai.
 
 Neeche har jagah `dinedesk.in` likha hai — isko apne asli domain se badal dijiye.
 
@@ -168,7 +168,7 @@ EOF
 npm ci && PRERENDER_API_URL=https://dinedesk.in/api/v1 npm run build
 ```
 
-Isse banta hai: `dist/` (app), `dist/_marketing/` (DineDesk ki marketing pages, Google ke liye), `dist-site-ssr/` (restaurant websites ka server renderer).
+Isse banta hai: `dist/` (app), `dist/_marketing/` (NikoBite ki marketing pages, Google ke liye), `dist-site-ssr/` (restaurant websites ka server renderer).
 
 ### Step 6 — Nginx
 
@@ -241,7 +241,7 @@ cron mein:
    - **SMS (MSG91):** auth key, OTP template ID (DLT approved).
    - **Email (SMTP):** host, port, user, password, from address/name.
    - **Web push:** "Generate keys".
-   - **Firebase (app notifications):** Firebase console → Project settings → Service accounts → **Generate new private key** se mili `.json` file yahan paste karein (ya file chunein), password daal kar Save. Phone par DineDesk app mein super admin se sign in karke **Test** dabaiye. App ke liye alag file `google-services.json` chahiye (Step 6 dekhiye). Firebase project mein do Android apps jodiye: `in.dinedesk.app` aur `com.dinedesk.admin.local`.
+   - **Firebase (app notifications):** Firebase console → Project settings → Service accounts → **Generate new private key** se mili `.json` file yahan paste karein (ya file chunein), password daal kar Save. Phone par NikoBite app mein super admin se sign in karke **Test** dabaiye. App ke liye alag file `google-services.json` chahiye (Step 6 dekhiye). Firebase project mein do Android apps jodiye: `in.dinedesk.app` aur `com.dinedesk.admin.local`.
    - **Messaging mode:** sab test hone ke baad **Live**.
 5. `.env` se `SUPER_ADMIN_PASSWORD` hata dijiye.
 
@@ -283,7 +283,7 @@ Har restaurant apna **khud ka Razorpay** (grahakon se paisa) apne dashboard → 
    & $gradle --no-daemon bundleProdRelease assembleProdRelease "-PplatformHost=dinedesk.in" "-PversionCode=5" "-PversionName=1.4"
    ```
    Output: `app/build/outputs/bundle/prodRelease/app-prod-release.aab` → Play Console mein upload. Har naye upload par `versionCode` badhaiye.
-4. Play Console mein: app naam **DineDesk**, package `in.dinedesk.app` (ek baar publish ke baad badal nahi sakta), privacy policy URL, screenshots, **location permission ka kaaran** ("delivery rider ki location sirf duty ke dauraan, owner ko delivery track karne ke liye") aur data safety form.
+4. Play Console mein: app naam **NikoBite**, package `in.dinedesk.app` (ek baar publish ke baad badal nahi sakta), privacy policy URL, screenshots, **location permission ka kaaran** ("delivery rider ki location sirf duty ke dauraan, owner ko delivery track karne ke liye") aur data safety form.
 5. Pehle **Internal testing** → phir Closed → phir Production.
 
 ---

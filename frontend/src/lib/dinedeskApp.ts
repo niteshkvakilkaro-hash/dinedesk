@@ -1,12 +1,12 @@
 /**
- * The DineDesk Android app: one WebView app for guests and businesses. It opens the platform host at
+ * The NikoBite Android app: one WebView app for guests and businesses. It opens the platform host at
  * /app and stays inside the platform domain and its business subdomains. It identifies itself with
  * the user-agent token "DineDeskApp/1"; in a desktop browser, ?app=1 (once per tab) does the same.
  *
  * Local development: on the PC, businesses are <slug>.localhost:5180; a phone on the same Wi-Fi
  * reaches the platform at <pc-ip>:5180 and a business at <slug>.<pc-ip>.nip.io:5180.
  */
-import { PLATFORM_DOMAIN, platformUrl } from './host';
+import { PLATFORM_DOMAIN, SITE_PATHS, platformUrl } from './host';
 
 export const APP_UA_TOKEN = 'DineDeskApp';
 const FLAG_KEY = 'dd_app';
@@ -18,7 +18,7 @@ const NIP = /^([a-z0-9-]+)\.(\d{1,3}(?:\.\d{1,3}){3})\.nip\.io$/;
 const LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 const RESERVED = new Set(['app', 'www', 'api', 'admin']);
 
-/** True when the page runs inside the DineDesk app (or ?app=1 was opened once in this tab). */
+/** True when the page runs inside the NikoBite app (or ?app=1 was opened once in this tab). */
 export function isDineDeskApp(ua = typeof navigator !== 'undefined' ? navigator.userAgent : '', search = typeof window !== 'undefined' ? window.location.search : ''): boolean {
   if (ua.includes(APP_UA_TOKEN)) return true;
   try {
@@ -57,6 +57,7 @@ const here = (): Loc => (typeof window === 'undefined' ? { protocol: 'https:', h
 export function subdomainUrl(slug: string, path = '/', loc: Loc = here(), platformDomain = PLATFORM_DOMAIN): string {
   const port = loc.port ? `:${loc.port}` : '';
   const ip = IPV4.test(loc.hostname) ? loc.hostname : NIP.exec(loc.hostname)?.[2];
+  if (SITE_PATHS && !ip) return `${loc.protocol}//${platformDomain}${port}/s/${slug}${path === '/' ? '' : path}`;
   const host = ip ? `${slug}.${ip}.nip.io` : `${slug}.${platformDomain}`;
   return `${loc.protocol}//${host}${port}${path}`;
 }
@@ -78,7 +79,7 @@ export type QrTarget = {
 
 /**
  * Reads a scanned QR code (or a typed address) and returns the business page to open, or null when
- * it isn't a DineDesk place. Accepts any page of a business website: its home, a table QR (/t/…),
+ * it isn't a NikoBite place. Accepts any page of a business website: its home, a table QR (/t/…),
  * a room QR (/r/…), the menu. Business hosts: <slug>.<platform domain>, and in development
  * <slug>.<ip>.nip.io; other domains may be a business's own domain (verified: false).
  */
@@ -319,7 +320,7 @@ let pushDeps: AppPushDeps | null = null;
 let pushSent = '';
 
 /**
- * Inside the DineDesk app: keeps this phone's notification token registered with the person signed
+ * Inside the NikoBite app: keeps this phone's notification token registered with the person signed
  * in (POST /devices) after sign-in, on start with a session, and when the app reports a new token.
  * Does nothing in a browser, in an app without notifications, signed out or in a support session.
  * Returns the uninstall (tests).

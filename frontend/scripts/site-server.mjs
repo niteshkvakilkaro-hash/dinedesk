@@ -119,7 +119,7 @@ async function page(host, site, pathname, lang) {
   let doc = template;
   if (head) {
     doc = doc.replace(/<title>[\s\S]*?<\/title>/, head.title || `<title>${esc(site.name)}</title>`);
-    // The page's own description, colour and icon replace DineDesk's generic ones.
+    // The page's own description, colour and icon replace NikoBite's generic ones.
     if (/name="description"/.test(head.tags)) doc = doc.replace(/<meta name="description" content="[^"]*" \/>\s*/, '');
     if (/name="theme-color"/.test(head.tags)) doc = doc.replace(/<meta name="theme-color" content="[^"]*" \/>\s*/, '');
     if (/rel="icon"/.test(head.tags)) doc = doc.replace(/<link rel="icon"[^>]*\/>\s*/, '');

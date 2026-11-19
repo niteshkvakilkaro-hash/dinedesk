@@ -23,7 +23,7 @@ function useAppTitle(site: SiteData): string {
 }
 
 /**
- * Inside the DineDesk app, inner pages get an app top bar instead of the website header: back
+ * Inside the NikoBite app, inner pages get an app top bar instead of the website header: back
  * (history, or the site's home when there is none), the page name in the middle, and the cart.
  * Colours come from the theme (primary / on-primary), so it fits every theme.
  */
@@ -50,7 +50,7 @@ export function AppBar({ site }: { site: SiteData }) {
   );
 }
 
-/** Home page inside the app: back to every place on DineDesk (the app's start screen). */
+/** Home page inside the app: back to every place on NikoBite (the app's start screen). */
 export function AllPlacesLink({ light = false }: { light?: boolean }) {
   const { t } = useTranslation();
   return (

@@ -22,7 +22,7 @@ type Mode = 'camera' | 'photo' | 'type';
 
 /**
  * Scan QR: the camera with BarcodeDetector where there is one, else a photo of the code, else the
- * address typed in. Only pages of DineDesk places open (table and room QR codes included).
+ * address typed in. Only pages of NikoBite places open (table and room QR codes included).
  */
 export function QrScanner({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();

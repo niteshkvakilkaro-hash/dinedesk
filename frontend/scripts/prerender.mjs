@@ -1,4 +1,4 @@
-// Pre-renders DineDesk's own marketing pages after `vite build`.
+// Pre-renders NikoBite's own marketing pages after `vite build`.
 //
 //   npm run build         (runs this at the end)
 //

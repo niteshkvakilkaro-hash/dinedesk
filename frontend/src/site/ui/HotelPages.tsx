@@ -12,6 +12,7 @@ import { BillSummary } from '../order/Cart';
 import { rememberStay, rememberedStays, useActiveRoom, useGuestStay, useHotel, useRoom, useStayAvailability, ymdAdd, ymdLabel, ymdToday, type GuestStay, type RoomTypeInfo, type StayQuote } from '../hotel';
 import type { CustomerOrder, SiteData } from '../types';
 import { PageHeader } from './pages';
+import { siteHost } from '@/lib/host';
 
 const CONTACT_KEY = 'dd_checkout_contact';
 function savedContact(): { name: string; phone: string; email: string } {
@@ -266,7 +267,7 @@ function BookingForm({ type, search, quote, advancePct, onClose }: { type: RoomT
         company: extra.business ? extra.company || null : null, gstin: extra.business && extra.gstin ? extra.gstin.toUpperCase() : null,
       });
       const { booking, token, razorpay } = res.data;
-      rememberStay(window.location.host, booking.id, token, booking.code);
+      rememberStay(siteHost(), booking.id, token, booking.code);
       if (razorpay) await payAdvance(booking.id, token, razorpay);
       navigate(`/stay/${booking.id}?t=${token}&booked=1`);
     } catch (err) {
@@ -430,7 +431,7 @@ export function StayPage({ site }: { site: SiteData }) {
 export function StayLookupPage({ site }: { site: SiteData }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const remembered = rememberedStays(window.location.host);
+  const remembered = rememberedStays(siteHost());
   const [code, setCode] = useState('');
   const [phone, setPhone] = useState(savedContact().phone);
   const [error, setError] = useState('');
@@ -559,7 +560,7 @@ export function RoomCheckout({ site }: { site: SiteData }) {
     setError('');
     try {
       const r = await api.post<{ order: CustomerOrder; token: string }>('/site/orders', { type: 'room_service', payment_method: 'room', room_token: room.token, room_pin: pin, notes: notes || null, items });
-      rememberOrder(window.location.host, r.data.order.id, r.data.token, r.data.order.number);
+      rememberOrder(siteHost(), r.data.order.id, r.data.token, r.data.order.number);
       placed.current = true;
       navigate(`/order/${r.data.order.id}?t=${r.data.token}&placed=1`, { replace: true });
       clear();

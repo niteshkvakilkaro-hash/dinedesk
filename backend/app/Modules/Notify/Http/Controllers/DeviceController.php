@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
- * Phones with the DineDesk Android app: the web app inside the app registers the phone's Firebase
+ * Phones with the NikoBite Android app: the web app inside the app registers the phone's Firebase
  * token after sign-in (and when Firebase gives it a new one), and removes it on sign-out. Anyone
  * signed in (owner, staff, rider, super admin), never from a support session.
  */

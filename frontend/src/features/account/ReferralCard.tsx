@@ -17,7 +17,7 @@ export interface ReferralInfo {
   referred_by: string | null;
 }
 
-/** The link people open: DineDesk's home page (signup is one tap away), with the code. */
+/** The link people open: NikoBite's home page (signup is one tap away), with the code. */
 export const referralLink = (code: string) => `${window.location.origin}/?ref=${code}`;
 
 /** Dashboard → Billing (owner): share a link; both businesses get free days on the new one's first payment. */

@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: DineDesk API
+  title: NikoBite API
   version: 1.0.0-phase3
   description: |
     Multi-tenant restaurant & hotel platform. All endpoints live under `/api/v1`.
@@ -639,12 +639,12 @@ paths:
                   warnings: { type: array, items: { $ref: '#/components/schemas/ContrastWarning' } }
                   themes: { type: array, items: { type: object }, description: catalogue with default colours }
                   site_url: { type: string }
-                  directory_listed: { type: boolean, description: 'Shown in the DineDesk app''s place finder (default true)' }
+                  directory_listed: { type: boolean, description: 'Shown in the NikoBite app''s place finder (default true)' }
   /tenant/website/directory:
     put:
       tags: [Website (dashboard)]
       security: [{ bearer: [] }]
-      summary: Show or hide this business in the DineDesk app's place finder (`/directory`); on by default
+      summary: Show or hide this business in the NikoBite app's place finder (`/directory`); on by default
       description: Hidden businesses still open from their own QR codes and address (`/directory/place`). Audited (`website.directory_on` / `website.directory_off`).
       requestBody: { content: { application/json: { schema: { type: object, required: [listed], properties: { listed: { type: boolean } } } } } }
       responses:
@@ -2711,7 +2711,7 @@ paths:
   /directory:
     get:
       tags: [Directory (app)]
-      summary: 'The DineDesk app''s "Find a restaurant or hotel": live, published businesses (branches too), real ones first and demos last (60 per minute per IP)'
+      summary: 'The NikoBite app''s "Find a restaurant or hotel": live, published businesses (branches too), real ones first and demos last (60 per minute per IP)'
       description: 'Only on the platform host: a business website gets 404. Businesses that opted out (PUT /tenant/website/directory) are left out. Sorted by name.'
       parameters:
         - { name: q, in: query, schema: { type: string, maxLength: 80 }, description: name or city }
@@ -2725,7 +2725,7 @@ paths:
   /directory/place:
     get:
       tags: [Directory (app)]
-      summary: 'A scanned QR code or typed address: is this host a live DineDesk place? (opted-out businesses still open from their own QR codes)'
+      summary: 'A scanned QR code or typed address: is this host a live NikoBite place? (opted-out businesses still open from their own QR codes)'
       parameters:
         - { name: host, in: query, required: true, schema: { type: string, maxLength: 253 }, example: the-hungry-haveli.dinedesk.in }
       responses:
@@ -2735,7 +2735,7 @@ paths:
     post:
       tags: [Account]
       security: [{ bearer: [] }]
-      summary: 'Register this phone for app notifications (DineDesk Android app, Firebase Cloud Messaging): anyone signed in, never in a support session'
+      summary: 'Register this phone for app notifications (NikoBite Android app, Firebase Cloud Messaging): anyone signed in, never in a support session'
       description: 'Sent by the web app inside the app after sign-in, on start with a session and when Firebase gives a new token. Upsert by token: a token already registered moves to the person signed in now. Signing out (POST /auth/logout) removes devices registered with that sign-in.'
       requestBody:
         content:

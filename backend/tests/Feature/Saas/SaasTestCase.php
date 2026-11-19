@@ -26,7 +26,7 @@ abstract class SaasTestCase extends OrderingTestCase
         }
         $this->admin = $this->user(['is_platform_admin' => true]);
         $this->actingAsUser($this->admin)->putJson('/api/v1/platform/settings', [
-            'seller' => ['legal_name' => 'DineDesk Technologies', 'gstin' => '08ABCDE1234F1Z5', 'address' => 'Jaipur', 'invoice_prefix' => 'DD'],
+            'seller' => ['legal_name' => 'NikoBite Technologies', 'gstin' => '08ABCDE1234F1Z5', 'address' => 'Jaipur', 'invoice_prefix' => 'DD'],
             'billing' => ['grace_days' => 7, 'gst_rate' => 18, 'sac' => '998315'],
         ])->assertOk();
     }

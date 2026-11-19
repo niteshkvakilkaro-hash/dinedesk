@@ -36,7 +36,7 @@ class AccountController extends Controller
             'email' => ['sometimes', 'nullable', 'email:rfc', 'max:150', Rule::unique('users', 'email')->ignore($user->id)],
             'locale' => ['sometimes', Rule::in(config('dinedesk.languages'))],
             'current_password' => ['nullable', 'string'],
-        ], ['email.unique' => 'This email already has a DineDesk account.']);
+        ], ['email.unique' => 'This email already has a NikoBite account.']);
 
         $changes = [];
         if (isset($data['name'])) {
@@ -142,7 +142,7 @@ class AccountController extends Controller
 
     private function phoneTaken(): ApiException
     {
-        return new ApiException('This mobile number already has a DineDesk account.', 422, 'phone_taken', ['field' => 'phone']);
+        return new ApiException('This mobile number already has a NikoBite account.', 422, 'phone_taken', ['field' => 'phone']);
     }
 
     /** Accounts made by mobile have no password yet: nothing to confirm. */

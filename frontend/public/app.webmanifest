@@ -1,6 +1,6 @@
 {
-  "name": "DineDesk",
-  "short_name": "DineDesk",
+  "name": "NikoBite",
+  "short_name": "NikoBite",
   "description": "Find restaurants and hotels, order, book a table or a room. Businesses sign in to run theirs.",
   "id": "/app",
   "start_url": "/app",

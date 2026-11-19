@@ -11,6 +11,7 @@ use App\Modules\Website\Services\SitePresenter;
 use Carbon\CarbonImmutable;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Str;
+use App\Support\SiteUrl;
 
 /**
  * Automatic messages the owner switches on once: a birthday and an anniversary wish, and a
@@ -82,7 +83,7 @@ class Automations
     {
         $s = $this->get();
         $today = CarbonImmutable::now($tenant->timezone);
-        $base = rtrim(str_replace('{host}', $this->site->primaryHost($tenant), (string) config('dinedesk.site_url_pattern')), '/');
+        $base = SiteUrl::for($this->site->primaryHost($tenant));
         $route = $s['channel'] === 'email' ? 'mail' : $s['channel'];
         $sent = [];
         foreach (self::KINDS as $kind) {

@@ -13,6 +13,7 @@ use App\Support\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
+use App\Support\SiteUrl;
 
 /** Guest messages about stays (on the business's message channels) and front-desk alerts. */
 class StayNotifier
@@ -69,7 +70,7 @@ class StayNotifier
 
     public static function manageUrl(string $host, RoomBooking $b): string
     {
-        $base = str_replace('{host}', $host, (string) config('dinedesk.site_url_pattern'));
+        $base = SiteUrl::for($host);
 
         return rtrim($base, '/')."/stay/{$b->public_id}?t={$b->access_token}";
     }

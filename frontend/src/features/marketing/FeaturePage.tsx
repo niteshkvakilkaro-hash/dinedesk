@@ -2,7 +2,7 @@ import { Link, Navigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Check, ChevronRight } from 'lucide-react';
 import { featureBySlug, FEATURE_PAGES } from './content';
-import { CtaBand, Faq, Heading, useTrialNote } from './parts';
+import { CtaBand, Faq, Heading, PageStage, useTrialNote } from './parts';
 import { marketingHead, usePageMeta } from './seo';
 
 /** /features/<slug>: one page per product area, written for the searches owners make. */
@@ -24,34 +24,33 @@ function Feature({ featureKey, slug }: { featureKey: string; slug: string }) {
 
   return (
     <>
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(55%_70%_at_50%_0%,var(--dd-brand-soft),transparent_70%)]" aria-hidden="true" />
-        <div className="relative mx-auto max-w-4xl px-4 pb-14 pt-10 text-center sm:px-6 sm:pt-16">
-          <nav aria-label="Breadcrumb" className="flex items-center justify-center gap-1 text-sm text-muted">
-            <Link to="/#features" className="hover:text-ink">
+      <PageStage>
+        <div className="mx-auto max-w-4xl px-5 pb-14 pt-10 text-center sm:px-8 sm:pb-16 sm:pt-14">
+          <nav aria-label="Breadcrumb" className="flex items-center justify-center gap-1 text-sm text-white/65">
+            <Link to="/#features" className="hover:text-white">
               {t('mk.feature.backHome')}
             </Link>
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
-            <span aria-current="page">{t(`${k}.eyebrow`)}</span>
+            <span aria-current="page" className="text-white/85">{t(`${k}.eyebrow`)}</span>
           </nav>
-          <span className="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-ink text-gold">
-            <Icon className="h-7 w-7" aria-hidden="true" />
+          <span className="mk-glass mx-auto mt-7 flex h-16 w-16 items-center justify-center rounded-2xl text-gold">
+            <Icon className="h-8 w-8" aria-hidden="true" />
           </span>
-          <p className="mt-5 text-sm font-bold uppercase tracking-wider text-brand">{t(`${k}.eyebrow`)}</p>
-          <h1 className="mt-2 text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">{t(`${k}.title`)}</h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted">{t(`${k}.lead`)}</p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link to="/signup" className="btn-brand !px-7 text-base">
+          <p className="mt-5 text-sm font-bold uppercase tracking-wider text-[#ffb36b]">{t(`${k}.eyebrow`)}</p>
+          <h1 className="mt-3 text-4xl font-extrabold leading-[1.06] tracking-tight sm:text-6xl">{t(`${k}.title`)}</h1>
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-white/72">{t(`${k}.lead`)}</p>
+          <div className="mt-9 flex flex-wrap justify-center gap-3">
+            <Link to="/signup" className="btn-brand mk-glow mk-shine group !px-7 text-base">
               {t('mk.hero.primary')}
-              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>
-            <Link to="/themes" className="btn-outline !px-7 text-base">
-              {t('mk.hero.secondary')}
+            <Link to="/demo" className="mk-glass inline-flex min-h-12 items-center gap-2 rounded-full px-6 text-base font-bold text-white transition-colors hover:bg-white/12">
+              {t('mk.nav.demo')}
             </Link>
           </div>
-          {trial && <p className="mt-3 text-sm text-muted">{trial}</p>}
+          {trial && <p className="mt-4 text-sm text-white/60">{trial}</p>}
         </div>
-      </section>
+      </PageStage>
 
       <section className="border-y border-line bg-surface py-16 sm:py-20" aria-labelledby="get-h">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">

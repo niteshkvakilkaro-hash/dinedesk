@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { MenuItem, OrderType } from './types';
 import { localize, type Translations } from './localize';
+import { siteHost } from '@/lib/host';
 
 /** A size or add-on's name in every language, kept on the cart line so the cart can show it in the guest's language. */
 export interface CartChoice {
@@ -52,7 +53,7 @@ interface CartState {
 
 export const MAX_QTY = 50;
 
-const storageKey = () => `dd_cart_${typeof window === 'undefined' ? 'x' : window.location.host}`;
+const storageKey = () => `dd_cart_${siteHost()}`;
 
 function load(): Pick<CartState, 'lines' | 'type'> {
   try {

@@ -264,7 +264,7 @@ function WebPush({ data }: { data: IntegrationsData }) {
 }
 
 /**
- * Firebase (notifications in the DineDesk Android app): the service-account key JSON, pasted or
+ * Firebase (notifications in the NikoBite Android app): the service-account key JSON, pasted or
  * read from the downloaded file. Shown afterwards only as its project and account.
  */
 function Firebase({ data }: { data: IntegrationsData }) {

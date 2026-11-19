@@ -409,12 +409,12 @@
     "alt": "Candle-lit dining room"
   },
   "cover-kulhad": {
-    "title": "Masala Chai",
-    "author": "h0lydevil",
-    "license": "CC BY 2.0",
-    "license_url": "https://creativecommons.org/licenses/by/2.0/",
-    "source": "https://www.flickr.com/photos/45516485@N00/5451020865",
-    "alt": "Tea served in warm light"
+    "title": "Mumbai street food",
+    "author": "surtr",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "source": "https://www.flickr.com/photos/29297680@N00/10006904386",
+    "alt": "Chai with snacks"
   },
   "cover-qsr": {
     "title": "Charcoal Burger Fries",
@@ -663,5 +663,13 @@
     "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "https://commons.wikimedia.org/wiki/File:Curd_Rice.jpg",
     "alt": "Curd rice with pomegranate, fried chillies and pappadam"
+  },
+  "ambience-kulhad-3": {
+    "title": "Masala Chai",
+    "author": "h0lydevil",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "source": "https://www.flickr.com/photos/45516485@N00/5451020865",
+    "alt": "Tea served in warm light"
   }
 }

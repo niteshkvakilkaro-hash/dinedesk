@@ -75,13 +75,13 @@ td.n { text-align: right; white-space: nowrap; padding-left: 1.5mm; }
 /** The <title> of a slip document, for the print job's name. */
 export function slipTitle(html: string): string {
   const m = /<title>([^<]*)<\/title>/i.exec(html);
-  return (m?.[1] ?? '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim() || 'DineDesk';
+  return (m?.[1] ?? '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim() || 'NikoBite';
 }
 
 /** Prints the page on screen. window.print() does nothing in the Android app: it prints through the phone's print service. */
 export function printPage(w: Window = window) {
   const bridge = androidBridge(w);
-  if (bridge) bridge.printPage(w.document.title || 'DineDesk');
+  if (bridge) bridge.printPage(w.document.title || 'NikoBite');
   else w.print();
 }
 

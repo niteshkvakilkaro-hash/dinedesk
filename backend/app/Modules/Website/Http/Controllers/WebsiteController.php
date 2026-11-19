@@ -124,7 +124,7 @@ class WebsiteController extends Controller
             'warnings' => Themes::contrastWarnings($theme->theme, $theme->primary_color, $theme->accent_color),
             'themes' => collect(Themes::CATALOGUE)->map(fn ($t, $key) => ['key' => $key] + $t)->values(),
             'site_url' => '//'.$this->presenter->primaryHost($this->context->require()),
-            // Listed in the DineDesk app's place finder (owners can opt out).
+            // Listed in the NikoBite app's place finder (owners can opt out).
             'directory_listed' => app(TenantSettings::class)->get(DirectoryController::SETTING) !== false,
         ];
     }

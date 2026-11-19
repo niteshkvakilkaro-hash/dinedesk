@@ -19,7 +19,7 @@ Route::middleware(['auth:sanctum', 'tenant.user', 'throttle:api'])->prefix('tena
     Route::post('{id}/read', [InAppAlertController::class, 'read'])->whereUuid('id')->name('saas.alerts.read');
 });
 
-// Phones with the DineDesk Android app (Firebase notifications): anyone signed in, own devices only.
+// Phones with the NikoBite Android app (Firebase notifications): anyone signed in, own devices only.
 Route::middleware(['auth:sanctum', 'throttle:api'])->prefix('devices')->group(function () {
     Route::post('/', [DeviceController::class, 'store']);
     Route::delete('{token}', [DeviceController::class, 'destroy'])->where('token', '[A-Za-z0-9_:.\-]{1,512}');

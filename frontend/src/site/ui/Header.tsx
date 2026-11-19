@@ -55,7 +55,7 @@ export function Header({ site }: { site: SiteData }) {
       <SkipLink className="bg-t-primary text-t-on-primary" />
       <header className={`s-header ${over ? 'is-over' : ''}`}>
         <div className="s-wrap flex h-full items-center gap-4">
-          {/* Inside the DineDesk app: back to all places. */}
+          {/* Inside the NikoBite app: back to all places. */}
           {IN_APP && <AllPlacesLink />}
           <Brand site={site} className="min-w-0 flex-1 lg:flex-none" />
           <nav aria-label={t('site.mainNav')} className="mx-auto hidden lg:block">
@@ -70,7 +70,7 @@ export function Header({ site }: { site: SiteData }) {
             </ul>
           </nav>
           <div className="flex items-center gap-1">
-            {/* In the DineDesk app the language is on the Profile tab and the cart is a tab: room for the name. */}
+            {/* In the NikoBite app the language is on the Profile tab and the cart is a tab: room for the name. */}
             {!IN_APP && <SiteLanguageToggle className="s-icon-btn text-sm font-bold" />}
             {(!IN_APP || drawer) && <CartButton site={site} />}
             {cta ? (

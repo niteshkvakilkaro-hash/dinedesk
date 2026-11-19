@@ -24,7 +24,7 @@ class Tenant extends Model
 
     protected $fillable = [
         'name', 'slug', 'business_type', 'city', 'gstin', 'timezone', 'status',
-        'onboarding_step', 'plan_id', 'last_active_at', 'is_demo', 'parent_tenant_id',
+        'onboarding_step', 'plan_id', 'last_active_at', 'is_demo', 'demo_expires_at', 'demo_lead', 'parent_tenant_id',
         'referral_code', 'referred_by_tenant_id', 'referral_rewarded_at',
     ];
 
@@ -34,6 +34,8 @@ class Tenant extends Model
             'onboarding_step' => 'integer',
             'last_active_at' => 'datetime',
             'is_demo' => 'boolean',
+            'demo_expires_at' => 'datetime',
+            'demo_lead' => 'array',
             'referral_rewarded_at' => 'datetime',
         ];
     }

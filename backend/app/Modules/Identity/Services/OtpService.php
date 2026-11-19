@@ -90,9 +90,9 @@ class OtpService
     private function deliver(string $phone, string $code): void
     {
         match (config('dinedesk.otp.driver')) {
-            'log' => Log::info("[OTP] DineDesk sign-in code for {$phone}: {$code}"),
+            'log' => Log::info("[OTP] NikoBite sign-in code for {$phone}: {$code}"),
             // Through the configured Messenger (MSG91's OTP template when MESSAGING_DRIVER=live).
-            'sms' => app(Messenger::class)->send('sms', $phone, "{$code} is your DineDesk sign-in code. It expires in ".config('dinedesk.otp.ttl_minutes').' minutes.', $code),
+            'sms' => app(Messenger::class)->send('sms', $phone, "{$code} is your NikoBite sign-in code. It expires in ".config('dinedesk.otp.ttl_minutes').' minutes.', $code),
             default => throw new ApiException('SMS delivery is not configured.', 503, 'otp_unavailable'),
         };
     }

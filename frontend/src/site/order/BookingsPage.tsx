@@ -11,6 +11,7 @@ import { rememberedBookings } from '../reservations';
 import { useMoney } from '../ordering';
 import type { SiteData } from '../types';
 import { useSkin } from './skin';
+import { siteHost } from '@/lib/host';
 
 /**
  * "My bookings": room stays and table bookings made from this device, plus (when signed in
@@ -24,7 +25,7 @@ export default function BookingsPage({ site }: { site: SiteData }) {
   const hasRooms = !!site.hotel?.has_rooms;
   const hasTables = !!site.reservations?.enabled;
   const [tab, setTab] = useState<'rooms' | 'tables'>(hasRooms ? 'rooms' : 'tables');
-  const host = window.location.host;
+  const host = siteHost();
 
   // Rooms: the account's stays, then this device's (details fetched for those).
   const accountStays = me?.stays ?? [];

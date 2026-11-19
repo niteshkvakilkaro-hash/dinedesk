@@ -294,7 +294,7 @@ function ContentTab() {
   );
 }
 
-/** Listed in the DineDesk app's place finder (on by default); saves at once. */
+/** Listed in the NikoBite app's place finder (on by default); saves at once. */
 function DirectoryCard() {
   const { t } = useTranslation();
   const { data } = useWebsite();

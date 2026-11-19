@@ -4,7 +4,7 @@
  *
  * Two ways, picked by feature detection:
  *
- * - native: inside the DineDesk Android app (window.DineDeskAndroid has startLocationSharing and
+ * - native: inside the NikoBite Android app (window.DineDeskAndroid has startLocationSharing and
  *   stopLocationSharing). A WebView stops running JavaScript when the app goes to the background, so
  *   the app's own foreground service takes the positions and uploads them straight to the API.
  *   Contract (the app side):
@@ -71,7 +71,7 @@ export interface SharingStatus {
 export const DEFAULT_INTERVAL_SEC = 300;
 const MAX_QUEUE = 50;
 
-/** The app's location methods, when this page runs inside the DineDesk app (both start and stop present). */
+/** The app's location methods, when this page runs inside the NikoBite app (both start and stop present). */
 export function nativeLocationBridge(w: unknown = typeof window !== 'undefined' ? window : undefined): NativeLocationBridge | null {
   const b = (w as { DineDeskAndroid?: Partial<NativeLocationBridge> } | undefined)?.DineDeskAndroid;
   return b && typeof b.startLocationSharing === 'function' && typeof b.stopLocationSharing === 'function' ? (b as NativeLocationBridge) : null;

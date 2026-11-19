@@ -1,4 +1,4 @@
-# DineDesk website design system
+# NikoBite website design system
 
 How the public restaurant websites look and move, and where each piece lives. Every theme shares one page structure (`frontend/src/site/ui`). Themes differ through design tokens, a few layout switches and small extras.
 
@@ -200,4 +200,17 @@ All of these are demo or sample content, labelled "Demo" on the sites:
 - **Reviews:** there is no reviews section, and none will be shown until real reviews exist.
 - **Privacy policy and terms pages:** not built yet.
 - **Online table reservations:** Phase 4. Until then, booking is by phone or WhatsApp.
-- **Theme preview images:** `frontend/src/themes/*/preview.png` are screenshots of the demo sites. Regenerate them after changing a theme.
+- **Theme preview images:** `frontend/src/themes/*/preview.webp` are screenshots of the demo sites (1280×960 at 0.75×, without the demo strip and demo offer bar). Regenerate them after changing a theme.
+
+## Marketing site (NikoBite's own pages)
+
+The home page (`frontend/src/features/marketing/Landing.tsx`, effects in `styles/index.css` under `.mk-*`) follows these rules. Keep them for every change to the marketing pages.
+
+- **One hero idea.** A dark stage (`.mk-stage`) holding the promise (headline, one line of lead, two buttons) and one picture of the product. No second message above the fold.
+- **Real product only.** Screenshots come from the running app (Haveli / Hotel demo data). Interface cards in the hero are built in HTML, not images, so they stay sharp and translated. Retake screenshots after any brand or layout change; never ship a picture with an old name in it.
+- **Every word translated.** New text goes into all 13 language files (the parity test enforces it). Sample dish names and amounts are the only fixed text, and they sit in `aria-hidden` decoration.
+- **Readable without JavaScript.** The page is pre-rendered for search engines: content never starts hidden. Entrance animations (`Reveal`, `rise`) are skipped on pre-rendered visits and while rendering.
+- **Motion is decoration.** Light drift, gradient sheen, floating cards, marquee and tilt all stop for `prefers-reduced-motion`. Tilt only follows a mouse, never touch.
+- **Contrast.** Body text on the dark stage is at least `white/70` (about 10:1); gradient text is only used for large headline words. Light-page colours follow the platform tokens (AA checked).
+- **Colours from tokens.** Brand orange, gold and ink come from `--dd-*`; the only extra hues are the aurora's (decoration) and the green live dot.
+- **Phone first.** The hero stacks on phones, the QR card hides below `sm`, nothing scrolls sideways at 360px.

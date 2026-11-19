@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 
-/** Sends one notification to every DineDesk app (Android) of one person; drops devices whose token is gone. */
+/** Sends one notification to every NikoBite app (Android) of one person; drops devices whose token is gone. */
 class SendFcm implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;

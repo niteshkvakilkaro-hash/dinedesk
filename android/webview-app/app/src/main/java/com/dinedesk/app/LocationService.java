@@ -223,7 +223,7 @@ public class LocationService extends Service {
         instance = this;
         lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wake = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DineDesk:riderLocation");
+        wake = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NikoBite:riderLocation");
         wake.setReferenceCounted(false);
         thread = new HandlerThread("rider-location");
         thread.start();
@@ -274,7 +274,7 @@ public class LocationService extends Service {
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= 26 && nm.getNotificationChannel(CHANNEL) == null) {
             NotificationChannel ch = new NotificationChannel(CHANNEL, "Location while on duty", NotificationManager.IMPORTANCE_LOW);
-            ch.setDescription("Shown while DineDesk shares your location with the restaurant during a delivery shift.");
+            ch.setDescription("Shown while NikoBite shares your location with the restaurant during a delivery shift.");
             ch.setShowBadge(false);
             nm.createNotificationChannel(ch);
         }
@@ -286,7 +286,7 @@ public class LocationService extends Service {
         PendingIntent pi = PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CHANNEL) : legacyBuilder();
         b.setSmallIcon(R.drawable.ic_stat_location)
-                .setContentTitle("DineDesk — sharing your location while on duty")
+                .setContentTitle("NikoBite — sharing your location while on duty")
                 .setContentText("Tap to open the rider screen. End duty there to stop.")
                 .setContentIntent(pi)
                 .setOngoing(true)

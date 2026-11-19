@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError, request } from '@/lib/api';
+import { siteHost } from '@/lib/host';
 
 /**
  * A guest's sign-in on this business website (phone + SMS code). The token lives in this
@@ -25,7 +26,7 @@ export interface GuestAccount {
   tables: { code: string; date: string; time: string; party: number; status: string }[];
 }
 
-const key = () => `dd_guest_${typeof window === 'undefined' ? 'x' : window.location.host}`;
+const key = () => `dd_guest_${siteHost()}`;
 const listeners = new Set<() => void>();
 
 function readToken(): string | null {

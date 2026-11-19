@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Gift, Mail, Smartphone } from 'lucide-react';
+import { Check, Gift, Mail, Smartphone } from 'lucide-react';
 import { api, ApiError, applyServerErrors } from '@/lib/api';
 import { formatPhone, isIndianMobile } from '@/lib/format';
 import { clearReferral, normalizeReferral, storedReferral } from '@/lib/referral';
@@ -16,22 +16,63 @@ import { LanguageToggle, Logo } from '@/components/Brand';
 import { homePath } from '@/lib/home';
 import type { AuthResult } from '@/types';
 
-function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle?: string; children: ReactNode; footer: ReactNode }) {
+export function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle?: string; children: ReactNode; footer: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-between px-5 py-4 sm:px-8">
-        <Logo />
-        <LanguageToggle />
-      </header>
-      <main className="flex flex-1 items-start justify-center px-4 pb-12 pt-6 sm:items-center sm:pt-0">
-        <div className="w-full max-w-md">
-          <h1 className="text-3xl font-extrabold tracking-tight">{title}</h1>
-          {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
-          <div className="card mt-6 p-5 sm:p-6">{children}</div>
-          <p className="mt-5 text-center text-sm text-muted">{footer}</p>
-        </div>
-      </main>
+    <div className="grid min-h-screen lg:grid-cols-[1fr_1.05fr]">
+      <div className="flex min-h-screen flex-col">
+        <header className="flex items-center justify-between px-5 py-4 sm:px-8">
+          <Logo />
+          <LanguageToggle />
+        </header>
+        <main className="flex flex-1 items-start justify-center px-4 pb-12 pt-6 sm:items-center sm:pt-0">
+          <div className="w-full max-w-md">
+            <h1 className="text-3xl font-extrabold tracking-tight">{title}</h1>
+            {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
+            <div className="card mt-6 p-5 shadow-xl shadow-ink/5 sm:p-6">{children}</div>
+            <p className="mt-5 text-center text-sm text-muted">{footer}</p>
+          </div>
+        </main>
+      </div>
+      <AuthShowcase />
     </div>
+  );
+}
+
+/** Desktop: what NikoBite does, on the same dark stage as the home page, next to the form. */
+function AuthShowcase() {
+  const { t } = useTranslation();
+  const points = t('mk.hero.points', { returnObjects: true }) as string[];
+  const m = /^(.+?[.।!?。])\s+(.+)$/u.exec(t('mk.hero.title'));
+  return (
+    <aside className="hidden p-3 lg:block" aria-hidden="true">
+      <div className="mk-stage relative flex h-full min-h-[calc(100vh-1.5rem)] flex-col justify-end overflow-hidden rounded-[2rem] p-12 text-white">
+        <div className="mk-aurora -left-24 -top-24 h-[26rem] w-[26rem] bg-[#c2410c]" />
+        <div className="mk-aurora right-[-6rem] top-1/3 h-[22rem] w-[22rem] bg-[#f2b544] [animation-delay:-6s]" />
+        <div className="mk-aurora bottom-[-8rem] left-1/4 h-[20rem] w-[20rem] bg-[#be123c] opacity-40 [animation-delay:-12s]" />
+        <div className="mk-grid" />
+        <div className="mk-grain" />
+        <div className="relative max-w-lg">
+          <p className="text-4xl font-extrabold leading-[1.08] tracking-tight xl:text-5xl">
+            {m ? (
+              <>
+                {m[1]} <span className="mk-gradient-text">{m[2]}</span>
+              </>
+            ) : (
+              t('mk.hero.title')
+            )}
+          </p>
+          <p className="mt-5 text-lg leading-relaxed text-white/72">{t('mk.hero.lead')}</p>
+          <ul className="mt-8 space-y-3 text-[15px] font-semibold text-white/88">
+            {points.map((p) => (
+              <li key={p} className="flex items-center gap-3">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-[#4ade80]"><Check className="h-3.5 w-3.5" /></span>
+                {p}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </aside>
   );
 }
 

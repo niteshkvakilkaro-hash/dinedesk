@@ -1,6 +1,6 @@
 {
-  "name": "DineDesk",
-  "short_name": "DineDesk",
+  "name": "NikoBite",
+  "short_name": "NikoBite",
   "description": "Orders, bookings, POS and your restaurant's website in one place.",
   "id": "/dashboard",
   "start_url": "/dashboard",

@@ -191,7 +191,9 @@ class TenantController extends Controller
             'branch_of' => $t->parent_tenant_id ? Tenant::whereKey($t->parent_tenant_id)->value('name') : null,
             'mrr' => $this->mrr($t),
             'owner_name' => $t->owner_name ?? null,
-            'owner_contact' => $t->owner_email ?? $t->owner_phone ?? null,
+            // A live demo's account has a made-up email: show the mobile the visitor gave instead.
+            'owner_contact' => $t->demo_lead['phone'] ?? $t->owner_email ?? $t->owner_phone ?? null,
+            'demo_expires_at' => $t->demo_expires_at?->toIso8601String(),
             'users_count' => $t->users_count ?? null,
             'created_at' => $t->created_at?->toIso8601String(),
             'last_active_at' => $t->last_active_at?->toIso8601String(),

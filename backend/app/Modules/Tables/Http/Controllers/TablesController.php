@@ -14,6 +14,7 @@ use App\Support\ApiException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Support\SiteUrl;
 
 /** Dashboard → Tables: set up tables and their QR codes, and run the live table board. */
 class TablesController extends Controller
@@ -26,7 +27,7 @@ class TablesController extends Controller
     /** All tables with their QR links (for the setup list and the printable QR sheet). */
     public function index(SitePresenter $site): JsonResponse
     {
-        $base = rtrim(str_replace('{host}', $site->primaryHost($this->context->require()), (string) config('dinedesk.site_url_pattern')), '/');
+        $base = SiteUrl::for($site->primaryHost($this->context->require()));
 
         return $this->ok([
             'tables' => DiningTable::orderBy('sort_order')->orderBy('id')->get()->map(fn (DiningTable $t) => $this->row($t, $base))->values(),
@@ -171,7 +172,7 @@ class TablesController extends Controller
 
     private function base(SitePresenter $site): string
     {
-        return rtrim(str_replace('{host}', $site->primaryHost($this->context->require()), (string) config('dinedesk.site_url_pattern')), '/');
+        return SiteUrl::for($site->primaryHost($this->context->require()));
     }
 
     private function row(DiningTable $t, string $base): array

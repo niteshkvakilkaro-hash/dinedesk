@@ -1,0 +1,75 @@
+<style>
+  #dd-splash{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;flex-direction:column;
+    background:radial-gradient(1200px 600px at 50% 40%,#2a1d14 0%,#14110F 55%,#0b0908 100%);color:#fff;overflow:hidden;
+    font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;transition:opacity .6s ease,visibility .6s ease}
+  html:has(#dd-splash:not(.dd-out)){background:#14110F}
+  #dd-splash.dd-out{opacity:0;visibility:hidden}
+  #dd-splash.dd-out .dd-stage{transform:scale(1.08);filter:blur(6px)}
+  .dd-stage{position:relative;display:flex;flex-direction:column;align-items:center;transition:transform .6s ease,filter .6s ease}
+  .dd-glow{position:absolute;width:420px;height:420px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-58%);
+    background:radial-gradient(circle,rgba(255,138,61,.35),rgba(255,61,127,.12) 45%,transparent 70%);filter:blur(20px);animation:dd-breathe 3s ease-in-out infinite}
+  .dd-rings{position:relative;width:132px;height:132px;margin-bottom:34px}
+  .dd-ring{position:absolute;inset:0;border-radius:50%;border:3px solid transparent}
+  .dd-ring.r1{border-top-color:#ff8a3d;border-right-color:#ff8a3d;animation:dd-spin 1.4s cubic-bezier(.6,.1,.4,.9) infinite}
+  .dd-ring.r2{inset:14px;border-bottom-color:#ff3d7f;border-left-color:#ff3d7f;animation:dd-spin 1.9s linear infinite reverse}
+  .dd-ring.r3{inset:28px;border-top-color:#ffd166;animation:dd-spin 2.6s linear infinite}
+  .dd-mono{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:40px;letter-spacing:-1px;
+    background:linear-gradient(135deg,#ffd166,#ff8a3d 50%,#ff3d7f);-webkit-background-clip:text;background-clip:text;color:transparent;animation:dd-pop .9s cubic-bezier(.2,1.6,.4,1) both}
+  .dd-name{display:flex;align-items:baseline;gap:14px;font-size:clamp(38px,9vw,64px);font-weight:800;letter-spacing:1px;line-height:1}
+  .dd-word{display:flex}
+  .dd-word span{display:inline-block;opacity:0;transform:translateY(40px) rotateX(90deg);animation:dd-rise .7s cubic-bezier(.2,.9,.3,1.2) forwards}
+  .dd-n span{background:linear-gradient(180deg,#fff,#ffe1c7);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .dd-d span{font-family:'Consolas','Courier New',monospace;font-weight:700;background:linear-gradient(135deg,#ff8a3d,#ff3d7f);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .dd-caret{display:inline-block;width:4px;height:.85em;margin-left:6px;background:#ff3d7f;align-self:center;opacity:0;animation:dd-show 0s 1.5s forwards,dd-blink .8s 1.5s steps(1) infinite}
+  .dd-shine{position:relative;overflow:hidden}
+  .dd-shine::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
+    transform:skewX(-20deg);animation:dd-sweep 2.8s 1.6s ease-in-out infinite;mix-blend-mode:overlay}
+  .dd-tag{margin-top:18px;font-size:13px;letter-spacing:6px;text-transform:uppercase;color:rgba(255,255,255,.55);opacity:0;animation:dd-fade .8s 1.3s forwards}
+  .dd-bar{margin-top:30px;width:min(240px,60vw);height:3px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;opacity:0;animation:dd-fade .5s 1.1s forwards}
+  .dd-bar i{display:block;height:100%;width:40%;border-radius:3px;background:linear-gradient(90deg,#ffd166,#ff8a3d,#ff3d7f);animation:dd-load 1.3s ease-in-out infinite}
+  .dd-dot{position:absolute;width:4px;height:4px;border-radius:50%;background:#ff8a3d;opacity:0;animation:dd-float 6s linear infinite}
+  @keyframes dd-spin{to{transform:rotate(360deg)}}
+  @keyframes dd-breathe{50%{opacity:.6;transform:translate(-50%,-58%) scale(1.12)}}
+  @keyframes dd-pop{from{opacity:0;transform:scale(.3) rotate(-30deg)}to{opacity:1;transform:none}}
+  @keyframes dd-rise{to{opacity:1;transform:none}}
+  @keyframes dd-show{to{opacity:1}}
+  @keyframes dd-blink{50%{opacity:0}}
+  @keyframes dd-fade{to{opacity:1}}
+  @keyframes dd-sweep{0%{left:-60%}60%,100%{left:130%}}
+  @keyframes dd-load{0%{transform:translateX(-110%)}100%{transform:translateX(260%)}}
+  @keyframes dd-float{0%{opacity:0;transform:translateY(0)}15%{opacity:.8}100%{opacity:0;transform:translateY(-70vh)}}
+  @media (prefers-reduced-motion:reduce){#dd-splash *,#dd-splash *::after{animation-duration:.01s!important;animation-iteration-count:1!important;animation-delay:0s!important}}
+</style>
+<div id="dd-splash" role="status" aria-label="Loading">
+  <div class="dd-stage">
+    <div class="dd-glow"></div>
+    <div class="dd-rings">
+      <div class="dd-ring r1"></div><div class="dd-ring r2"></div><div class="dd-ring r3"></div>
+      <div class="dd-mono">N</div>
+    </div>
+    <div class="dd-name dd-shine">
+      <div class="dd-word dd-n"><span style="animation-delay:.25s">N</span><span style="animation-delay:.32s">i</span><span style="animation-delay:.39s">t</span><span style="animation-delay:.46s">e</span><span style="animation-delay:.53s">s</span><span style="animation-delay:.6s">h</span></div>
+      <div class="dd-word dd-d"><span style="animation-delay:.85s">d</span><span style="animation-delay:.95s">e</span><span style="animation-delay:1.05s">v</span><i class="dd-caret"></i></div>
+    </div>
+    <div class="dd-tag">Crafting NikoBite</div>
+    <div class="dd-bar"><i></i></div>
+  </div>
+</div>
+<script>
+  // Splash only for the software itself (platform / app host, IP, Android app), not on a
+  // restaurant's own website or a pre-rendered marketing page (that HTML is already on screen).
+  (function () {
+    var s = document.getElementById('dd-splash'), d = '%VITE_PLATFORM_DOMAIN%', h = location.hostname;
+    if (d.charAt(0) === '%') d = 'localhost';
+    // ... and not a business website at /s/<slug> (hosting without wildcard subdomains).
+    var app = ([d, 'app.' + d, 'www.' + d, 'localhost', '127.0.0.1'].indexOf(h) !== -1 || /^\d+\.\d+\.\d+\.\d+$/.test(h)) && !/^\/s\/[a-z0-9-]+(\/|$)/.test(location.pathname);
+    if (!app || document.getElementById('prerender') || window.__ddSsr) { s.parentNode.removeChild(s); return; }
+    window.__ddSplashAt = Date.now();
+    for (var i = 0; i < 18; i++) {
+      var p = document.createElement('i');
+      p.className = 'dd-dot';
+      p.style.cssText = 'left:' + Math.random() * 100 + '%;bottom:' + (Math.random() * 20 - 5) + '%;animation-delay:' + Math.random() * 6 + 's;animation-duration:' + (4 + Math.random() * 4) + 's;background:' + ['#ff8a3d', '#ff3d7f', '#ffd166'][i % 3];
+      s.appendChild(p);
+    }
+  })();
+</script>

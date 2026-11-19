@@ -16,7 +16,7 @@ import './site.css';
 
 /**
  * Header, page, footer and the mobile action bar; reveals content as it scrolls in. Inside the
- * DineDesk app, inner pages get the app top bar and the footer gives way to the bottom tabs
+ * NikoBite app, inner pages get the app top bar and the footer gives way to the bottom tabs
  * (contact and legal details stay on the Profile tab).
  */
 function Shell({ site, children }: ShellProps) {

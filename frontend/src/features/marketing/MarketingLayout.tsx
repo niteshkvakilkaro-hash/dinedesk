@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, X, PlayCircle } from 'lucide-react';
 import { LanguageToggle, Logo } from '@/components/Brand';
 import { useAuthStore } from '@/stores/auth';
 import { FEATURE_PAGES } from './content';
 
-/** Header, footer and page frame for DineDesk's own marketing pages. */
+/** Header, footer and page frame for NikoBite's own marketing pages. */
 export default function MarketingLayout() {
   const { t } = useTranslation();
   const { pathname, hash } = useLocation();
@@ -77,6 +77,12 @@ export default function MarketingLayout() {
               <LanguageToggle />
             </span>
             {!signedIn && (
+              <Link to="/demo" className="btn-ghost hidden md:inline-flex">
+                <PlayCircle className="h-4 w-4" aria-hidden="true" />
+                {t('mk.nav.demo')}
+              </Link>
+            )}
+            {!signedIn && (
               <Link to="/login" className="btn-ghost hidden md:inline-flex">
                 {t('common.signIn')}
               </Link>
@@ -105,6 +111,12 @@ export default function MarketingLayout() {
             <Link to="/pricing" className="flex min-h-12 items-center rounded-xl px-2 font-semibold hover:bg-surface">
               {t('mk.nav.pricing')}
             </Link>
+            {!signedIn && (
+              <Link to="/demo" className="flex min-h-12 items-center gap-2 rounded-xl px-2 font-semibold hover:bg-surface">
+                <PlayCircle className="h-5 w-5 text-brand" aria-hidden="true" />
+                {t('mk.nav.demo')}
+              </Link>
+            )}
             {!signedIn && (
               <Link to="/login" className="flex min-h-12 items-center rounded-xl px-2 font-semibold hover:bg-surface">
                 {t('common.signIn')}
