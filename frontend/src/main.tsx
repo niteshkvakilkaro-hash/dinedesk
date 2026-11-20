@@ -6,6 +6,9 @@ import App from './App';
 import { api, ApiError, setUnauthorizedHandler } from '@/lib/api';
 import { isSupportTab, useAuthStore } from '@/stores/auth';
 import '@/i18n';
+// NikoBite's fonts (self-hosted): Inter for text, Plus Jakarta Sans for headings.
+import '@fontsource-variable/inter';
+import '@fontsource-variable/plus-jakarta-sans';
 import '@/styles/index.css';
 import { getTheme, isThemeKey } from '@/themes/registry';
 import { androidBridge, installAppDownloads, installAppPush } from '@/lib/dinedeskApp';
