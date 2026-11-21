@@ -79,6 +79,18 @@ class OrdersController extends Controller
     }
 
     /** Staff saw the guest's UPI payment arrive. */
+    /** The guest's UPI payment screenshot (private file; staff of this business only). */
+    public function paymentProof(int $id): \Symfony\Component\HttpFoundation\Response
+    {
+        $order = Order::findOrFail($id);
+        abort_unless($order->payment_proof && \Illuminate\Support\Facades\Storage::disk('local')->exists($order->payment_proof), 404);
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->response($order->payment_proof, "payment-{$order->number}.".pathinfo($order->payment_proof, PATHINFO_EXTENSION), [
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
     public function upiReceived(Request $request, int $id, OrderFlow $flow): JsonResponse
     {
         $order = $flow->confirmUpi(Order::findOrFail($id), $request->user());

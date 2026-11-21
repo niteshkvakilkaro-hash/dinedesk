@@ -9,6 +9,7 @@ import { SiteDialog, useSkin } from './skin';
 import { useMoney } from '../ordering';
 import { useActiveRoom } from '../hotel';
 import { orderMode } from './mode';
+import { flyToCart } from './addFx';
 
 const priceOf = (v: string) => Number(v);
 
@@ -43,11 +44,12 @@ export function AddButton({ item, className = '', label }: { item: MenuItem; cla
       name: item.name, name_hi: item.name_hi, translations: item.translations, variant_name: null, addon_names: [], unit_price: priceOf(item.price), food_type: item.food_type, image: item.image?.src ?? null,
     });
     skin.onAdd?.({ x: e.clientX, y: e.clientY });
+    flyToCart({ x: e.clientX, y: e.clientY }, item.image?.src);
   };
 
   if (inCart) {
     return (
-      <div className={`inline-flex items-center ${skin.chip} ${className}`} role="group" aria-label={t('order.inCart', { name: l(item, 'name') })}>
+      <div className={`s-pop inline-flex items-center ${skin.chip} ${className}`} role="group" aria-label={t('order.inCart', { name: l(item, 'name') })}>
         <button type="button" className="flex h-11 w-11 items-center justify-center" onClick={() => setQuantity(simpleKey, inCart.quantity - 1)} aria-label={t('order.decrease', { name: l(item, 'name') })}>
           <Minus className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -57,6 +59,7 @@ export function AddButton({ item, className = '', label }: { item: MenuItem; cla
         <button type="button" className="flex h-11 w-11 items-center justify-center disabled:opacity-40" disabled={inCart.quantity >= MAX_QTY} onClick={(e) => {
           setQuantity(simpleKey, inCart.quantity + 1);
           skin.onAdd?.({ x: e.clientX, y: e.clientY });
+          flyToCart({ x: e.clientX, y: e.clientY }, item.image?.src);
         }} aria-label={t('order.increase', { name: l(item, 'name') })}>
           <Plus className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -120,6 +123,7 @@ export function DishOptions({ item, open, onClose }: { item: MenuItem; open: boo
       addons: addonIds.map((id) => allAddons.find((a) => a.id === id)).map((a) => (a ? cartChoice(a) : { name: '', name_hi: null })),
     });
     skin.onAdd?.({ x: e.clientX, y: e.clientY });
+    flyToCart({ x: e.clientX, y: e.clientY }, item.image?.src);
     onClose();
     setAddonIds([]);
     setQty(1);

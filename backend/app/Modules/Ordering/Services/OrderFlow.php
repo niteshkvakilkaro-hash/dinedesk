@@ -424,6 +424,23 @@ class OrderFlow
         return $order;
     }
 
+    /** ... or a screenshot of the payment instead of (or as well as) the reference. */
+    public function upiScreenshot(Order $order, \Illuminate\Http\UploadedFile $image): Order
+    {
+        if ($order->payment_method !== 'upi' || $order->status === 'cancelled' || ! in_array($order->payment_status, ['unpaid', 'pending'], true)) {
+            throw new ApiException('This order is not waiting for a UPI payment.', 422, 'not_awaiting_upi');
+        }
+        $disk = \Illuminate\Support\Facades\Storage::disk('local');
+        $path = $image->storeAs("upi-proofs/{$order->tenant_id}", $order->public_id.'-'.\Illuminate\Support\Str::random(8).'.'.strtolower($image->extension() ?: 'jpg'), 'local');
+        if ($order->payment_proof && $order->payment_proof !== $path) {
+            $disk->delete($order->payment_proof);
+        }
+        $order->update(['payment_proof' => $path, 'payment_status' => 'pending']);
+        $this->event($order, 'upi_screenshot', 'UPI payment screenshot', null);
+
+        return $order;
+    }
+
     /** Staff saw the UPI money arrive. */
     public function confirmUpi(Order $order, User $by): Order
     {

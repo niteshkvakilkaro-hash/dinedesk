@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Check, Copy, Smartphone } from 'lucide-react';
+import { Check, Copy, ImageUp, Smartphone } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { isPhone, upiLink, useQrCode } from '@/lib/upi';
 import { useMoney } from '../ordering';
@@ -24,6 +24,17 @@ export function UpiPay({ site, order, token }: { site: SiteData; order: Customer
   const qr = useQrCode(link, 220);
   const send = useMutation<unknown, ApiError>({
     mutationFn: () => api.post(`/site/orders/${order.id}/upi-reference`, { t: token, reference: reference.trim() }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['order', order.id, token] }),
+  });
+  // Or a screenshot of the payment (some UPI apps hide the UTR); staff open it in the order.
+  const fileRef = useRef<HTMLInputElement>(null);
+  const upload = useMutation<unknown, ApiError, File>({
+    mutationFn: (file) => {
+      const form = new FormData();
+      form.append('t', token);
+      form.append('image', file);
+      return api.post(`/site/orders/${order.id}/upi-screenshot`, form);
+    },
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['order', order.id, token] }),
   });
   if (!upi || !link || order.payment_method !== 'upi' || order.status === 'cancelled' || !['unpaid', 'pending'].includes(order.payment_status)) return null;
@@ -62,8 +73,8 @@ export function UpiPay({ site, order, token }: { site: SiteData; order: Customer
       </div>
 
       <div className="mt-5 border-t border-t-line pt-4" aria-live="polite">
-        {order.payment_status === 'pending' && order.payment_reference ? (
-          <p className="font-semibold">{t('order.upi.sent', { reference: order.payment_reference })}</p>
+        {order.payment_status === 'pending' && (order.payment_reference || order.has_payment_proof) ? (
+          <p className="font-semibold">{order.payment_reference ? t('order.upi.sent', { reference: order.payment_reference }) : t('order.upi.shotSent')}</p>
         ) : (
           <form
             onSubmit={(e) => {
@@ -84,6 +95,30 @@ export function UpiPay({ site, order, token }: { site: SiteData; order: Customer
             {send.error && (
               <p role="alert" className="mt-2 text-sm font-semibold text-[#b91c1c]">
                 {send.error.message}
+              </p>
+            )}
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <span className="text-sm text-t-muted">{t('order.upi.or')}</span>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                aria-label={t('order.upi.shot')}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) upload.mutate(file);
+                  e.target.value = '';
+                }}
+              />
+              <button type="button" className={`inline-flex min-h-11 items-center gap-2 px-4 ${skin.secondary}`} disabled={upload.isPending} onClick={() => fileRef.current?.click()}>
+                <ImageUp className="h-4 w-4" aria-hidden="true" />
+                {upload.isPending ? t('order.upi.shotUploading') : t('order.upi.shot')}
+              </button>
+            </div>
+            {upload.error && (
+              <p role="alert" className="mt-2 text-sm font-semibold text-[#b91c1c]">
+                {upload.error.message}
               </p>
             )}
           </form>

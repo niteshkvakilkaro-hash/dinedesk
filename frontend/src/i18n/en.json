@@ -1955,7 +1955,11 @@
       "sent": "Thanks! You sent reference {{reference}}. The restaurant will confirm your payment.",
       "refLabel": "Paid? Add the UPI reference",
       "refHint": "The 12-digit UPI reference (UTR) in your UPI app. It helps the restaurant find your payment.",
-      "send": "Send"
+      "send": "Send",
+      "or": "or",
+      "shot": "Upload payment screenshot",
+      "shotUploading": "Uploading…",
+      "shotSent": "Screenshot sent. The restaurant will confirm your payment."
     },
     "payShort": {
       "online": "Paid online",
@@ -2063,7 +2067,8 @@
     "upiWithRef": "UPI payment of {{amount}}: the guest gave reference {{reference}}. Check your UPI or bank app.",
     "upiNoRef": "UPI payment of {{amount}}: check your UPI or bank app before handing the order over.",
     "upiReceived": "Payment received",
-    "upiConfirmed": "Payment marked as received"
+    "upiConfirmed": "Payment marked as received",
+    "viewProof": "View payment screenshot"
   },
   "menuAdmin": {
     "title": "Menu",
