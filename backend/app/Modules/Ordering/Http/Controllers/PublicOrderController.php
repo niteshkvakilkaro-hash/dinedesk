@@ -157,6 +157,18 @@ class PublicOrderController extends Controller
         return $this->ok($this->presenter->forCustomer($order->fresh(['items', 'events'])), 'Thanks! The restaurant will confirm your payment.');
     }
 
+    /** ... or a screenshot of the payment (JPG / PNG / WebP up to 6 MB), for staff to check. */
+    public function upiScreenshot(Request $request, string $publicId): JsonResponse
+    {
+        $data = $request->validate([
+            't' => ['required', 'string'],
+            'image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
+        ], ['image.mimes' => 'Upload the screenshot as a JPG, PNG or WebP image.', 'image.max' => 'The screenshot is too large (6 MB at most).']);
+        $order = $this->flow->upiScreenshot($this->find($publicId, $data['t']), $request->file('image'));
+
+        return $this->ok($this->presenter->forCustomer($order->fresh(['items', 'events'])), 'Thanks! The restaurant will confirm your payment.');
+    }
+
     /** Razorpay Checkout success handler: accepted only with a valid signature. */
     public function verifyPayment(Request $request, string $publicId, Razorpay $razorpay): JsonResponse
     {

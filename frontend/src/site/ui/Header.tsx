@@ -30,7 +30,7 @@ export function CartButton({ site }: { site: SiteData }) {
   const room = useActiveRoom(site);
   if (!orderMode(site) && !room) return null;
   return (
-    <button type="button" className="s-icon-btn relative" onClick={() => setOpen(true)} aria-label={t('order.viewCart', { count })}>
+    <button type="button" className="s-icon-btn relative" data-cart-target onClick={() => setOpen(true)} aria-label={t('order.viewCart', { count })}>
       <ShoppingBag className="h-5 w-5" aria-hidden="true" />
       {count > 0 && <span className="absolute right-0.5 top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-t-primary px-1 text-[11px] font-bold tabular-nums text-t-on-primary">{count}</span>}
     </button>

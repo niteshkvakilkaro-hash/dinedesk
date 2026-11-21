@@ -520,7 +520,7 @@ export function RoomBar({ site }: { site: SiteData }) {
       <span className="flex items-center gap-1.5 truncate px-3 font-semibold"><BedDouble className="h-[18px] w-[18px]" aria-hidden="true" />{t('site.room.short', { number: room.number })}</span>
       <button type="button" onClick={leave}><LogOut className="h-[18px] w-[18px]" aria-hidden="true" />{t('site.room.leave')}</button>
       {count > 0 ? (
-        <button type="button" className="is-main" onClick={() => setOpen(true)} aria-label={t('order.viewCart', { count })}>
+        <button type="button" className="is-main" data-cart-target onClick={() => setOpen(true)} aria-label={t('order.viewCart', { count })}>
           <ShoppingBag className="h-[18px] w-[18px]" aria-hidden="true" />
           <span className="tabular-nums">{count} · {money(cartEstimate(lines))}</span>
         </button>

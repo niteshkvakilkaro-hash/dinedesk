@@ -276,6 +276,7 @@ export interface CustomerOrder {
   payment_status: 'unpaid' | 'pending' | 'paid' | 'failed' | 'refund_due' | 'refunded';
   /** UPI reference (UTR) the guest gave for a UPI payment. */
   payment_reference?: string | null;
+  has_payment_proof?: boolean;
   cancel_reason: string | null;
   timeline: { status: OrderStatus; at: string }[];
   /** While out for delivery: the rider's first name and last position (only when recent). */

@@ -15,7 +15,6 @@ import { PasswordInput } from '@/components/PasswordInput';
 import { LanguageToggle, Logo } from '@/components/Brand';
 import { homePath } from '@/lib/home';
 import type { AuthResult } from '@/types';
-import { HelpChat } from '@/components/HelpChat';
 import { usePublicConfig } from '@/lib/publicConfig';
 
 export function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle?: string; children: ReactNode; footer: ReactNode }) {
@@ -36,7 +35,6 @@ export function AuthShell({ title, subtitle, children, footer }: { title: string
         </main>
       </div>
       <AuthShowcase />
-      <HelpChat compact />
     </div>
   );
 }

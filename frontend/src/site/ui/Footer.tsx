@@ -169,7 +169,7 @@ export function MobileBar({ site }: { site: SiteData }) {
       })}
       {cart && (
         <button type="button" onClick={() => setCartOpen(true)} aria-label={t('order.viewCart', { count })}>
-          <span className="s-tab-icon">
+          <span className="s-tab-icon" data-cart-target>
             <ShoppingBag className={icon} aria-hidden="true" />
             {count > 0 && <span className="s-tab-count tabular-nums">{count}</span>}
           </span>

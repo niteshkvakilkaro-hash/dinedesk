@@ -32,6 +32,7 @@ class OrderPresenter
             'payment_method' => $o->payment_method,
             'payment_status' => $o->payment_status,
             'payment_reference' => $o->payment_reference,
+            'has_payment_proof' => (bool) $o->payment_proof,
             'cancel_reason' => $o->cancel_reason,
             'timeline' => $o->events->filter(fn ($e) => in_array($e->status, Order::STATUSES, true))
                 ->map(fn ($e) => ['status' => $e->status, 'at' => $e->created_at->toIso8601String()])->values(),

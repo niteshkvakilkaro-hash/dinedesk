@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useOpenParam } from '@/lib/urlParams';
-import { BedDouble, Bell, BellOff, Bike, Clock, MapPin, Phone, RefreshCw, Search, ShoppingBag, Store, UtensilsCrossed } from 'lucide-react';
-import { api, ApiError } from '@/lib/api';
+import { BedDouble, Bell, BellOff, Bike, Clock, ImageIcon, MapPin, Phone, RefreshCw, Search, ShoppingBag, Store, UtensilsCrossed } from 'lucide-react';
+import { api, ApiError, openFile } from '@/lib/api';
 import { formatINR } from '@/lib/format';
 import { useCan, useFeature, useSession } from '@/hooks/useSession';
 import { Link } from 'react-router';
@@ -27,6 +27,7 @@ interface OrderRow {
   payment_method: 'online' | 'cod' | 'counter' | 'room' | 'upi';
   payment_status: string;
   payment_reference?: string | null;
+  has_payment_proof?: boolean;
   scheduled_for: string | null;
   placed_at: string;
   table_label: string | null;
@@ -164,6 +165,12 @@ function UpiCheck({ order }: { order: OrderDetail }) {
       <p className="min-w-0 flex-1 text-sm font-semibold">
         {order.payment_reference ? t('orders.upiWithRef', { amount: formatINR(order.total), reference: order.payment_reference }) : t('orders.upiNoRef', { amount: formatINR(order.total) })}
       </p>
+      {order.has_payment_proof && (
+        <button type="button" className="btn-outline !min-h-10 text-sm" onClick={() => void openFile(`/tenant/orders/${order.internal_id}/payment-proof`).catch((e: Error) => toast.error(e.message))}>
+          <ImageIcon className="h-4 w-4" aria-hidden="true" />
+          {t('orders.viewProof')}
+        </button>
+      )}
       {canManage && (
         <button type="button" className="btn-primary !min-h-10 text-sm" disabled={confirm.isPending} onClick={() => confirm.mutate()}>
           {confirm.isPending ? <Spinner /> : t('orders.upiReceived')}

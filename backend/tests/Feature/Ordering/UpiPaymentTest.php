@@ -5,6 +5,8 @@ namespace Tests\Feature\Ordering;
 use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Services\OrderingSettings;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 /** Paying the restaurant's own UPI ID: offered once set up, reference from the guest, confirmed by staff. */
 class UpiPaymentTest extends OrderingTestCase
@@ -85,5 +87,36 @@ class UpiPaymentTest extends OrderingTestCase
             $this->actingAsUser($owner)->postJson("/api/v1/tenant/orders/{$internal}/status", ['status' => $s])->assertOk();
         }
         $this->getJson("/api/v1/tenant/orders/{$internal}")->assertJsonPath('data.payment_status', 'paid');
+    }
+
+    public function test_guest_can_send_a_payment_screenshot_that_only_staff_can_open(): void
+    {
+        Storage::fake('local');
+        $this->enableUpi();
+        $data = $this->place();
+        $id = $data['order']['id'];
+        $token = $data['token'];
+        $json = $this->site() + ['Accept' => 'application/json'];
+
+        $this->post("/api/v1/site/orders/{$id}/upi-screenshot", ['t' => 'wrong', 'image' => UploadedFile::fake()->image('pay.jpg')], $json)->assertNotFound();
+        $this->post("/api/v1/site/orders/{$id}/upi-screenshot", ['t' => $token, 'image' => UploadedFile::fake()->create('pay.pdf', 10, 'application/pdf')], $json)->assertStatus(422);
+        $this->post("/api/v1/site/orders/{$id}/upi-screenshot", ['t' => $token, 'image' => UploadedFile::fake()->image('pay.png', 600, 1200)], $json)->assertOk()
+            ->assertJsonPath('data.payment_status', 'pending')->assertJsonPath('data.has_payment_proof', true);
+
+        $order = $this->asTenant(fn () => Order::where('public_id', $id)->firstOrFail());
+        Storage::disk('local')->assertExists($order->payment_proof);
+
+        // A second screenshot replaces the first.
+        $first = $order->payment_proof;
+        $this->post("/api/v1/site/orders/{$id}/upi-screenshot", ['t' => $token, 'image' => UploadedFile::fake()->image('again.jpg')], $json)->assertOk();
+        Storage::disk('local')->assertMissing($first);
+
+        $owner = $this->ownerOf($this->tenant);
+        $this->actingAsUser($owner)->getJson("/api/v1/tenant/orders/{$order->id}")->assertJsonPath('data.has_payment_proof', true);
+        $this->actingAsUser($owner)->get("/api/v1/tenant/orders/{$order->id}/payment-proof")->assertOk();
+
+        // Another business's staff cannot open it.
+        $other = $this->business('Other Place', 'growth', ['status' => 'live']);
+        $this->actingAsUser($this->ownerOf($other))->getJson("/api/v1/tenant/orders/{$order->id}/payment-proof")->assertNotFound();
     }
 }
