@@ -10,6 +10,7 @@ import { DEMO_SLUG } from './content';
 import { THEME_KEYS, THEMES } from '@/themes/registry';
 import type { ThemeKey } from '@/themes/types';
 import { marketingHead, usePageMeta } from './seo';
+import { SavingsCalculator } from './Savings';
 import coastalDesktop from './assets/hero/coastal-desktop.webp';
 import coastalPhone from './assets/hero/coastal-phone.webp';
 import emberDesktop from './assets/hero/ember-desktop.webp';
@@ -272,6 +273,18 @@ export default function Landing() {
             ))}
           </ul>
         </Reveal>
+      </section>
+
+      {/* Savings: what delivery-app commission costs vs the plan */}
+      <section id="savings" className="pb-16 sm:pb-24" aria-labelledby="savings-h">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal>
+            <Heading id="savings-h" title={t('mk.savings.title')} lead={t('mk.savings.lead')} center />
+          </Reveal>
+          <Reveal className="mt-10">
+            <SavingsCalculator />
+          </Reveal>
+        </div>
       </section>
 
       {/* Pricing */}

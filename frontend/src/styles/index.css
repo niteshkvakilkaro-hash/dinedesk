@@ -522,3 +522,93 @@ html:not([lang^='en']) [class*='tracking-'] {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
+
+/* Marketing: reading progress and the featured plan's moving glow border. */
+.mk-progress {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  .mk-progress {
+    display: block;
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 60;
+    height: 3px;
+    background: linear-gradient(90deg, #c2410c, #f2b544, #be123c);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    pointer-events: none;
+    animation: mk-progress linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes mk-progress {
+  to { transform: scaleX(1); }
+}
+@property --mk-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.mk-featured {
+  /* Card stays ink inside; the moving gradient shows only as its 2px border. */
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(var(--dd-ink), var(--dd-ink)) padding-box,
+    conic-gradient(from var(--mk-angle), #c2410c, #f2b544, #be123c, #c2410c) border-box !important;
+  animation: mk-spin 5s linear infinite;
+}
+.mk-featured::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(from var(--mk-angle), #c2410c, #f2b544, #be123c, #c2410c);
+  filter: blur(26px);
+  opacity: 0.45;
+  animation: mk-spin 5s linear infinite;
+  pointer-events: none;
+}
+@keyframes mk-spin {
+  to { --mk-angle: 360deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mk-progress { display: none; }
+  .mk-featured, .mk-featured::after { animation: none; }
+}
+
+/* Savings calculator sliders: brand-filled track up to the thumb. */
+.mk-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #c2410c, #f59e0b) 0 / var(--fill, 50%) 100% no-repeat, color-mix(in srgb, var(--dd-ink, #14110f) 12%, transparent);
+  cursor: pointer;
+}
+.mk-range:focus-visible {
+  outline: 3px solid color-mix(in srgb, #c2410c 45%, transparent);
+  outline-offset: 4px;
+}
+.mk-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 3px solid #c2410c;
+  box-shadow: 0 4px 12px rgb(194 65 12 / 0.35);
+  transition: transform 0.15s;
+}
+.mk-range:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.mk-range::-moz-range-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 3px solid #c2410c;
+  box-shadow: 0 4px 12px rgb(194 65 12 / 0.35);
+}

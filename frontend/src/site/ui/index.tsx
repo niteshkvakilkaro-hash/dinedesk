@@ -1,4 +1,4 @@
-import { useRef, type ComponentType } from 'react';
+import { useEffect, useRef, type ComponentType } from 'react';
 import { useLocation } from 'react-router';
 import type { OrderSkin, ShellProps, ThemeModule } from '@/themes/types';
 import { Footer, MobileBar } from './Footer';
@@ -23,13 +23,30 @@ function Shell({ site, children }: ShellProps) {
   const root = useRef<HTMLDivElement>(null);
   const table = useActiveTable(site);
   const room = useActiveRoom(site);
-  const home = useLocation().pathname === '/';
+  const { pathname } = useLocation();
+  const home = pathname === '/';
   useRevealAll(root);
+  // A new page fades and rises in (the first one doesn't: it is already on screen).
+  const main = useRef<HTMLElement>(null);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    const el = main.current;
+    if (!el) return;
+    el.classList.remove('s-page-in');
+    void el.offsetWidth;
+    el.classList.add('s-page-in');
+  }, [pathname]);
   return (
     <div ref={root} className={`s-has-bar flex min-h-screen flex-col ${table || room ? 's-table-mode' : ''} ${IN_APP ? 's-in-app' : ''}`}>
+      {/* Reading progress along the top (CSS scroll timeline; hidden where browsers lack it). */}
+      <div className="s-progress" aria-hidden="true" />
       <BannerBar site={site} />
       {IN_APP && !home ? <AppBar site={site} /> : <Header site={site} />}
-      <main id="main" tabIndex={-1} className="flex-1 outline-none">
+      <main ref={main} id="main" tabIndex={-1} className="flex-1 outline-none">
         {children}
       </main>
       {!IN_APP && <Footer site={site} />}

@@ -53,7 +53,7 @@ export function Header({ site }: { site: SiteData }) {
   return (
     <>
       <SkipLink className="bg-t-primary text-t-on-primary" />
-      <header className={`s-header ${over ? 'is-over' : ''}`}>
+      <header className={`s-header ${over ? 'is-over' : scrolled ? 'is-scrolled' : ''}`}>
         <div className="s-wrap flex h-full items-center gap-4">
           {/* Inside the NikoBite app: back to all places. */}
           {IN_APP && <AllPlacesLink />}

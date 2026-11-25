@@ -13,6 +13,20 @@ import type { MenuItem, SiteData } from '../types';
 export const themeStyle = (site: SiteData) => getTheme(site.theme.key).style;
 
 /** Eyebrow + heading + optional lead and action, used to open every section. */
+/**
+ * A headline whose words rise one after another (.s-split, staggered by --w). Plain text for
+ * screen readers and search engines; shown at once when server-rendered or with reduced motion.
+ */
+export function SplitWords({ text }: { text: string }) {
+  const words = text.split(/(\s+)/);
+  let n = 0;
+  return (
+    <>
+      {words.map((w, i) => (/^\s+$/.test(w) ? w : <span key={i} className="s-word" style={{ ['--w' as string]: n++ }}>{w}</span>))}
+    </>
+  );
+}
+
 export function SectionHead({ eyebrow, title, lead, action, id, center = false, level = 2 }: { eyebrow?: ReactNode; title: ReactNode; lead?: ReactNode; action?: ReactNode; id?: string; center?: boolean; level?: 1 | 2 }) {
   const H = level === 1 ? 'h1' : 'h2';
   return (

@@ -41,6 +41,8 @@ export default function MarketingLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-paper">
+      {/* Reading progress along the top (CSS scroll timeline). */}
+      <div className="mk-progress" aria-hidden="true" />
       <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
           <Logo />
