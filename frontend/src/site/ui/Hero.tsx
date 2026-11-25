@@ -6,7 +6,7 @@ import { mapHref, telHref, useLocalized, whatsappHref } from '../data';
 import { SiteImg } from '../components/bits';
 import type { SiteData } from '../types';
 import { useParallax } from './motion';
-import { OpenBadge, themeStyle, useTodayHours } from './primitives';
+import { OpenBadge, themeStyle, useTodayHours, SplitWords } from './primitives';
 
 const ext = { target: '_blank', rel: 'noopener noreferrer' } as const;
 const delay = (i: number) => ({ ['--i' as string]: i });
@@ -123,8 +123,8 @@ function FullBleed({ site }: { site: SiteData }) {
       <div className="s-wrap s-grid w-full items-end gap-y-8 pb-10 pt-[calc(var(--s-header-h)+56px)] md:pb-20 md:pt-[calc(var(--s-header-h)+96px)]">
         <div className="col-span-4 md:col-span-8 lg:col-span-7">
           <p className="s-reveal s-eyebrow !text-white/85">{kicker}</p>
-          <h1 id="hero-title" className="s-reveal s-display mt-4 break-words" style={delay(1)}>
-            {site.name}
+          <h1 id="hero-title" className="s-reveal s-split s-display mt-4 break-words" style={delay(1)}>
+            <SplitWords text={site.name} />
           </h1>
           {l(site.content, 'tagline') && (
             <p className="s-reveal mt-5 max-w-xl text-lg leading-relaxed text-white/90 md:text-xl" style={delay(2)}>
@@ -157,8 +157,8 @@ function Split({ site }: { site: SiteData }) {
       <div className="s-wrap s-grid items-center gap-y-12">
         <div className="col-span-4 md:col-span-6">
           <p className="s-reveal s-eyebrow">{kicker}</p>
-          <h1 id="hero-title" className="s-reveal s-display mt-4 break-words" style={delay(1)}>
-            {site.name}
+          <h1 id="hero-title" className="s-reveal s-split s-display mt-4 break-words" style={delay(1)}>
+            <SplitWords text={site.name} />
           </h1>
           {l(site.content, 'tagline') && (
             <p className="s-reveal s-lead mt-5 max-w-lg" style={delay(2)}>
@@ -203,8 +203,8 @@ function Editorial({ site }: { site: SiteData }) {
           <p className="s-eyebrow">{kicker}</p>
           <OpenBadge site={site} />
         </div>
-        <h1 id="hero-title" className="s-reveal s-display mt-8 break-words !text-[clamp(3.25rem,11vw,9.5rem)] !leading-[0.92]" style={delay(1)}>
-          {site.name}
+        <h1 id="hero-title" className="s-reveal s-split s-display mt-8 break-words !text-[clamp(3.25rem,11vw,9.5rem)] !leading-[0.92]" style={delay(1)}>
+          <SplitWords text={site.name} />
         </h1>
         {/* Phones: the actions right under the name, so they are on the first screen. */}
         <div className="mt-6 md:hidden">
@@ -259,8 +259,8 @@ function Royal({ site }: { site: SiteData }) {
         <div className="max-w-2xl">
           <span className="s-reveal s-ornament" aria-hidden="true" />
           <p className="s-reveal s-eyebrow s-hero-kicker mt-4" style={delay(1)}>{kicker}</p>
-          <h1 id="hero-title" className="s-reveal s-display mt-3 break-words" style={delay(1)}>
-            {site.name}
+          <h1 id="hero-title" className="s-reveal s-split s-display mt-3 break-words" style={delay(1)}>
+            <SplitWords text={site.name} />
           </h1>
           {tagline && (
             <p className="s-reveal mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg md:text-xl" style={delay(2)}>

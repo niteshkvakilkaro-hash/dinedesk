@@ -3,7 +3,9 @@ import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { MessageCircle, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { cartCount, cartEstimate, lineExtras, MAX_QTY, useCart, type CartLine } from '../cart';
-import { useLocalized, useOpenStatus, useSite, whatsappHref } from '../data';
+import { useLocalized, useOpenStatus, useSite, useSiteMenu, whatsappHref } from '../data';
+import { AddButton } from './AddToCart';
+import { pairings } from './pairings';
 import { FoodTypeMark } from '../components/bits';
 import { useMoney, useQuote } from '../ordering';
 import type { OrderType, Quote, SiteData } from '../types';
@@ -89,6 +91,47 @@ function CartLines() {
   );
 }
 
+/** "Goes well with": up to three dishes that round off the order, one tap to add. */
+function GoesWellWith() {
+  const { t } = useTranslation();
+  const l = useLocalized();
+  const money = useMoney();
+  const skin = useSkin();
+  const { data: menu } = useSiteMenu();
+  const lines = useCart((s) => s.lines);
+  const picks = pairings(menu, lines.map((x) => x.item_id));
+  if (!picks.length) return null;
+  return (
+    <section aria-labelledby="pair-title" className="border-t border-t-line pt-4">
+      <h3 id="pair-title" className="font-semibold">{t('order.goesWell')}</h3>
+      <p className="text-sm text-t-muted">{t('order.goesWellHint')}</p>
+      <ul className="mt-3 grid grid-cols-3 gap-2">
+        {picks.map((item, i) => (
+          <li key={item.id} className={`s-pair flex min-w-0 flex-col overflow-hidden ${skin.card}`} style={{ ['--i' as string]: i }}>
+            {item.image ? (
+              <img src={item.image.src} alt="" loading="lazy" className="aspect-square w-full object-cover" />
+            ) : (
+              <div className="flex aspect-square w-full items-center justify-center bg-t-primary/10 text-2xl font-bold text-t-primary" aria-hidden="true">
+                {(l(item, 'name') ?? item.name).slice(0, 1)}
+              </div>
+            )}
+            <div className="flex flex-1 flex-col gap-1 p-2">
+              <p className="flex items-start gap-1 text-sm font-semibold leading-tight">
+                <FoodTypeMark type={item.food_type} />
+                <span className="line-clamp-2">{l(item, 'name')}</span>
+              </p>
+              <p className="text-sm tabular-nums text-t-muted">{money(item.variants.find((v) => v.is_default)?.price ?? item.price)}</p>
+              <div className="mt-auto pt-1">
+                <AddButton item={item} className="!min-h-9 w-full justify-center !px-2" />
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 /** The order as a WhatsApp message to the business: dishes, quantities, prices, then lines for the guest to fill in. */
 export function whatsappOrder(lines: CartLine[], business: string, money: (v: number) => string, t: (k: string, o?: Record<string, unknown>) => string) {
   const rows = lines.map((l) => {
@@ -139,7 +182,7 @@ export function Cart() {
           ref={button}
           type="button"
           onClick={() => setOpen(true)}
-          className={`fixed bottom-6 right-6 z-50 hidden min-h-14 items-center gap-3 px-5 shadow-xl md:flex ${skin.primary}`}
+          className={`s-rise fixed bottom-6 right-6 z-50 hidden min-h-14 items-center gap-3 px-5 shadow-xl md:flex ${skin.primary}`}
           style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
           aria-label={t('order.viewCart', { count })}
         >
@@ -212,6 +255,7 @@ export function Cart() {
               <p className={`px-3 py-2 text-sm ${skin.card}`}>{site.ordering.scheduling.enabled ? t('order.closedSchedule') : t('order.closedNoSchedule')}</p>
             )}
             <CartLines />
+            <GoesWellWith />
           </div>
         )}
       </SiteDialog>

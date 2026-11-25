@@ -1781,6 +1781,8 @@
     "yourOrder": "Your order",
     "emptyTitle": "Your order is empty",
     "emptyText": "Add dishes from the menu to get started.",
+    "goesWell": "Goes well with",
+    "goesWellHint": "Add one more to round off your order",
     "checkout": "Checkout",
     "checkoutTitle": "Checkout",
     "trackTitle": "Your order",
@@ -3870,6 +3872,22 @@
     "pricing": {
       "title": "Simple plans",
       "lead": "Start with a free trial. Upgrade, downgrade or cancel from your dashboard."
+    },
+    "savings": {
+      "title": "How much are delivery apps taking?",
+      "lead": "Move the sliders to see what commission costs you, and what you keep with your own ordering website.",
+      "orders": "Online orders per month",
+      "avg": "Average order value",
+      "pct": "Delivery app commission",
+      "note": "An estimate. Payment gateway and delivery charges are not included.",
+      "monthly": "Commission paid every month",
+      "yearly": "In a year",
+      "plan": "NikoBite {{plan}} plan",
+      "planNone": "NikoBite plan",
+      "perMonth": "{{amount}}/month",
+      "kept": "You could keep every year",
+      "zero": "0% commission on orders from your own website.",
+      "cta": "Start your free trial"
     },
     "faq": {
       "title": "Questions owners ask",

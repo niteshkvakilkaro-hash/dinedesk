@@ -1778,3 +1778,141 @@
   .s-pop { animation: none; }
   .s-cart-bump { animation-duration: 0.01s; }
 }
+
+/*
+ * Premium motion for every theme (uses each theme's own --t-dur / --t-ease / --t-stagger).
+ * Transform and opacity only; nothing hides content when server-rendered or with reduced motion.
+ */
+/* Hero name: the words rise one after another. */
+.s-split.s-reveal {
+  opacity: 1;
+  transform: none;
+}
+.s-split .s-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.45em) rotate(2deg);
+  transform-origin: 0 100%;
+  transition:
+    opacity var(--t-dur) var(--t-ease),
+    transform var(--t-dur) var(--t-ease);
+  transition-delay: calc(0.12s + var(--w, 0) * 0.09s);
+}
+.s-split.is-in .s-word {
+  opacity: 1;
+  transform: none;
+}
+html[data-ssr] .s-split .s-word,
+[data-reduce-motion] .s-split .s-word {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* Page change: the new page fades and rises in. */
+.s-page-in {
+  animation: s-page-in var(--t-dur, 0.5s) var(--t-ease, ease) both;
+}
+@keyframes s-page-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Reading progress bar (scroll-driven; browsers without scroll timelines simply don't show it). */
+.s-progress {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  .s-progress {
+    display: block;
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 70;
+    height: 3px;
+    background: linear-gradient(90deg, var(--t-primary), var(--t-accent));
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    pointer-events: none;
+    animation: s-progress linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes s-progress {
+  to { transform: scaleX(1); }
+}
+
+/* Header: depth once the page moves under it. */
+.s-header.is-scrolled {
+  box-shadow: 0 1px 0 var(--t-line), 0 10px 30px -18px rgb(0 0 0 / 0.35);
+}
+
+/* Floating cart bar rises in when the first dish is added. */
+.s-rise {
+  animation: s-rise 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes s-rise {
+  from { opacity: 0; transform: translateY(24px) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Dish photos: a soft sheen sweeps across on hover. */
+@media (hover: hover) {
+  .s-card-hover .s-media {
+    position: relative;
+  }
+  .s-card-hover .s-media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.28) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.9s var(--t-ease);
+  }
+  .s-card-hover:hover .s-media::after {
+    transform: translateX(120%);
+  }
+}
+
+/* Buttons press in. */
+.s-btn:active,
+.s-add:active {
+  transform: scale(0.97);
+}
+
+[data-reduce-motion] .s-page-in,
+[data-reduce-motion] .s-rise,
+[data-reduce-motion] .s-progress {
+  animation: none;
+}
+[data-reduce-motion] .s-progress {
+  display: none;
+}
+[data-reduce-motion] .s-card-hover .s-media::after {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .s-page-in, .s-rise { animation: none; }
+  .s-progress { display: none; }
+}
+
+/* Cart "Goes well with" cards rise in one after another. */
+.s-pair {
+  animation: s-pair 0.45s var(--t-ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
+  animation-delay: calc(0.08s + var(--i, 0) * 0.07s);
+}
+@keyframes s-pair {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+[data-reduce-motion] .s-pair,
+html[data-ssr] .s-pair {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .s-pair {
+    animation: none;
+  }
+}

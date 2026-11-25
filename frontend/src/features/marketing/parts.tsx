@@ -78,7 +78,7 @@ export function Plans() {
       {plans.data.plans.map((p) => {
         const featured = p.code === trial.plan;
         return (
-          <article key={p.code} className={`relative flex flex-col rounded-3xl border p-6 sm:p-7 ${featured ? 'border-ink bg-ink text-paper shadow-xl' : 'border-line bg-surface'}`}>
+          <article key={p.code} className={`relative flex flex-col rounded-3xl border p-6 transition-transform duration-300 hover:-translate-y-1 sm:p-7 ${featured ? 'mk-featured border-ink bg-ink text-paper shadow-xl' : 'border-line bg-surface hover:shadow-xl hover:shadow-ink/5'}`}>
             <h3 className="text-xl font-extrabold">{p.name}</h3>
             <p className={`mt-1 text-sm ${featured ? 'text-paper/75' : 'text-muted'}`}>{p.description}</p>
             <p className="mt-5 text-3xl font-extrabold tabular-nums">
